@@ -16,12 +16,12 @@ project "Cobalt Bindings"
 
     filter "configurations:Debug"
         postbuildcommands {
-            "{COPY} %{sln.location}/dependencies/GLFW@3.3.3/bin/Debug/GLFW.dll %{binaries}"
+            "{COPY} %{sln.location}/dependencies/GLFW@3.3.3/bin/Debug/GLFW.dll %{binaries}",
         }
 
     filter "configurations:Release"
         postbuildcommands {
-            "{COPY} %{sln.location}/dependencies/GLFW@3.3.3/bin/Release/GLFW.dll %{binaries}"
+            "{COPY} %{sln.location}/dependencies/GLFW@3.3.3/bin/Release/GLFW.dll %{binaries}",
         }
 
     filter "system:windows"

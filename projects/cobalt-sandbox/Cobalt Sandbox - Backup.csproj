@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Cobalt</RootNamespace>
+    <RootNamespace>Cobalt.Sandbox</RootNamespace>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
@@ -11,7 +11,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\..\bin\Debug\windows\</OutputPath>
-    <IntermediateOutputPath>..\..\bin-int\Debug\windows\Debug\Cobalt\</IntermediateOutputPath>
+    <IntermediateOutputPath>..\..\bin-int\Debug\windows\Debug\Cobalt Sandbox\</IntermediateOutputPath>
     <DefineConstants>COBALT_PLATFORM_WINDOWS</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -21,7 +21,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\..\bin\Release\windows\</OutputPath>
-    <IntermediateOutputPath>..\..\bin-int\Release\windows\Release\Cobalt\</IntermediateOutputPath>
+    <IntermediateOutputPath>..\..\bin-int\Release\windows\Release\Cobalt Sandbox\</IntermediateOutputPath>
     <DefineConstants>COBALT_PLATFORM_WINDOWS</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -31,7 +31,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\..\bin\Dist\windows\</OutputPath>
-    <IntermediateOutputPath>..\..\bin-int\Dist\windows\Dist\Cobalt\</IntermediateOutputPath>
+    <IntermediateOutputPath>..\..\bin-int\Dist\windows\Dist\Cobalt Sandbox\</IntermediateOutputPath>
     <DefineConstants>COBALT_PLATFORM_WINDOWS</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -39,12 +39,14 @@
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Core\Window.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="obj\Debug\netcoreapp3.1\.NETCoreApp,Version=v3.1.AssemblyAttributes.cs" />
+    <Compile Include="obj\Debug\netcoreapp3.1\Cobalt Sandbox.AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\cobalt-bindings\Cobalt Bindings.csproj">
-      <Project>{88923C1F-F41D-AAE3-FD2E-2DD8693906E4}</Project>
-      <Name>Cobalt Bindings</Name>
+    <ProjectReference Include="..\cobalt\Cobalt.csproj">
+      <Project>{FAAE38AC-E650-6382-CF0B-77D6BB4CEAD2}</Project>
+      <Name>Cobalt</Name>
     </ProjectReference>
   </ItemGroup>
 </Project>

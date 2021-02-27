@@ -11,7 +11,7 @@ project "Cobalt Bindings"
     platformtarget "x86_64"
 
     files {
-        "src/**.cs"
+        "**.cs"
     }
 
     filter "configurations:Debug"

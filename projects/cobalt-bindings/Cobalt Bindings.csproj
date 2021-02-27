@@ -39,10 +39,10 @@
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="src\GLFW.cs" />
-    <Compile Include="src\GLFWHint.cs" />
-    <Compile Include="src\GLFWMonitor.cs" />
-    <Compile Include="src\GLFWWindow.cs" />
+    <Compile Include="GLFW\GLFW.cs" />
+    <Compile Include="GLFW\GLFWHint.cs" />
+    <Compile Include="GLFW\GLFWMonitor.cs" />
+    <Compile Include="GLFW\GLFWWindow.cs" />
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>IF EXIST $(SolutionDir)\dependencies\GLFW@3.3.3\bin\Debug\GLFW.dll\ (xcopy /Q /E /Y /I $(SolutionDir)\dependencies\GLFW@3.3.3\bin\Debug\GLFW.dll $(SolutionDir)\bin\Debug\windows &gt; nul) ELSE (xcopy /Q /Y /I $(SolutionDir)\dependencies\GLFW@3.3.3\bin\Debug\GLFW.dll $(SolutionDir)\bin\Debug\windows &gt; nul)</PostBuildEvent>

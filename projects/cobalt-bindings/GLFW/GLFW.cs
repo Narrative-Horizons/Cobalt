@@ -6,7 +6,7 @@ using System.Text;
 
 #pragma warning disable 0419
 
-namespace Cobalt.Bindings
+namespace Cobalt.Bindings.GLFW
 {
     [SuppressUnmanagedCodeSecurity]
     public static class GLFW

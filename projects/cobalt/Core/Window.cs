@@ -1,8 +1,8 @@
 using System;
 using System.Text;
-using Cobalt.Bindings;
+using Cobalt.Bindings.GLFW;
 
-namespace Cobalt
+namespace Cobalt.Core
 {
     public class Window
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Drawing;
 
-namespace Cobalt.Bindings
+namespace Cobalt.Bindings.GLFW
 {
     public struct GLFWMonitor : IEquatable<GLFWMonitor>
     {

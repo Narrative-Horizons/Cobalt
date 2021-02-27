@@ -1,5 +1,5 @@
 using System;
-using Cobalt;
+using Cobalt.Core;
 
 namespace Cobalt.Sandbox
 {

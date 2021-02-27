@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Cobalt.Bindings
+namespace Cobalt.Bindings.GLFW
 {
     public struct GLFWWindow : IEquatable<GLFWWindow>
     {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Cobalt.Bindings
+namespace Cobalt.Bindings.GLFW
 {
 	public enum GLFWHint
 	{

@@ -19,7 +19,7 @@ project "Cobalt Sandbox"
     }
 
     files {
-        "src/**.cs"
+        "**.cs"
     }
 
     filter "system:windows"

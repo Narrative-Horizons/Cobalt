@@ -15,7 +15,7 @@ project "Cobalt"
     }
 
     files {
-        "src/**.cs"
+        "**.cs"
     }
 
     filter "system:windows"

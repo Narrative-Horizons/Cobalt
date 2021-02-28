@@ -37,9 +37,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="Core\Window.cs" />
+    <Compile Include="Graphics\GL\GraphicsApplication.cs" />
+    <Compile Include="Graphics\GraphicsContext.cs" />
+    <Compile Include="Graphics\IGraphicsApplication.cs" />
     <Compile Include="Math\Vector2.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -37,15 +37,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-  </ItemGroup>
-  <ItemGroup>
+    <Compile Include="GLFW\GLFWEnums.cs" />
     <Compile Include="GL\EBufferBit.cs" />
     <Compile Include="GL\GL.cs" />
     <Compile Include="GLFW\GLFW.cs" />
-    <Compile Include="GLFW\GLFWErrorCode.cs" />
-    <Compile Include="GLFW\GLFWHint.cs" />
     <Compile Include="GLFW\GLFWMonitor.cs" />
-    <Compile Include="GLFW\GLFWUtil.cs" />
+    <Compile Include="GLFW\Util.cs" />
     <Compile Include="GLFW\GLFWWindow.cs" />
   </ItemGroup>
   <PropertyGroup>

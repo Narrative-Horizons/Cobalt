@@ -4,27 +4,42 @@ using System.Diagnostics.CodeAnalysis;
 using System.Security;
 using System.Text;
 
-#pragma warning disable 0419
-
 namespace Cobalt.Bindings.GLFW
 {
     [SuppressUnmanagedCodeSecurity]
     public static class GLFW
     {
-#if true
+        #region DLL Loading
+#if COBALT_PLATFORM_WINDOWS
         public const string LIBRARY = "../GLFW.dll";
 #elif COBALT_PLATFORM_MACOS
-        public const string LIBRARY = "libglfw.3"; // mac
+        public const string LIBRARY = "../libglfw.3"; // mac
 #else
-        public const string LIBRARY = "glfw";
+        public const string LIBRARY = "../glfw";
 #endif
+        #endregion
+
+        #region Callbacks
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void ErrorCallback(ErrorCode code, IntPtr message);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate void ErrorCallback(GLFWErrorCode code, IntPtr message);
+        public delegate void SizeCallback(GLFWWindow window, int width, int height);
 
-        public static readonly int True = 1;
-        public static readonly int False = 0;
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void MouseCallback(GLFWWindow window, double x, double y);
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void MouseButtonCallback(GLFWWindow window, MouseButton button, InputState state, ModifierKeys modifiers);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void CharCallback(GLFWWindow window, uint codePoint);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void KeyCallback(GLFWWindow window, Keys key, int scanCode, InputState state, ModifierKeys mods);
+        #endregion
+
+        #region DLL Imports
         [DllImport(LIBRARY, EntryPoint = "glfwInit", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool Init();
 
@@ -86,8 +101,7 @@ namespace Cobalt.Bindings.GLFW
         public static extern GLFWMonitor GetWindowMonitor(GLFWWindow window);
 
         [DllImport(LIBRARY, EntryPoint = "glfwSetWindowMonitor", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetWindowMonitor(GLFWWindow window, GLFWMonitor monitor, int x, int y, int width, int height,
-            int refreshRate);
+        public static extern void SetWindowMonitor(GLFWWindow window, GLFWMonitor monitor, int x, int y, int width, int height, int refreshRate);
 
         [DllImport(LIBRARY, EntryPoint = "glfwGetCursorPos", CallingConvention = CallingConvention.Cdecl)]
         public static extern void GetCursorPosition(GLFWWindow window, out double x, out double y);
@@ -96,7 +110,7 @@ namespace Cobalt.Bindings.GLFW
         public static extern void SetCursorPosition(GLFWWindow window, double x, double y);
 
         [DllImport(LIBRARY, EntryPoint = "glfwWindowHint", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void WindowHint(GLFWHint hint, int value);
+        public static extern void WindowHint(Hint hint, int value);
 
         [DllImport(LIBRARY, EntryPoint = "glfwWindowShouldClose", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool WindowShouldClose(GLFWWindow window);
@@ -114,24 +128,13 @@ namespace Cobalt.Bindings.GLFW
         public static extern void SetWindowOpacity(IntPtr window, float opacity);
 
         [DllImport(LIBRARY, EntryPoint = "glfwGetMonitorWorkarea", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void GetMonitorWorkArea(IntPtr monitor, out int x, out int y, out int width,
-            out int height);
+        public static extern void GetMonitorWorkArea(IntPtr monitor, out int x, out int y, out int width, out int height);
 
         [DllImport(LIBRARY, EntryPoint = "glfwCreateWindow", CallingConvention = CallingConvention.Cdecl)]
         public static extern GLFWWindow CreateWindow(int width, int height, byte[] title, GLFWMonitor monitor, GLFWWindow share);
 
-        public static GLFWWindow CreateWindow(int width, int height, [NotNull] string title, GLFWMonitor monitor, GLFWWindow share)
-        {
-            return CreateWindow(width, height, Encoding.UTF8.GetBytes(title), monitor, share);
-        }
-
         [DllImport(LIBRARY, EntryPoint = "glfwSetWindowTitle", CallingConvention = CallingConvention.Cdecl)]
         private static extern void SetWindowTitle(GLFWWindow window, byte[] title);
-
-        public static void SetWindowTitle(GLFWWindow window, string title)
-        {
-            SetWindowTitle(window, Encoding.UTF8.GetBytes(title));
-        }
 
         [DllImport(LIBRARY, EntryPoint = "glfwShowWindow", CallingConvention = CallingConvention.Cdecl)]
         public static extern void ShowWindow(GLFWWindow window);
@@ -146,17 +149,55 @@ namespace Cobalt.Bindings.GLFW
         public static extern IntPtr GetProcAddress(byte[] procName);
 
         [DllImport(LIBRARY, EntryPoint = "glfwGetError", CallingConvention = CallingConvention.Cdecl)]
-        private static extern GLFWErrorCode GetErrorPrivate(out IntPtr description);
+        private static extern ErrorCode GetErrorPrivate(out IntPtr description);
 
         [DllImport(LIBRARY, EntryPoint = "glfwSetErrorCallback", CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.FunctionPtr, MarshalTypeRef = typeof(ErrorCallback))]
         public static extern ErrorCallback SetErrorCallback(ErrorCallback errorHandler);
 
-        public static GLFWErrorCode GetError(out string description)
+        [DllImport(LIBRARY, EntryPoint = "glfwSetWindowSizeCallback", CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.FunctionPtr, MarshalTypeRef = typeof(SizeCallback))]
+        public static extern SizeCallback SetWindowSizeCallback(GLFWWindow window, SizeCallback sizeCallback);
+
+        [DllImport(LIBRARY, EntryPoint = "glfwSetCursorPosCallback", CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.FunctionPtr, MarshalTypeRef = typeof(MouseCallback))]
+        public static extern MouseCallback SetCursorPositionCallback(GLFWWindow window, MouseCallback mouseCallback);
+
+        [DllImport(LIBRARY, EntryPoint = "glfwSetMouseButtonCallback", CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.FunctionPtr, MarshalTypeRef = typeof(MouseButtonCallback))]
+        public static extern MouseButtonCallback SetMouseButtonCallback(GLFWWindow window, MouseButtonCallback mouseCallback);
+
+        [DllImport(LIBRARY, EntryPoint = "glfwSetCharCallback", CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.FunctionPtr, MarshalTypeRef = typeof(CharCallback))]
+        public static extern CharCallback SetCharCallback(GLFWWindow window, CharCallback charCallback);
+
+        [DllImport(LIBRARY, EntryPoint = "glfwSetKeyCallback", CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.FunctionPtr, MarshalTypeRef = typeof(KeyCallback))]
+        public static extern KeyCallback SetKeyCallback(GLFWWindow window, KeyCallback keyCallback);
+        #endregion
+
+        #region Public API
+        public static ErrorCode GetError(out string description)
         {
             var code = GetErrorPrivate(out var ptr);
-            description = code == GLFWErrorCode.None ? null : GLFWUtil.PtrToStringUTF8(ptr);
+            description = code == ErrorCode.None ? null : Util.PtrToStringUTF8(ptr);
             return code;
         }
+
+        public static void SetWindowTitle(GLFWWindow window, string title)
+        {
+            SetWindowTitle(window, Encoding.UTF8.GetBytes(title));
+        }
+
+        public static GLFWWindow CreateWindow(int width, int height, [NotNull] string title, GLFWMonitor monitor, GLFWWindow share)
+        {
+            return CreateWindow(width, height, Encoding.UTF8.GetBytes(title), monitor, share);
+        }
+
+        public static void WindowHint(Hint hint, Profile value) 
+        { 
+            WindowHint(hint, (int)value); 
+        }
+        #endregion
     }
 }

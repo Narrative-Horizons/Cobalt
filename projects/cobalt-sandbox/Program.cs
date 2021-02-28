@@ -1,5 +1,6 @@
 using System;
 using Cobalt.Core;
+using Cobalt.Bindings.GLFW;
 
 namespace Cobalt.Sandbox
 {
@@ -13,6 +14,8 @@ namespace Cobalt.Sandbox
             {
                 window.Refresh();
             }
+
+            GLFW.Terminate();
         }
     }
 }

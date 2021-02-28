@@ -37,12 +37,16 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="GLFW\GLFW.cs" />
-    <Compile Include="GLFW\GLFWHint.cs" />
-    <Compile Include="GLFW\GLFWMonitor.cs" />
-    <Compile Include="GLFW\GLFWWindow.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="GL\EBufferBit.cs" />
     <Compile Include="GL\GL.cs" />
+    <Compile Include="GLFW\GLFW.cs" />
+    <Compile Include="GLFW\GLFWErrorCode.cs" />
+    <Compile Include="GLFW\GLFWHint.cs" />
+    <Compile Include="GLFW\GLFWMonitor.cs" />
+    <Compile Include="GLFW\GLFWUtil.cs" />
+    <Compile Include="GLFW\GLFWWindow.cs" />
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>IF EXIST $(SolutionDir)\dependencies\GLFW@3.3.3\bin\Debug\GLFW.dll\ (xcopy /Q /E /Y /I $(SolutionDir)\dependencies\GLFW@3.3.3\bin\Debug\GLFW.dll $(SolutionDir)\bin\Debug\windows &gt; nul) ELSE (xcopy /Q /Y /I $(SolutionDir)\dependencies\GLFW@3.3.3\bin\Debug\GLFW.dll $(SolutionDir)\bin\Debug\windows &gt; nul)</PostBuildEvent>

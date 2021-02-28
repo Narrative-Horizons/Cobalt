@@ -6,7 +6,7 @@ namespace Cobalt.Core
 {
     public class Window
     {
-        private GLFWWindow window;
+        private readonly GLFWWindow window;
 
         static Window()
         {
@@ -24,13 +24,30 @@ namespace Cobalt.Core
                 Console.WriteLine("Successfully initialized GLFW");
             }
 
-            window = GLFW.CreateWindow(800, 600, "Cobalt Engine", GLFWMonitor.None, GLFWWindow.None);
+            GLFW.SetErrorCallback(GlfwError);
+
+            window = GLFW.CreateWindow(1280, 720, "Cobalt Engine", GLFWMonitor.None, GLFWWindow.None);
 
             GLFW.MakeContextCurrent(window);
             GLFW.ShowWindow(window);
 
             GL.glInit(GLFW.GetProcAddress);
             GL.ClearColor(1.0f, 0.0f, 1.0f, 1.0f);
+        }
+
+        public bool IsOpen()
+        {
+            return !GLFW.WindowShouldClose(window);
+        }
+
+        public void Close()
+        {
+            GLFW.SetWindowShouldClose(window, true);
+        }
+
+        private static void GlfwError(GLFWErrorCode code, IntPtr message)
+        {
+            throw new Exception(GLFWUtil.PtrToStringUTF8(message));
         }
 
         public void Refresh()

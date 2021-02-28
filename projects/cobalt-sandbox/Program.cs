@@ -9,7 +9,7 @@ namespace Cobalt.Sandbox
         {
             Window window = new Window();
 
-            while(true)
+            while(window.IsOpen())
             {
                 window.Refresh();
             }

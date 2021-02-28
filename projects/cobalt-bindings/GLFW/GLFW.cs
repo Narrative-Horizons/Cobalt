@@ -19,6 +19,9 @@ namespace Cobalt.Bindings.GLFW
         public const string LIBRARY = "glfw";
 #endif
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void ErrorCallback(GLFWErrorCode code, IntPtr message);
+
         public static readonly int True = 1;
         public static readonly int False = 0;
 
@@ -37,8 +40,69 @@ namespace Cobalt.Bindings.GLFW
         [DllImport(LIBRARY, EntryPoint = "glfwSetMonitorUserPointer", CallingConvention = CallingConvention.Cdecl)]
         public static extern void SetMonitorUserPointer(IntPtr monitor, IntPtr pointer);
 
+        [DllImport(LIBRARY, EntryPoint = "glfwSetWindowUserPointer", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetWindowUserPointer(GLFWWindow window, IntPtr userPointer);
+
+        [DllImport(LIBRARY, EntryPoint = "glfwGetWindowUserPointer", CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr GetWindowUserPointer(GLFWWindow window);
+
+        [DllImport(LIBRARY, EntryPoint = "glfwGetCurrentContext", CallingConvention = CallingConvention.Cdecl)]
+        private static extern GLFWWindow GetCurrentContext();
+
+        [DllImport(LIBRARY, EntryPoint = "glfwGetPrimaryMonitor", CallingConvention = CallingConvention.Cdecl)]
+        private static extern GLFWMonitor GetPrimaryMonitor();
+
+        [DllImport(LIBRARY, EntryPoint = "glfwMaximizeWindow", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void MaximizeWindow(GLFWWindow window);
+
+        [DllImport(LIBRARY, EntryPoint = "glfwGetVersionString", CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr GetVersionString();
+
+        [DllImport(LIBRARY, EntryPoint = "glfwGetTime", CallingConvention = CallingConvention.Cdecl)]
+        private static extern double GetTime();
+
+        [DllImport(LIBRARY, EntryPoint = "glfwSetTime", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void SetTime(double time);
+
+        [DllImport(LIBRARY, EntryPoint = "glfwGetTimerFrequency", CallingConvention = CallingConvention.Cdecl)]
+        private static extern ulong GetTimerFrequency();
+
+        [DllImport(LIBRARY, EntryPoint = "glfwGetTimerValue", CallingConvention = CallingConvention.Cdecl)]
+        private static extern ulong GetTimerValue();
+
+        [DllImport(LIBRARY, EntryPoint = "glfwGetVersion", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void GetVersion(out int major, out int minor, out int revision);
+
+        [DllImport(LIBRARY, EntryPoint = "glfwSwapInterval", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SwapInterval(int interval);
+
+        [DllImport(LIBRARY, EntryPoint = "glfwGetVideoMode", CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr GetVideoModeInternal(GLFWMonitor monitor);
+
+        [DllImport(LIBRARY, EntryPoint = "glfwGetVideoModes", CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr GetVideoModes(GLFWMonitor monitor, out int count);
+
+        [DllImport(LIBRARY, EntryPoint = "glfwGetWindowMonitor", CallingConvention = CallingConvention.Cdecl)]
+        public static extern GLFWMonitor GetWindowMonitor(GLFWWindow window);
+
+        [DllImport(LIBRARY, EntryPoint = "glfwSetWindowMonitor", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetWindowMonitor(GLFWWindow window, GLFWMonitor monitor, int x, int y, int width, int height,
+            int refreshRate);
+
+        [DllImport(LIBRARY, EntryPoint = "glfwGetCursorPos", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void GetCursorPosition(GLFWWindow window, out double x, out double y);
+
+        [DllImport(LIBRARY, EntryPoint = "glfwSetCursorPos", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetCursorPosition(GLFWWindow window, double x, double y);
+
         [DllImport(LIBRARY, EntryPoint = "glfwWindowHint", CallingConvention = CallingConvention.Cdecl)]
         public static extern void WindowHint(GLFWHint hint, int value);
+
+        [DllImport(LIBRARY, EntryPoint = "glfwWindowShouldClose", CallingConvention = CallingConvention.Cdecl)]
+        public static extern bool WindowShouldClose(GLFWWindow window);
+
+        [DllImport(LIBRARY, EntryPoint = "glfwSetWindowShouldClose", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetWindowShouldClose(GLFWWindow window, bool close);
 
         [DllImport(LIBRARY, EntryPoint = "glfwMakeContextCurrent", CallingConvention = CallingConvention.Cdecl)]
         public static extern void MakeContextCurrent(GLFWWindow window);
@@ -48,12 +112,6 @@ namespace Cobalt.Bindings.GLFW
 
         [DllImport(LIBRARY, EntryPoint = "glfwSetWindowOpacity", CallingConvention = CallingConvention.Cdecl)]
         public static extern void SetWindowOpacity(IntPtr window, float opacity);
-
-        [DllImport(LIBRARY, EntryPoint = "glfwWindowHintString", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void WindowHintString(GLFWHint hint, byte[] value);
-
-        [DllImport(LIBRARY, EntryPoint = "glfwGetWindowContentScale", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void GetWindowContentScale(IntPtr window, out float xScale, out float yScale);
 
         [DllImport(LIBRARY, EntryPoint = "glfwGetMonitorWorkarea", CallingConvention = CallingConvention.Cdecl)]
         public static extern void GetMonitorWorkArea(IntPtr monitor, out int x, out int y, out int width,
@@ -67,6 +125,14 @@ namespace Cobalt.Bindings.GLFW
             return CreateWindow(width, height, Encoding.UTF8.GetBytes(title), monitor, share);
         }
 
+        [DllImport(LIBRARY, EntryPoint = "glfwSetWindowTitle", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void SetWindowTitle(GLFWWindow window, byte[] title);
+
+        public static void SetWindowTitle(GLFWWindow window, string title)
+        {
+            SetWindowTitle(window, Encoding.UTF8.GetBytes(title));
+        }
+
         [DllImport(LIBRARY, EntryPoint = "glfwShowWindow", CallingConvention = CallingConvention.Cdecl)]
         public static extern void ShowWindow(GLFWWindow window);
 
@@ -78,5 +144,19 @@ namespace Cobalt.Bindings.GLFW
 
         [DllImport(LIBRARY, EntryPoint = "glfwGetProcAddress", CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr GetProcAddress(byte[] procName);
+
+        [DllImport(LIBRARY, EntryPoint = "glfwGetError", CallingConvention = CallingConvention.Cdecl)]
+        private static extern GLFWErrorCode GetErrorPrivate(out IntPtr description);
+
+        [DllImport(LIBRARY, EntryPoint = "glfwSetErrorCallback", CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.FunctionPtr, MarshalTypeRef = typeof(ErrorCallback))]
+        public static extern ErrorCallback SetErrorCallback(ErrorCallback errorHandler);
+
+        public static GLFWErrorCode GetError(out string description)
+        {
+            var code = GetErrorPrivate(out var ptr);
+            description = code == GLFWErrorCode.None ? null : GLFWUtil.PtrToStringUTF8(ptr);
+            return code;
+        }
     }
 }

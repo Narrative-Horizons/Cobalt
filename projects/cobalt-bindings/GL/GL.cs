@@ -7,11 +7,15 @@ namespace Cobalt.Bindings.GL
 {
     public static class GL
     {
+        #region Delegates
         private delegate void ClearProc(EBufferBit mask);
-        private static ClearProc glClear;
-
         private delegate void ClearColorProc(float r, float g, float b, float a);
+        #endregion
+
+        #region NativeFunctions
+        private static ClearProc glClear;
         private static ClearColorProc glClearColor;
+        #endregion
 
         public static void Clear(EBufferBit mask)
         {

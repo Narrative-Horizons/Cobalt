@@ -1,0 +1,60 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Cobalt.Graphics
+{
+    public sealed class QueueProperties
+    {
+        public bool Graphics { get; internal set; }
+        public bool Transfer { get; internal set; }
+        public bool Compute { get; internal set; }
+        public bool Present { get; internal set; }
+    }
+
+    public interface IQueue : IDisposable
+    {
+        public class CreateInfo
+        {
+            public sealed class Builder : CreateInfo
+            {
+                public new Builder QueueIndex(uint index)
+                {
+                    base.QueueIndex = index;
+                    return this;
+                }
+
+                public new Builder FamilyIndex(uint index)
+                {
+                    base.FamilyIndex = index;
+                    return this;
+                }
+
+                public new Builder Properties(QueueProperties properties)
+                {
+                    base.Properties = properties;
+                    return this;
+                }
+
+                public CreateInfo Build()
+                {
+                    var info = new CreateInfo();
+                    info.FamilyIndex = base.FamilyIndex;
+                    info.QueueIndex = base.QueueIndex;
+                    info.Properties = base.Properties;
+                    return info;
+                }
+            }
+
+            public uint QueueIndex { get; private set; }
+            public uint FamilyIndex { get; private set; }
+            public QueueProperties Properties { get; private set; }
+        }
+
+        uint GetQueueIndex();
+
+        uint GetFamilyIndex();
+
+        QueueProperties GetProperties();
+    }
+}

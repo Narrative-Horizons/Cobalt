@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Cobalt.Bindings.Utils;
+using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -9,6 +10,7 @@ namespace Cobalt.Bindings.GL
         #region Delegates
         private delegate void PFNGLClearProc(EBufferBit mask);
         private delegate void PFNGLClearColorProc(float r, float g, float b, float a);
+        private delegate IntPtr PFNGLGetString(EPropertyName name);
         #region GL46
         private delegate void PFNGLMultiDrawElementsIndirectCount(int mode, int type, IntPtr indirect, IntPtr drawCount, uint maxDrawCount, uint stride);
         #endregion
@@ -17,6 +19,7 @@ namespace Cobalt.Bindings.GL
         #region NativeFunctions
         private static PFNGLClearProc glClear;
         private static PFNGLClearColorProc glClearColor;
+        private static PFNGLGetString glGetString;
         private static PFNGLMultiDrawElementsIndirectCount glMultiDrawElementsIndirectCount;
         #endregion
 
@@ -30,6 +33,11 @@ namespace Cobalt.Bindings.GL
             glClearColor.Invoke(r, g, b, a);
         }
 
+        public static string GetString(EPropertyName name)
+        {
+            return Util.PtrToStringUTF8(glGetString.Invoke(name));
+        }
+
         public static void MultiDrawElementsIndirectCount(int mode, int type, IntPtr indirect, IntPtr drawCount, uint maxDrawCount, uint stride)
         {
             glMultiDrawElementsIndirectCount.Invoke(mode, type, indirect, drawCount, maxDrawCount, stride);
@@ -41,6 +49,7 @@ namespace Cobalt.Bindings.GL
             
             glClear = load(getProc<PFNGLClearProc>, "glClear");
             glClearColor = load(getProc<PFNGLClearColorProc>, "glClearColor");
+            glGetString = load(getProc<PFNGLGetString>, "glGetString");
             glMultiDrawElementsIndirectCount = load(getProc<PFNGLMultiDrawElementsIndirectCount>, "glMultiDrawElementsIndirectCount");
         }
 

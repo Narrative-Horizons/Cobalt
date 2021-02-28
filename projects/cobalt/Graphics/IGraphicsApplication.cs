@@ -17,7 +17,7 @@ namespace Cobalt.Graphics
             /// <summary>
             /// Builder for <see cref="CreateInfo" />. 
             /// </summary>
-            public class Builder : CreateInfo
+            public sealed class Builder : CreateInfo
             {
                 /// <summary>
                 /// Sets the name of the application.
@@ -58,11 +58,13 @@ namespace Cobalt.Graphics
             /// Name of the application.
             /// </summary>
             public string Name { get; private set; }
-            
+
             /// <summary>
             /// Debug runtime enabled.
             /// </summary>
             public bool Debug { get; private set; }
         }
+
+        public List<IPhysicalDevice> GetPhysicalDevices();
     }
 }

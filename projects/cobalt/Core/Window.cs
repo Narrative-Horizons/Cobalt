@@ -1,6 +1,7 @@
 using System;
 using Cobalt.Bindings.GL;
 using Cobalt.Bindings.GLFW;
+using Cobalt.Bindings.Utils;
 
 namespace Cobalt.Core
 {

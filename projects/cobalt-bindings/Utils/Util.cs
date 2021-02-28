@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Cobalt.Bindings.GLFW
+namespace Cobalt.Bindings.Utils
 {
     public class Util
     {

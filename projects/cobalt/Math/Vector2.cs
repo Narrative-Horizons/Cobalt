@@ -32,6 +32,12 @@ namespace Cobalt.Math
             this.y = y;
         }
 
+        public Vector2(Vector2 vec)
+        {
+            x = vec.x;
+            y = vec.y;
+        }
+
         public float this[int index]
         {
             get
@@ -83,6 +89,38 @@ namespace Cobalt.Math
 
             x *= scale;
             y *= scale;
+        }
+
+        public float Dot(Vector2 right) => (x * right.x) + (y * right.y);
+
+        public static float Dot(Vector2 left, Vector2 right) => left.Dot(right);
+
+        public static Vector2 Reflect(Vector2 inbound, Vector2 normal)
+        {
+            float dot = Dot(inbound, normal);
+            float dot2 = 2 * dot;
+
+            Vector2 scaledNormal = normal * dot2;
+
+            return inbound - scaledNormal;
+        }
+
+        public static Vector2 Refract(Vector2 inbound, Vector2 normal, float eta)
+        {
+            float dot = Dot(inbound, normal);
+            float dot2 = dot * dot;
+            float eta2 = eta * eta;
+
+            float k = 1.0f - eta2 * (1 - dot2);
+            if(k < 0)
+            {
+                return Zero;
+            }
+
+            Vector2 scaledInbound = inbound * eta;
+            Vector2 scaledNormal = normal * (eta * dot + MathF.Sqrt(k));
+
+            return scaledInbound - scaledNormal;
         }
 
         public static readonly Vector2 UnitX = new Vector2(1, 0);

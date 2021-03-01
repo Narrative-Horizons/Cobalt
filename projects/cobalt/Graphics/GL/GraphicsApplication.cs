@@ -28,6 +28,7 @@ namespace Cobalt.Graphics.GL
         public void Dispose()
         {
             _devices.ForEach(device => device.Dispose());
+            _devices.Clear();
         }
 
         public List<IPhysicalDevice> GetPhysicalDevices()

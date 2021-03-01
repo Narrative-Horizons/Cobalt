@@ -1,5 +1,8 @@
-﻿using System;
+﻿using GLAD = Cobalt.Bindings.GL.GL;
+using Cobalt.Bindings.GLFW;
+using System;
 using System.Collections.Generic;
+
 
 namespace Cobalt.Graphics
 {
@@ -20,6 +23,19 @@ namespace Cobalt.Graphics
 
         private static GraphicsContext _context;
         private readonly List<IGraphicsApplication> _applications = new List<IGraphicsApplication>();
+        private readonly List<Window> _windows = new List<Window>();
+
+        static GraphicsContext()
+        {
+            if (!GLFW.Init())
+            {
+                Console.WriteLine("Error on GLFW Init");
+            }
+            else
+            {
+                Console.WriteLine("Successfully initialized GLFW");
+            }
+        }
 
         private GraphicsContext(API api)
         {
@@ -65,12 +81,32 @@ namespace Cobalt.Graphics
             throw new InvalidOperationException("Selected API does not support function.");
         }
 
+        public Window CreateWindow(Window.CreateInfo info)
+        {
+            Window window = new Window(info);
+            _windows.Add(window);
+
+            if (GLAD.LoadGLProcAddress(GLFW.GetProcAddress))
+            {
+                Console.WriteLine("Successfully loaded GLAD.");
+            }
+            else
+            {
+                Console.WriteLine("Error on GLAD Init");
+            }
+
+            return window;
+        }
+
         public void Dispose()
         {
-            _applications.ForEach(application =>
-            {
-                application.Dispose();
-            });
+            _applications.ForEach(application => application.Dispose());
+            _windows.ForEach(window => window.Close());
+
+            _applications.Clear();
+            _windows.Clear();
+
+            GLFW.Terminate();
         }
     }
 }

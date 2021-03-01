@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace Cobalt.Bindings.GL
 {
-    public class GL
+    public static class GL
     {
         #region DLL Loading
 #if COBALT_PLATFORM_WINDOWS

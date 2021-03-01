@@ -1,7 +1,7 @@
 ﻿using OpenGL = Cobalt.Bindings.GL.GL;
-using GLPropertyName = Cobalt.Bindings.GL.EPropertyName;
 
 using System.Collections.Generic;
+using Cobalt.Bindings.GL;
 
 namespace Cobalt.Graphics.GL
 {
@@ -12,11 +12,10 @@ namespace Cobalt.Graphics.GL
         public GraphicsApplication(IGraphicsApplication.CreateInfo info)
         {
             Info = info;
+            string renderer = OpenGL.GetString(EPropertyName.Renderer);
+            string vendor = OpenGL.GetString(EPropertyName.Vendor);
 
-            var renderer = OpenGL.GetString(GLPropertyName.Renderer);
-            var vendor = OpenGL.GetString(GLPropertyName.Vendor);
-
-            var device = new PhysicalDevice(new IPhysicalDevice.CreateInfo.Builder()
+            PhysicalDevice device = new PhysicalDevice(new IPhysicalDevice.CreateInfo.Builder()
                 .Debug(Info.Debug)
                 .Name(vendor + " - " + renderer)
                 .Build(),

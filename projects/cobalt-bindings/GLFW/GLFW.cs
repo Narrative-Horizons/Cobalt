@@ -147,10 +147,7 @@ namespace Cobalt.Bindings.GLFW
         public static extern void PollEvents();
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_glfw_get_proc_address", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr GetProcAddress(byte[] procName);
-
-        [DllImport(LIBRARY, EntryPoint = "cobalt_glfw_get_proc_address_ptr", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr GetProcAddressPtr();
+        public static extern IntPtr GetProcAddress(IntPtr procName);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_glfw_get_error", CallingConvention = CallingConvention.Cdecl)]
         private static extern ErrorCode GetErrorPrivate(out IntPtr description);

@@ -24,5 +24,7 @@ namespace Cobalt.Bindings.Utils
 
             return "";
         }
+
+        public delegate IntPtr FunctionLoader(byte[] name);
     }
 }

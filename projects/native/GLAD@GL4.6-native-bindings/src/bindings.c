@@ -4,7 +4,7 @@
 
 #define GLAD_BINDING_EXPORT __declspec(dllexport)
 
-GLAD_BINDING_EXPORT int cobalt_glad_load_gl_proc_address(void* loader_func)
+GLAD_BINDING_EXPORT int cobalt_glad_load_gl_proc_address(GLADloadproc loader_func)
 {
 	return gladLoadGLLoader(loader_func);
 }

@@ -356,5 +356,6 @@ Makefile
 *.vcxproj
 *.vcxproj.filters
 *.vcxproj.user
+*.csproj
 *.sln
 *.vs/

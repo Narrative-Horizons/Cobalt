@@ -1,5 +1,5 @@
 using System;
-using Cobalt.Bindings.GL;
+using System.Text;
 using Cobalt.Bindings.GLAD;
 using Cobalt.Bindings.GLFW;
 using Cobalt.Bindings.Utils;
@@ -33,7 +33,8 @@ namespace Cobalt.Core
 
             GLFW.SetWindowSizeCallback(_window, Resize);
 
-            if (GLAD.LoadGLProcAddress(GLFW.GetProcAddressPtr()))
+            //Environment.Exit(0);
+            if (GLAD.LoadGLProcAddress(GLFW.GetProcAddress))
             {
                 Console.WriteLine("Successfully loaded GLAD.");
             }

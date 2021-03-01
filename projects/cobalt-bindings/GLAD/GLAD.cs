@@ -2,6 +2,7 @@
 using Cobalt.Bindings.GL;
 using System;
 using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 
 namespace Cobalt.Bindings.GLAD
 {
@@ -19,6 +20,9 @@ namespace Cobalt.Bindings.GLAD
 
         #region Delegates
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate IntPtr GLProcAddressLoader(IntPtr procname);
+
         #endregion
 
         #region Private Functions
@@ -29,7 +33,7 @@ namespace Cobalt.Bindings.GLAD
         #endregion
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_glad_load_gl_proc_address", CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool LoadGLProcAddress(IntPtr func);
+        public static extern bool LoadGLProcAddress(GLProcAddressLoader func);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_glad_gl_clear_color", CallingConvention = CallingConvention.Cdecl)]
         public static extern void ClearColor(float r, float g, float b, float a);

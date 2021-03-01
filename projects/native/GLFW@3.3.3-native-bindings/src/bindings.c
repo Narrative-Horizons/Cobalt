@@ -179,12 +179,7 @@ GLFW_BINDING_EXPORT void cobalt_glfw_poll_events(void)
 
 GLFW_BINDING_EXPORT void* cobalt_glfw_get_proc_address(const char* procname)
 {
-	glfwGetProcAddress(procname);
-}
-
-GLFW_BINDING_EXPORT void* cobalt_glfw_get_proc_address_ptr()
-{
-	return glfwGetProcAddress;
+	return glfwGetProcAddress(procname);
 }
 
 GLFW_BINDING_EXPORT int32_t cobalt_glfw_get_error(const char** description)

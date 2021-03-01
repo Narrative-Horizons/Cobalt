@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Cobalt.Graphics
 {
-    public class GraphicsContext
+    public class GraphicsContext : IDisposable
     {
         /// <summary>
         /// Supported graphics APIs.
@@ -63,6 +63,14 @@ namespace Cobalt.Graphics
             }
 
             throw new InvalidOperationException("Selected API does not support function.");
+        }
+
+        public void Dispose()
+        {
+            _applications.ForEach(application =>
+            {
+                application.Dispose();
+            });
         }
     }
 }

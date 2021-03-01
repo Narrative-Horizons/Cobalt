@@ -42,6 +42,33 @@ namespace Cobalt.Bindings.GL
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_create_textures", CallingConvention = CallingConvention.Cdecl)]
         public static extern void CreateTextures(ETextureTarget target, uint amount, uint[] textures);
 
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_create_buffers", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void CreateBuffers(uint amount, uint[] buffers);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_named_buffer_storage", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void NamedBufferStorage(uint buffer, long size, object data, EMapBit flags);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_delete_buffers", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void DeleteBuffers(uint amount, uint[] buffers);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_map_named_buffer", CallingConvention = CallingConvention.Cdecl)]
+        public static extern object MapNamedBuffer(uint buffer, EAccessType access);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_map_named_buffer_range", CallingConvention = CallingConvention.Cdecl)]
+        public static extern object MapNamedBufferRange(uint buffer, long offset, long length, EAccessType access);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_unmap_named_buffer", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void UnmapNamedBuffer(uint buffer);
+
+
+        public static uint CreateBuffers()
+        {
+            uint[] buffers = new uint[1];
+            CreateBuffers(1, buffers);
+
+            return buffers[0];
+        }
+
         public static uint CreateTextures(ETextureTarget target)
         {
             uint[] images = new uint[1];
@@ -50,6 +77,11 @@ namespace Cobalt.Bindings.GL
             return images[0];
         }
 
+        public static void DeleteBuffers(uint buffer)
+        {
+            uint[] buffers = { buffer };
+            DeleteBuffers(1, buffers);
+        }
 
         public static string GetString(EPropertyName name)
         {

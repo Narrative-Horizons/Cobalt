@@ -28,3 +28,35 @@ GLAD_BINDING_EXPORT void cobalt_gl_create_textures(unsigned int target, unsigned
 {
 	glCreateTextures(target, amount, textures);
 }
+
+GLAD_BINDING_EXPORT void cobalt_gl_create_buffers(unsigned int amount, unsigned int* buffers)
+{
+	glCreateBuffers(amount, buffers);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_named_buffer_storage(unsigned int buffer, long long int size, const void* data, unsigned int flags)
+{
+	glNamedBufferStorage(buffer, size, data, flags);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_delete_buffers(unsigned int amount, unsigned int* buffers)
+{
+	glDeleteBuffers(amount, buffers);
+}
+
+GLAD_BINDING_EXPORT void* cobalt_gl_map_named_buffer(unsigned int buffer, unsigned int access)
+{
+	return glMapNamedBuffer(buffer, access);
+}
+
+GLAD_BINDING_EXPORT void* cobalt_gl_map_named_buffer_range(unsigned int buffer, long long int offset, long long int length, unsigned int access)
+{
+	return glMapNamedBufferRange(buffer, offset, length, access);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_unmap_named_buffer(unsigned int buffer)
+{
+	glUnmapNamedBuffer(buffer);
+}
+
+

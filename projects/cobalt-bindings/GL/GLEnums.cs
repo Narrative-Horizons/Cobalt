@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Cobalt.Bindings.GL
 {
@@ -13,5 +11,23 @@ namespace Cobalt.Bindings.GL
         Texture3D = 0x806F,
         TextureCubeMap = 0x8513,
         TextureCubeMapArray = 0x9009
+    }
+
+    [Flags]
+    public enum EMapBit : uint
+    {
+        MapReadBit = 0x0001,
+        MapWriteBit = 0x0002,
+        MapPersistentBit = 0x0040,
+        MapCoherentBit = 0x0080,
+        DynamicStorageBit = 0x0100,
+        ClientStorageBit = 0x0200
+    }
+
+    public enum EAccessType : uint
+    {
+        ReadOnly = 0x88B8,
+        WriteOnly = 0x88B9,
+        ReadWrite = 0x88BA
     }
 }

@@ -9,7 +9,17 @@ namespace Cobalt.Graphics
         {
             public sealed class Builder : CreateInfo
             {
-                // TODO: Implement rest of builder
+                public new Builder Debug(bool debug)
+                {
+                    base.Debug = debug;
+                    return this;
+                }
+
+                public Builder AddQueueInformation(IQueue.CreateInfo info)
+                {
+                    QueueInformation.Add(info);
+                    return this;
+                }
                 
                 public CreateInfo Build()
                 {

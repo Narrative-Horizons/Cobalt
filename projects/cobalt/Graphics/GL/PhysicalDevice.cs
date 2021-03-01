@@ -15,6 +15,8 @@ namespace Cobalt.Graphics.GL
         public IPhysicalDevice.CreateInfo Info { get; }
         public GraphicsApplication GraphicsApplication { get; }
 
+        private readonly List<IDevice> _devices = new List<IDevice>();
+
         public bool Debug()
         {
             return Info.Debug;
@@ -22,7 +24,7 @@ namespace Cobalt.Graphics.GL
 
         public void Dispose()
         {
-            // TODO: Write me
+            _devices.ForEach(device => device.Dispose());
         }
 
         public string Name()
@@ -33,6 +35,13 @@ namespace Cobalt.Graphics.GL
         public IGraphicsApplication Owner()
         {
             return GraphicsApplication;
+        }
+
+        public IDevice Create(IDevice.CreateInfo info)
+        {
+            IDevice device = new Device(info);
+            _devices.Add(device);
+            return device;
         }
     }
 }

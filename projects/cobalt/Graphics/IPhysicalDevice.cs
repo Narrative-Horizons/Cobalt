@@ -39,6 +39,6 @@ namespace Cobalt.Graphics
 
         public bool Debug();
 
-        public IGraphicsApplication Owner();
+        public IDevice Create(IDevice.CreateInfo info);
     }
 }

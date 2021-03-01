@@ -14,6 +14,11 @@ GLAD_BINDING_EXPORT void cobalt_glad_gl_clear_color(float r, float g, float b, f
 	glClearColor(r, g, b, a);
 }
 
+GLAD_BINDING_EXPORT void cobalt_glad_gl_clear(unsigned int mask)
+{
+	glClear(mask);
+}
+
 GLAD_BINDING_EXPORT const unsigned char* cobalt_glad_gl_get_string(int name)
 {
 	return glGetString(name);

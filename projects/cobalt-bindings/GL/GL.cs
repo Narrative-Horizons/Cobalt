@@ -1,12 +1,10 @@
 ﻿using Cobalt.Bindings.Utils;
-using Cobalt.Bindings.GL;
 using System;
 using System.Runtime.InteropServices;
-using System.Runtime.CompilerServices;
 
-namespace Cobalt.Bindings.GLAD
+namespace Cobalt.Bindings.GL
 {
-    public class GLAD
+    public class GL
     {
         #region DLL Loading
 #if COBALT_PLATFORM_WINDOWS
@@ -37,6 +35,9 @@ namespace Cobalt.Bindings.GLAD
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_glad_gl_clear_color", CallingConvention = CallingConvention.Cdecl)]
         public static extern void ClearColor(float r, float g, float b, float a);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_glad_gl_clear", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Clear(EBufferBit mask);
 
         public static string GetString(EPropertyName name)
         {

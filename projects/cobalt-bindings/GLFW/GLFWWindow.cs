@@ -42,8 +42,8 @@ namespace Cobalt.Bindings.GLFW
 
         public float Opacity
         {
-            get => GLFW.GetWindowOpacity(handle);
-            set => GLFW.SetWindowOpacity(handle, Math.Min(1.0f, Math.Max(0.0f, value)));
+            get => GLFW.GetWindowOpacity(this);
+            set => GLFW.SetWindowOpacity(this, Math.Min(1.0f, Math.Max(0.0f, value)));
         }
 
         public override int GetHashCode()

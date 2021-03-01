@@ -1,4 +1,4 @@
-﻿using OpenGL = Cobalt.Bindings.GL.GL;
+﻿using OpenGL = Cobalt.Bindings.GLAD.GLAD;
 using GLPropertyName = Cobalt.Bindings.GL.EPropertyName;
 
 using System.Collections.Generic;

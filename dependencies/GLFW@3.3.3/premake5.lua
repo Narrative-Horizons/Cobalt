@@ -1,5 +1,5 @@
-project "GLFW"
-    kind "SharedLib"
+project "GLFW@3.3.3"
+    kind "StaticLib"
     language "C"
     cdialect "C11"
 
@@ -38,14 +38,9 @@ project "GLFW"
             "src/osmesa_context.c"
         }
 
-        defines {
-            "WIN32",
-_WINDOWS
-_GLFW_USE_CONFIG_H
-_UNICODE
-_CRT_SECURE_NO_WARNINGS
-CMAKE_INTDIR="Debug"
-glfw_EXPORTS
+        defines { 
+            "_GLFW_WIN32",
+            "_CRT_SECURE_NO_WARNINGS"
         }
 
     filter "system:linux"
@@ -69,6 +64,8 @@ glfw_EXPORTS
             "BUILD_SHARED_LIBS"
         }
 
+    filter {}
+
     filter "configurations:Debug"
         runtime "Debug"
         symbols "On"
@@ -77,3 +74,5 @@ glfw_EXPORTS
         optimize "Full"
         runtime "Release"
         symbols "Off"
+
+    filter {}

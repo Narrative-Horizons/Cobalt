@@ -10,19 +10,14 @@ project "Cobalt Bindings"
 
     platformtarget "x86_64"
 
+    dependson {
+        "GLAD@GL4.6-native-bindings",
+        "GLFW@3.3.3-native-bindings"
+    }
+
     files {
         "**.cs"
     }
-
-    filter "configurations:Debug"
-        postbuildcommands {
-            "{COPY} %{sln.location}/dependencies/GLFW@3.3.3/bin/Debug/GLFW.dll %{binaries}",
-        }
-
-    filter "configurations:Release"
-        postbuildcommands {
-            "{COPY} %{sln.location}/dependencies/GLFW@3.3.3/bin/Release/GLFW.dll %{binaries}",
-        }
 
     filter "system:windows"
         defines {

@@ -48,7 +48,7 @@ namespace Cobalt.Bindings.GLFW
         {
             get
             {
-                GLFW.GetMonitorWorkArea(handle, out int x, out int y, out int width, out int height);
+                GLFW.GetMonitorWorkArea(this, out int x, out int y, out int width, out int height);
                 return new Rectangle(x, y, width, height);
             }
         }

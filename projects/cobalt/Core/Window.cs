@@ -1,5 +1,6 @@
 using System;
 using Cobalt.Bindings.GL;
+using Cobalt.Bindings.GLAD;
 using Cobalt.Bindings.GLFW;
 using Cobalt.Bindings.Utils;
 
@@ -32,8 +33,15 @@ namespace Cobalt.Core
 
             GLFW.SetWindowSizeCallback(_window, Resize);
 
-            GL.glInit(GLFW.GetProcAddress);
-            GL.ClearColor(1.0f, 0.0f, 1.0f, 1.0f);
+            if (GLAD.LoadGLProcAddress(GLFW.GetProcAddressPtr()))
+            {
+                Console.WriteLine("Successfully loaded GLAD.");
+            }
+            else
+            {
+                Console.WriteLine("Error on GLAD Init");
+            }
+            GLAD.ClearColor(1.0f, 0.0f, 1.0f, 1.0f);
         }
 
         public bool IsOpen()
@@ -58,7 +66,7 @@ namespace Cobalt.Core
 
         public void Refresh()
         {
-            GL.Clear(EBufferBit.ColorBuffer);
+            // GLAD.Clear(EBufferBit.ColorBuffer);
             GLFW.PollEvents();
             GLFW.SwapBuffers(_window);
         }

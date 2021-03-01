@@ -38,10 +38,12 @@ namespace Cobalt.Graphics
 
                 public CreateInfo Build()
                 {
-                    var info = new CreateInfo();
-                    info.FamilyIndex = base.FamilyIndex;
-                    info.QueueIndex = base.QueueIndex;
-                    info.Properties = base.Properties;
+                    CreateInfo info = new CreateInfo
+                    {
+                        FamilyIndex = base.FamilyIndex,
+                        QueueIndex = base.QueueIndex,
+                        Properties = base.Properties
+                    };
                     return info;
                 }
             }

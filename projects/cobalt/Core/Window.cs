@@ -1,5 +1,4 @@
 using System;
-using System.Text;
 using Cobalt.Bindings.GL;
 using Cobalt.Bindings.GLFW;
 using Cobalt.Bindings.Utils;
@@ -32,6 +31,7 @@ namespace Cobalt.Core
             GLFW.ShowWindow(_window);
 
             GLFW.SetWindowSizeCallback(_window, Resize);
+            GLFW.SwapInterval(1);
 
             if (GL.LoadGLProcAddress(GLFW.GetProcAddress))
             {

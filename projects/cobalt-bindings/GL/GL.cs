@@ -10,7 +10,7 @@ namespace Cobalt.Bindings.GL
 #if COBALT_PLATFORM_WINDOWS
         public const string LIBRARY = "../x86_64/GLAD@GL4.6-native-bindings.dll";
 #elif COBALT_PLATFORM_MACOS
-        public const string LIBRARY = "../x86_64/GLAD@GL4.6-native-bindings"; // mac
+        public const string LIBRARY = "../x86_64/GLAD@GL4.6-native-bindings";
 #else
         public const string LIBRARY = "../x86_64/GLAD@GL4.6-native-bindings";
 #endif

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Cobalt.Bindings.GL
+﻿namespace Cobalt.Bindings.GL
 {
     public enum EPropertyName : uint
     {

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Cobalt.Graphics
 {
@@ -14,9 +13,11 @@ namespace Cobalt.Graphics
                 
                 public CreateInfo Build()
                 {
-                    var info = new CreateInfo();
-                    info.Debug = base.Debug;
-                    info.QueueInformation = base.QueueInformation;
+                    CreateInfo info = new CreateInfo
+                    {
+                        Debug = base.Debug,
+                        QueueInformation = base.QueueInformation
+                    };
                     return info;
                 }
             }

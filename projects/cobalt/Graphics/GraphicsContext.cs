@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Cobalt.Graphics
 {
@@ -20,7 +19,7 @@ namespace Cobalt.Graphics
         public API ContextAPI { get; private set; }
 
         private static GraphicsContext _context;
-        private List<IGraphicsApplication> _applications = new List<IGraphicsApplication>();
+        private readonly List<IGraphicsApplication> _applications = new List<IGraphicsApplication>();
 
         private GraphicsContext(API api)
         {

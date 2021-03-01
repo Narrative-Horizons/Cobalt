@@ -22,9 +22,11 @@ namespace Cobalt.Graphics
 
                 public CreateInfo Build()
                 {
-                    var info = new CreateInfo();
-                    info.Debug = base.Debug;
-                    info.Name = base.Name;
+                    CreateInfo info = new CreateInfo
+                    {
+                        Debug = base.Debug,
+                        Name = base.Name
+                    };
                     return info;
                 }
             }

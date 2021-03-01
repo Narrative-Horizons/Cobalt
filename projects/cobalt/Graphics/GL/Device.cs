@@ -24,5 +24,10 @@ namespace Cobalt.Graphics.GL
         {
             _queues.ForEach(queue => queue.Dispose());
         }
+
+        public List<IQueue> Queues()
+        {
+            return _queues;
+        }
     }
 }

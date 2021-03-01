@@ -39,6 +39,18 @@ namespace Cobalt.Bindings.GL
         [DllImport(LIBRARY, EntryPoint = "cobalt_glad_gl_clear", CallingConvention = CallingConvention.Cdecl)]
         public static extern void Clear(EBufferBit mask);
 
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_create_textures", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void CreateTextures(ETextureTarget target, uint amount, uint[] textures);
+
+        public static uint CreateTextures(ETextureTarget target)
+        {
+            uint[] images = new uint[1];
+            CreateTextures(target, 1, images);
+
+            return images[0];
+        }
+
+
         public static string GetString(EPropertyName name)
         {
             return Util.PtrToStringUTF8(GetStringImpl(name));

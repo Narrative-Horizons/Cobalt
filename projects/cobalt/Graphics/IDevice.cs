@@ -36,5 +36,7 @@ namespace Cobalt.Graphics
 
             public bool Debug { get; private set; }
         }
+
+        public List<IQueue> Queues();
     }
 }

@@ -2,6 +2,7 @@ using System;
 using Cobalt.Bindings.GL;
 using Cobalt.Bindings.GLFW;
 using Cobalt.Bindings.Utils;
+using Cobalt.Graphics.GL;
 
 namespace Cobalt.Core
 {
@@ -42,6 +43,8 @@ namespace Cobalt.Core
                 Console.WriteLine("Error on GLAD Init");
             }
             GL.ClearColor(1.0f, 0.0f, 1.0f, 1.0f);
+
+            Image image = new Image(new Graphics.IImage.MemoryInfo(), new Graphics.IImage.CreateInfo());
         }
 
         public bool IsOpen()

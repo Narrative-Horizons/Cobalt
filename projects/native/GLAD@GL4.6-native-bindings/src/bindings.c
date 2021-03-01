@@ -23,3 +23,8 @@ GLAD_BINDING_EXPORT const unsigned char* cobalt_glad_gl_get_string(int name)
 {
 	return glGetString(name);
 }
+
+GLAD_BINDING_EXPORT void cobalt_gl_create_textures(unsigned int target, unsigned int amount, unsigned int* textures)
+{
+	glCreateTextures(target, amount, textures);
+}

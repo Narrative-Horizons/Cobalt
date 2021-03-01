@@ -76,4 +76,16 @@ namespace Cobalt.Graphics
         HostCoherent,
         HostCached
     }
+
+    public enum EBufferUsage : uint
+    {
+        TransferSource,
+        TransferDestination,
+        UniformBuffer,
+        StorageBuffer,
+        ArrayBuffer,
+        IndexBuffer,
+        TextureBuffer,
+        IndirectBuffer
+    }
 }

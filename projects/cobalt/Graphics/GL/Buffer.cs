@@ -4,7 +4,7 @@ using Cobalt.Bindings.GL;
 
 namespace Cobalt.Graphics.GL
 {
-    internal class Buffer : IBuffer
+    public class Buffer : IBuffer
     {
         public uint Id { get; private set; }
 
@@ -35,11 +35,11 @@ namespace Cobalt.Graphics.GL
 
             if(createInfo.InitialPayload == null)
             {
-                OpenGL.NamedBufferStorage(Id, 0, null, flags);
+                //OpenGL.NamedBufferStorage(Id, 0, null, flags);
             }
             else
             {
-                OpenGL.NamedBufferStorage(Id, size, createInfo.InitialPayload, flags);
+                //OpenGL.NamedBufferStorage(Id, size, createInfo.InitialPayload, flags);
             }
         }
 

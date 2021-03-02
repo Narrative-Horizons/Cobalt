@@ -29,8 +29,8 @@ namespace Cobalt.Graphics
             }
 
             public EMemoryUsage Usage { get; private set; }
-            public List<EMemoryProperty> Required { get; private set; }
-            public List<EMemoryProperty> Preferred { get; private set; }
+            public List<EMemoryProperty> Required { get; private set; } = new List<EMemoryProperty>();
+            public List<EMemoryProperty> Preferred { get; private set; } = new List<EMemoryProperty>();
         }
 
         public class CreateInfo
@@ -62,8 +62,8 @@ namespace Cobalt.Graphics
                 }
             }
             public int Size { get; private set; }
-            public List<EBufferUsage> Usage { get; private set; }
-            public List<IQueue> Queues { get; private set; }
+            public List<EBufferUsage> Usage { get; private set; } = new List<EBufferUsage>();
+            public List<IQueue> Queues { get; private set; } = new List<IQueue>();
             public object InitialPayload { get; private set; }
         }
 

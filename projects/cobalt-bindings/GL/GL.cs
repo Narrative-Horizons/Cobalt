@@ -46,16 +46,16 @@ namespace Cobalt.Bindings.GL
         public static extern void CreateBuffers(uint amount, uint[] buffers);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_named_buffer_storage", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void NamedBufferStorage(uint buffer, long size, object data, EMapBit flags);
+        public static extern void NamedBufferStorage(uint buffer, long size, IntPtr data, EMapBit flags);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_delete_buffers", CallingConvention = CallingConvention.Cdecl)]
         public static extern void DeleteBuffers(uint amount, uint[] buffers);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_map_named_buffer", CallingConvention = CallingConvention.Cdecl)]
-        public static extern object MapNamedBuffer(uint buffer, EAccessType access);
+        public static extern IntPtr MapNamedBuffer(uint buffer, EAccessType access);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_map_named_buffer_range", CallingConvention = CallingConvention.Cdecl)]
-        public static extern object MapNamedBufferRange(uint buffer, long offset, long length, EAccessType access);
+        public static extern IntPtr MapNamedBufferRange(uint buffer, long offset, long length, EAccessType access);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_unmap_named_buffer", CallingConvention = CallingConvention.Cdecl)]
         public static extern void UnmapNamedBuffer(uint buffer);

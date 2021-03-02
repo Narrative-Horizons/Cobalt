@@ -1,8 +1,6 @@
 ﻿using OpenGL = Cobalt.Bindings.GL.GL;
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 using Cobalt.Bindings.GL;
 
 namespace Cobalt.Graphics.GL
@@ -18,7 +16,7 @@ namespace Cobalt.Graphics.GL
             int target = ToTarget(createInfo.ViewType);
             int format = ToSizedFormat(createInfo.Format);
 
-            OpenGL.TextureView(Handle, (uint)target, imageHandle, (EInternalFormat)format, (uint)createInfo.BaseMipLevel,
+            OpenGL.TextureView(Handle, (uint)target, imageHandle, (EPixelInternalFormat)format, (uint)createInfo.BaseMipLevel,
                 (uint)createInfo.MipLevelCount, (uint)createInfo.BaseArrayLayer, (uint)createInfo.ArrayLayerCount);
         }
 
@@ -32,19 +30,19 @@ namespace Cobalt.Graphics.GL
             switch (target)
             {
                 case EImageViewType.ViewType1D:
-                    return 0x0DE0;
+                    return (int)ETextureTarget.Texture1D;
                 case EImageViewType.ViewType2D:
-                    return 0x0DE1;
+                    return (int)ETextureTarget.Texture2D;
                 case EImageViewType.ViewType3D:
-                    return 0x806F;
+                    return (int)ETextureTarget.Texture3D;
                 case EImageViewType.ViewTypeCube:
-                    return 0x8513;
+                    return (int)ETextureTarget.TextureCubeMap;
                 case EImageViewType.ViewType1DArray:
-                    return 0x8C18;
+                    return (int)ETextureTarget.Texture1DArray;
                 case EImageViewType.ViewType2DArray:
-                    return 0x8C1A;
+                    return (int)ETextureTarget.Texture2DArray;
                 case EImageViewType.ViewTypeCubeArray:
-                    return 0x9009;
+                    return (int)ETextureTarget.TextureCubeMapArray;
             }
 
             return -1;
@@ -59,15 +57,15 @@ namespace Cobalt.Graphics.GL
                 case EDataFormat.BGRA8_SRGB:
                     break;
                 case EDataFormat.R8G8B8A8_SRGB:
-                    return 0x8C42;
+                    return (int)EPixelInternalFormat.Srgb8Alpha8;
                 case EDataFormat.R8G8B8A8:
-                    return 0x8058;
+                    return (int)EPixelInternalFormat.Rgba8;
                 case EDataFormat.R32G32_SFLOAT:
                     break;
                 case EDataFormat.R32G32B32_SFLOAT:
                     break;
                 case EDataFormat.R32G32B32A32_SFLOAT:
-                    return 0x8814;
+                    return (int)EPixelInternalFormat.Rgba32f;
             }
 
             throw new NotSupportedException("Unsupported format for image data.");

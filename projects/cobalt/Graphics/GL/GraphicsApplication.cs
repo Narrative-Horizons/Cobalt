@@ -12,8 +12,8 @@ namespace Cobalt.Graphics.GL
         public GraphicsApplication(IGraphicsApplication.CreateInfo info)
         {
             Info = info;
-            string renderer = OpenGL.GetString(EPropertyName.Renderer);
-            string vendor = OpenGL.GetString(EPropertyName.Vendor);
+            string renderer = OpenGL.GetString(EStringName.Renderer);
+            string vendor = OpenGL.GetString(EStringName.Vendor);
 
             PhysicalDevice device = new PhysicalDevice(new IPhysicalDevice.CreateInfo.Builder()
                 .Debug(Info.Debug)

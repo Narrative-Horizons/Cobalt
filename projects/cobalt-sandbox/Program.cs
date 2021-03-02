@@ -53,10 +53,13 @@ namespace Cobalt.Sandbox
                 new IBuffer.CreateInfo.Builder().AddUsage(EBufferUsage.ArrayBuffer).InitialPayload(objectData).Size(Marshal.SizeOf(objectData[0]) * objectData.Length));
 
             VertexData[] mapData = glBuf.Map() as VertexData[];
+            int jonathan = 0;
             glBuf.Unmap();
 
             while (window.IsOpen())
             {
+
+
                 window.Refresh();
             }
 

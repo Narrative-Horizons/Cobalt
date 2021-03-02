@@ -16,25 +16,25 @@ namespace Cobalt.Graphics.GL
         {
             Id = OpenGL.CreateBuffers();
             int size = createInfo.Size;
-            EMapBit flags = 0;
+            EBufferAccessMask flags = 0;
 
             if(memoryInfo.Usage != EMemoryUsage.GPUOnly && (memoryInfo.Required.Contains(EMemoryProperty.HostVisible) ||
                 memoryInfo.Preferred.Contains(EMemoryProperty.HostVisible)))
             {
-                flags |= EMapBit.MapPersistentBit;
-                flags |= EMapBit.DynamicStorageBit;
-                flags |= EMapBit.MapReadBit;
-                flags |= EMapBit.MapWriteBit;
+                flags |= EBufferAccessMask.MapPersistentBit;
+                flags |= EBufferAccessMask.DynamicStorageBit;
+                flags |= EBufferAccessMask.MapReadBit;
+                flags |= EBufferAccessMask.MapWriteBit;
             }
 
             if(memoryInfo.Preferred.Contains(EMemoryProperty.HostCoherent) || memoryInfo.Required.Contains(EMemoryProperty.HostCoherent))
             {
-                flags |= EMapBit.MapCoherentBit;
+                flags |= EBufferAccessMask.MapCoherentBit;
             }
 
             if(memoryInfo.Usage == EMemoryUsage.CPUOnly)
             {
-                flags |= EMapBit.ClientStorageBit;
+                flags |= EBufferAccessMask.ClientStorageBit;
             }
 
             if(createInfo.InitialPayload == null)
@@ -59,7 +59,7 @@ namespace Cobalt.Graphics.GL
 
         public object Map()
         {
-            IntPtr ptr = OpenGL.MapNamedBuffer(Id, EAccessType.ReadWrite);
+            IntPtr ptr = OpenGL.MapNamedBuffer(Id, EBufferAccess.ReadOnly);
             _mappedHandle = (GCHandle)ptr;
 
             return _mappedHandle.Target;
@@ -67,7 +67,7 @@ namespace Cobalt.Graphics.GL
 
         public object Map(int offset, int size)
         {
-            IntPtr ptr = OpenGL.MapNamedBufferRange(Id, offset, size, EAccessType.ReadWrite);
+            IntPtr ptr = OpenGL.MapNamedBufferRange(Id, offset, size, EBufferAccess.ReadOnly);
             _mappedHandle = (GCHandle)ptr;
 
             return _mappedHandle.Target;

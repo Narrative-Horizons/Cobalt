@@ -1,8 +1,7 @@
 using System;
-using GLAD = Cobalt.Bindings.GL.GL;
+using OpenGL = Cobalt.Bindings.GL.GL;
 using Cobalt.Bindings.GLFW;
 using Cobalt.Bindings.Utils;
-using Cobalt.Graphics.GL;
 
 namespace Cobalt.Graphics
 {
@@ -88,7 +87,7 @@ namespace Cobalt.Graphics
 
         public void Refresh()
         {
-            GLAD.Clear(Bindings.GL.EBufferBit.ColorBuffer);
+            OpenGL.Clear(Bindings.GL.EClearBufferMask.ColorBufferBit);
 
             GLFW.PollEvents();
             GLFW.SwapBuffers(_window);

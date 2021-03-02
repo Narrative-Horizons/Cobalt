@@ -48,14 +48,14 @@ namespace Cobalt.Graphics.GL
             OpenGL.DeleteBuffers(Id);
         }
 
-        public byte[] Map()
+        public object Map()
         {
-            return (byte[])OpenGL.MapNamedBuffer(Id, EAccessType.ReadWrite);
+            return OpenGL.MapNamedBuffer(Id, EAccessType.ReadWrite);
         }
 
-        public byte[] Map(int offset, int size)
+        public object Map(int offset, int size)
         {
-            return (byte[])OpenGL.MapNamedBufferRange(Id, offset, size, EAccessType.ReadWrite);
+            return OpenGL.MapNamedBufferRange(Id, offset, size, EAccessType.ReadWrite);
         }
 
         public void Unmap()

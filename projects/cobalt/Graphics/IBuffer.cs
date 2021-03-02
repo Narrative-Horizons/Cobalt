@@ -55,20 +55,20 @@ namespace Cobalt.Graphics
                     return this;
                 }
 
-                public new Builder InitialPayload(byte[] payload)
+                public new Builder InitialPayload(object payload)
                 {
-                    Array.Copy(payload, base.InitialPayload, payload.Length);
+                    base.InitialPayload = payload;
                     return this;
                 }
             }
             public int Size { get; private set; }
             public List<EBufferUsage> Usage { get; private set; }
             public List<IQueue> Queues { get; private set; }
-            public byte[] InitialPayload { get; private set; }
+            public object InitialPayload { get; private set; }
         }
 
-        byte[] Map();
-        byte[] Map(int offset, int size);
+        object Map();
+        object Map(int offset, int size);
 
         void Unmap();
     }

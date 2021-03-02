@@ -1,12 +1,16 @@
 ﻿using OpenGL = Cobalt.Bindings.GL.GL;
 
 using Cobalt.Bindings.GL;
+using System;
+using System.Runtime.InteropServices;
 
 namespace Cobalt.Graphics.GL
 {
     public class Buffer : IBuffer
     {
         public uint Id { get; private set; }
+
+        private GCHandle _mappedHandle;
 
         public Buffer(IBuffer.MemoryInfo memoryInfo, IBuffer.CreateInfo createInfo)
         {
@@ -35,11 +39,16 @@ namespace Cobalt.Graphics.GL
 
             if(createInfo.InitialPayload == null)
             {
-                //OpenGL.NamedBufferStorage(Id, 0, null, flags);
+                OpenGL.NamedBufferStorage(Id, 0, IntPtr.Zero, flags);
             }
             else
             {
-                //OpenGL.NamedBufferStorage(Id, size, createInfo.InitialPayload, flags);
+                GCHandle handle = GCHandle.Alloc(createInfo.InitialPayload);
+                IntPtr ptr = (IntPtr)handle;
+
+                OpenGL.NamedBufferStorage(Id, size, ptr, flags);
+
+                handle.Free();
             }
         }
 
@@ -50,12 +59,18 @@ namespace Cobalt.Graphics.GL
 
         public object Map()
         {
-            return OpenGL.MapNamedBuffer(Id, EAccessType.ReadWrite);
+            IntPtr ptr = OpenGL.MapNamedBuffer(Id, EAccessType.ReadWrite);
+            _mappedHandle = (GCHandle)ptr;
+
+            return _mappedHandle.Target;
         }
 
         public object Map(int offset, int size)
         {
-            return OpenGL.MapNamedBufferRange(Id, offset, size, EAccessType.ReadWrite);
+            IntPtr ptr = OpenGL.MapNamedBufferRange(Id, offset, size, EAccessType.ReadWrite);
+            _mappedHandle = (GCHandle)ptr;
+
+            return _mappedHandle.Target;
         }
 
         public void Unmap()

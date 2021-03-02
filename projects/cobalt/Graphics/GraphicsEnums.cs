@@ -99,4 +99,17 @@ namespace Cobalt.Graphics
         FirstInFirstOut,
         Mailbox
     }
+
+    public enum EAttachmentLoad : uint
+    {
+        Load,
+        Clear,
+        DontCare
+    }
+
+    public enum EAttachmentStore : uint
+    {
+        Store,
+        DontCare
+    }
 }

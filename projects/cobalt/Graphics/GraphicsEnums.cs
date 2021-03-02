@@ -112,4 +112,41 @@ namespace Cobalt.Graphics
         Store,
         DontCare
     }
+
+    public enum EImageViewType : uint
+    {
+        ViewType1D,
+        ViewType2D,
+        ViewType3D,
+        ViewTypeCube,
+        ViewType1DArray,
+        ViewType2DArray,
+        ViewTypeCubeArray
+    }
+
+    public enum EShaderType : uint
+    {
+        Vertex,
+        TessellationControl,
+        TessellationEvaluation,
+        Geometry,
+        Fragment,
+        Compute
+    }
+
+    public enum EVertexInputRate : uint
+    {
+        PerVertex,
+        PerInstance
+    }
+    
+    public enum ETopology : uint
+    {
+        PointList,
+        LineList,
+        LineStrip,
+        TriangleList,
+        TriangleStrip,
+        TriangleFan
+    }
 }

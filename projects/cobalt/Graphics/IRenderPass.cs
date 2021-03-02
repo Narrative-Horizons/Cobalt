@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Cobalt.Graphics
 {
@@ -72,8 +73,22 @@ namespace Cobalt.Graphics
         {
             public sealed class Builder : CreateInfo
             {
+                public Builder AddAttachment(AttachmentDescription attachment)
+                {
+                    Attachments.Add(attachment);
+                    return this;
+                }
 
+                public Builder AddAttachment(AttachmentDescription.Builder attachment)
+                {
+                    Attachments.Add(attachment);
+                    return this;
+                }
             }
+
+            public List<AttachmentDescription> Attachments { get; private set; } = new List<AttachmentDescription>();
         }
+
+        public List<AttachmentDescription> GetAttachments();
     }
 }

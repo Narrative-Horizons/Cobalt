@@ -58,8 +58,6 @@ namespace Cobalt.Sandbox
 
             while (window.IsOpen())
             {
-
-
                 window.Refresh();
             }
 

@@ -19,8 +19,16 @@ namespace Cobalt.Sandbox
                 .Debug(true)
                 .Name("Sandbox")
                 .Build());
-
-            gfxApplication.GetPhysicalDevices().ForEach(device => Console.WriteLine(device.Name()));
+            
+            IPhysicalDevice physicalDevice = gfxApplication.GetPhysicalDevices()
+                .Find(device => device.SupportsGraphics() && device.SupportsPresent() && device.SupportsCompute() && device.SupportsTransfer());
+            IDevice device = physicalDevice.Create(new IDevice.CreateInfo.Builder()
+                .Debug(physicalDevice.Debug())
+                .QueueInformation(physicalDevice.QueueInfos())
+                .Build());
+            IQueue graphicsQueue = device.Queues().Find(queue => queue.GetProperties().Graphics);
+            IQueue presentQueue  = device.Queues().Find(queue => queue.GetProperties().Present);
+            IQueue transferQueue = device.Queues().Find(queue => queue.GetProperties().Transfer);
 
             while (window.IsOpen())
             {

@@ -88,4 +88,15 @@ namespace Cobalt.Graphics
         TextureBuffer,
         IndirectBuffer
     }
+
+    public enum EColorSpace : uint
+    {
+        SrgbNonLinear
+    }
+
+    public enum EPresentMode : uint
+    {
+        FirstInFirstOut,
+        Mailbox
+    }
 }

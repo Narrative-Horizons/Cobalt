@@ -18,8 +18,7 @@ namespace Cobalt.Graphics.GL
             PhysicalDevice device = new PhysicalDevice(new IPhysicalDevice.CreateInfo.Builder()
                 .Debug(Info.Debug)
                 .Name(vendor + " - " + renderer)
-                .Build(),
-                this);
+                .Build());
             _devices.Add(device);
         }
 

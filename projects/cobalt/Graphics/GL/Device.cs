@@ -9,6 +9,7 @@ namespace Cobalt.Graphics.GL
         public bool Debug { get; private set; }
 
         private readonly List<IQueue> _queues = new List<IQueue>();
+        private readonly Dictionary<Window, RenderSurface> _surfaces = new Dictionary<Window, RenderSurface>();
 
         public Device(IDevice.CreateInfo info)
         {
@@ -28,6 +29,15 @@ namespace Cobalt.Graphics.GL
         public List<IQueue> Queues()
         {
             return _queues;
+        }
+
+        public IRenderSurface GetSurface(Window window)
+        {
+            if (!_surfaces.ContainsKey(window))
+            {
+                _surfaces[window] = new RenderSurface();
+            }
+            return _surfaces[window];
         }
     }
 }

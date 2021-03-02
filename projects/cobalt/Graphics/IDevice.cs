@@ -17,7 +17,14 @@ namespace Cobalt.Graphics
 
                 public Builder AddQueueInformation(IQueue.CreateInfo info)
                 {
-                    QueueInformation.Add(info);
+                    base.QueueInformation.Add(info);
+                    return this;
+                }
+
+                public new Builder QueueInformation(List<IQueue.CreateInfo> infos)
+                {
+                    base.QueueInformation.Clear();
+                    base.QueueInformation.AddRange(infos);
                     return this;
                 }
                 
@@ -26,10 +33,15 @@ namespace Cobalt.Graphics
                     CreateInfo info = new CreateInfo
                     {
                         Debug = base.Debug,
-                        QueueInformation = base.QueueInformation
+                        QueueInformation = new List<IQueue.CreateInfo>(base.QueueInformation)
                     };
                     return info;
                 }
+            }
+
+            public CreateInfo()
+            {
+                QueueInformation = new List<IQueue.CreateInfo>();
             }
 
             public List<IQueue.CreateInfo> QueueInformation { get; private set; }
@@ -38,5 +50,7 @@ namespace Cobalt.Graphics
         }
 
         public List<IQueue> Queues();
+
+        public IRenderSurface GetSurface(Window window);
     }
 }

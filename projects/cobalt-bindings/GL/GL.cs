@@ -42,6 +42,9 @@ namespace Cobalt.Bindings.GL
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_create_textures", CallingConvention = CallingConvention.Cdecl)]
         public static extern void CreateTextures(ETextureTarget target, uint amount, uint[] textures);
 
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_gen_textures", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void GenTextures(uint amount, uint[] textures);
+
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_create_buffers", CallingConvention = CallingConvention.Cdecl)]
         public static extern void CreateBuffers(uint amount, uint[] buffers);
 
@@ -50,6 +53,9 @@ namespace Cobalt.Bindings.GL
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_delete_buffers", CallingConvention = CallingConvention.Cdecl)]
         public static extern void DeleteBuffers(uint amount, uint[] buffers);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_delete_textures", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void DeleteTextures(uint amount, uint[] textures);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_map_named_buffer", CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr MapNamedBuffer(uint buffer, EAccessType access);
@@ -60,6 +66,11 @@ namespace Cobalt.Bindings.GL
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_unmap_named_buffer", CallingConvention = CallingConvention.Cdecl)]
         public static extern void UnmapNamedBuffer(uint buffer);
 
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_texture_storage_2D", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void TextureStorage2D(uint texture, int levels, EInternalFormat internalFormat, int width, int height);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_texture_view", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void TextureView(uint texture, uint target, uint origTexture, EInternalFormat internalFormat, uint minLevel, uint numLevels, uint minLayer, uint numLayers);
 
         public static uint CreateBuffers()
         {
@@ -77,10 +88,24 @@ namespace Cobalt.Bindings.GL
             return images[0];
         }
 
+        public static uint GenTextures()
+        {
+            uint[] images = new uint[1];
+            GenTextures(1, images);
+
+            return images[0];
+        }
+
         public static void DeleteBuffers(uint buffer)
         {
             uint[] buffers = { buffer };
             DeleteBuffers(1, buffers);
+        }
+
+        public static void DeleteTextures(uint texture)
+        {
+            uint[] textures = { texture };
+            DeleteBuffers(1, textures);
         }
 
         public static string GetString(EPropertyName name)

@@ -3,16 +3,23 @@
 using Cobalt.Bindings.GL;
 using System;
 using System.Runtime.InteropServices;
+using System.Collections.Generic;
 
 namespace Cobalt.Graphics.GL
 {
     internal class Image : IImage
     {
-        uint handle;
+        private List<ImageView> _views = new List<ImageView>();
+        private uint _handle;
+        private EDataFormat _format;
+        private EImageType _type;
+        private int _layerCount;
+
 
         public Image(IImage.MemoryInfo memoryInfo, IImage.CreateInfo createInfo)
         {
-            handle = OpenGL.CreateTextures(ETextureTarget.Texture2D);
+            _handle = OpenGL.CreateTextures(ETextureTarget.Texture2D);
+
         }
 
         public void Dispose()

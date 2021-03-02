@@ -34,6 +34,11 @@ GLAD_BINDING_EXPORT void cobalt_gl_create_buffers(unsigned int amount, unsigned 
 	glCreateBuffers(amount, buffers);
 }
 
+GLAD_BINDING_EXPORT void cobalt_gl_gen_textures(unsigned int amount, unsigned int* textures)
+{
+	glGenTextures(amount, textures);
+}
+
 GLAD_BINDING_EXPORT void cobalt_gl_named_buffer_storage(unsigned int buffer, long long int size, const void* data, unsigned int flags)
 {
 	glNamedBufferStorage(buffer, size, data, flags);
@@ -42,6 +47,11 @@ GLAD_BINDING_EXPORT void cobalt_gl_named_buffer_storage(unsigned int buffer, lon
 GLAD_BINDING_EXPORT void cobalt_gl_delete_buffers(unsigned int amount, unsigned int* buffers)
 {
 	glDeleteBuffers(amount, buffers);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_delete_textures(unsigned int amount, unsigned int* textures)
+{
+	glDeleteTextures(amount, textures);
 }
 
 GLAD_BINDING_EXPORT void* cobalt_gl_map_named_buffer(unsigned int buffer, unsigned int access)
@@ -59,4 +69,12 @@ GLAD_BINDING_EXPORT void cobalt_gl_unmap_named_buffer(unsigned int buffer)
 	glUnmapNamedBuffer(buffer);
 }
 
+GLAD_BINDING_EXPORT void cobalt_gl_texture_storage_2D(unsigned int texture, int levels, unsigned int internalFormat, int width, int height)
+{
+	glTextureStorage2D(texture, levels, internalFormat, width, height);
+}
 
+GLAD_BINDING_EXPORT void cobalt_gl_texture_view(unsigned int texture, unsigned int target, unsigned int origtexture, unsigned int internalFormat, unsigned int minLevel, unsigned int numLevels, unsigned int minLayer, unsigned int numLayers)
+{
+	glTextureView(texture, target, origtexture, internalFormat, minLevel, numLevels, minLayer, numLayers);
+}

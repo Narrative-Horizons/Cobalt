@@ -64,7 +64,7 @@ namespace Cobalt.Graphics
 
             public List<VertexAttribute> Attributes { get; private set; } = new List<VertexAttribute>();
         }
-        
+
         public class InputAssemblyCreateInfo
         {
             public sealed class Builder : InputAssemblyCreateInfo
@@ -194,7 +194,7 @@ namespace Cobalt.Graphics
                     base.DepthClampEnabled = enabled;
                     return this;
                 }
-                
+
                 public new Builder RasterizerDiscardEnabled(bool enabled)
                 {
                     base.RasterizerDiscardEnabled = enabled;
@@ -305,7 +305,7 @@ namespace Cobalt.Graphics
             public bool AlphaToCoverageEnabled { get; private set; } = false;
             public bool AlphaToOneEnabled { get; private set; } = false;
         }
-    
+
         public class DepthBoundsCreateInfo
         {
             public sealed class Builder : DepthBoundsCreateInfo
@@ -322,7 +322,7 @@ namespace Cobalt.Graphics
                     return this;
                 }
 
-                public DepthBoundsCreateInfo Create()
+                public DepthBoundsCreateInfo Build()
                 {
                     return new DepthBoundsCreateInfo()
                     {
@@ -405,5 +405,363 @@ namespace Cobalt.Graphics
             public uint WriteMask { get; private set; } = 0;
             public uint Reference { get; private set; } = 0;
         }
+
+        public class StencilTestCreateInfo
+        {
+            public sealed class Builder : StencilTestCreateInfo
+            {
+                public new Builder Back(StencilOpCreateInfo back)
+                {
+                    base.Back = back;
+                    return this;
+                }
+
+                public new Builder Back(StencilOpCreateInfo.Builder back)
+                {
+                    base.Back = back.Build();
+                    return this;
+                }
+
+                public new Builder Front(StencilOpCreateInfo front)
+                {
+                    base.Front = front;
+                    return this;
+                }
+
+                public new Builder Front(StencilOpCreateInfo.Builder front)
+                {
+                    base.Front = front.Build();
+                    return this;
+                }
+
+                public StencilTestCreateInfo Build()
+                {
+                    return new StencilTestCreateInfo()
+                    {
+                        Back = base.Back,
+                        Front = base.Front
+                    };
+                }
+            }
+
+            public StencilOpCreateInfo Back { get; private set; }
+            public StencilOpCreateInfo Front { get; private set; }
+        }
+
+        public class DepthStencilCreateInfo
+        {
+            public sealed class Builder : DepthStencilCreateInfo
+            {
+                public new Builder DepthTestEnabled(bool enabled)
+                {
+                    base.DepthTestEnabled = enabled;
+                    return this;
+                }
+
+                public new Builder DepthWriteEnabled(bool enabled)
+                {
+                    base.DepthWriteEnabled = enabled;
+                    return this;
+                }
+
+                public new Builder DepthCompareOp(ECompareOp compareOp)
+                {
+                    base.DepthCompareOp = compareOp;
+                    return this;
+                }
+
+                public new Builder DepthBoundsTest(DepthBoundsCreateInfo depthBoundsTest)
+                {
+                    base.DepthBoundsTest = depthBoundsTest;
+                    return this;
+                }
+
+                public new Builder DepthBoundsTest(DepthBoundsCreateInfo.Builder depthBoundsTest)
+                {
+                    base.DepthBoundsTest = depthBoundsTest.Build();
+                    return this;
+                }
+
+                public new Builder StencilTest(StencilTestCreateInfo stencilTest)
+                {
+                    base.StencilTest = stencilTest;
+                    return this;
+                }
+
+                public new Builder StencilTest(StencilTestCreateInfo.Builder stencilTest)
+                {
+                    base.StencilTest = stencilTest.Build();
+                    return this;
+                }
+
+                public DepthStencilCreateInfo Build()
+                {
+                    return new DepthStencilCreateInfo()
+                    {
+                        DepthTestEnabled = base.DepthTestEnabled,
+                        DepthWriteEnabled = base.DepthWriteEnabled,
+                        DepthCompareOp = base.DepthCompareOp,
+                        DepthBoundsTest = base.DepthBoundsTest,
+                        StencilTest = base.StencilTest
+                    };
+                }
+            }
+
+            public bool DepthTestEnabled { get; private set; }
+            public bool DepthWriteEnabled { get; private set; }
+            public ECompareOp DepthCompareOp { get; private set; }
+            public DepthBoundsCreateInfo DepthBoundsTest { get; private set; }
+            public StencilTestCreateInfo StencilTest { get; private set; }
+        }
+
+        public class ColorAttachmentBlendCreateInfo
+        {
+            public sealed class Builder : ColorAttachmentBlendCreateInfo
+            {
+                public new Builder ColorBlendOp(EBlendOp colorBlendOp)
+                {
+                    base.ColorBlendOp = colorBlendOp;
+                    return this;
+                }
+
+                public new Builder SourceColorFactor(EBlendFactor sourceColorFactor)
+                {
+                    base.SourceColorFactor = sourceColorFactor;
+                    return this;
+                }
+
+                public new Builder DestinationColorFactor(EBlendFactor destinationColorFactor)
+                {
+                    base.DestinationColorFactor = destinationColorFactor;
+                    return this;
+                }
+
+                public new Builder AlphaBlendOp(EBlendOp alphaBlendOp)
+                {
+                    base.AlphaBlendOp = alphaBlendOp;
+                    return this;
+                }
+
+                public new Builder SourceAlphaFactor(EBlendFactor sourceAlphaFactor)
+                {
+                    base.SourceAlphaFactor = sourceAlphaFactor;
+                    return this;
+                }
+
+                public new Builder DestinationAlphaFactor(EBlendFactor destinationAlphaFactor)
+                {
+                    base.DestinationAlphaFactor = destinationAlphaFactor;
+                    return this;
+                }
+
+                public new Builder RedWritable(bool writeRed)
+                {
+                    base.RedWritable = writeRed;
+                    return this;
+                }
+
+                public new Builder GreenWritable(bool writeGreen)
+                {
+                    base.GreenWritable = writeGreen;
+                    return this;
+                }
+
+                public new Builder BlueWritable(bool writeBlue)
+                {
+                    base.BlueWritable = writeBlue;
+                    return this;
+                }
+
+                public new Builder AlphaWritable(bool writeAlpha)
+                {
+                    base.AlphaWritable = writeAlpha;
+                    return this;
+                }
+
+                public ColorAttachmentBlendCreateInfo Build()
+                {
+                    return new ColorAttachmentBlendCreateInfo()
+                    {
+                        ColorBlendOp = base.ColorBlendOp,
+                        SourceColorFactor = base.SourceColorFactor,
+                        DestinationColorFactor = base.DestinationColorFactor,
+                        AlphaBlendOp = base.AlphaBlendOp,
+                        SourceAlphaFactor = base.SourceAlphaFactor,
+                        DestinationAlphaFactor = base.DestinationAlphaFactor,
+                        RedWritable = base.RedWritable,
+                        GreenWritable = base.GreenWritable,
+                        BlueWritable = base.BlueWritable,
+                        AlphaWritable = base.AlphaWritable
+                    };
+                }
+            }
+
+            public EBlendOp ColorBlendOp { get; private set; }
+            public EBlendFactor SourceColorFactor { get; private set; }
+            public EBlendFactor DestinationColorFactor { get; private set; }
+            public EBlendOp AlphaBlendOp { get; private set; }
+            public EBlendFactor SourceAlphaFactor { get; private set; }
+            public EBlendFactor DestinationAlphaFactor { get; private set; }
+            public bool RedWritable { get; private set; }
+            public bool GreenWritable { get; private set; }
+            public bool BlueWritable { get; private set; }
+            public bool AlphaWritable { get; private set; }
+        }
+
+        public class ColorBlendCreateInfo
+        {
+            public sealed class Builder : ColorBlendCreateInfo
+            {
+                public new Builder LogicOp(ELogicOp logicOp)
+                {
+                    base.LogicOp = logicOp;
+                    return this;
+                }
+
+                public Builder AddBlend(ColorAttachmentBlendCreateInfo blend)
+                {
+                    Blend.Add(blend);
+                    return this;
+                }
+
+                public Builder AddBlend(ColorAttachmentBlendCreateInfo.Builder blend)
+                {
+                    Blend.Add(blend.Build());
+                    return this;
+                }
+
+                public ColorBlendCreateInfo Build()
+                {
+                    return new ColorBlendCreateInfo()
+                    {
+                        LogicOp = base.LogicOp,
+                        Blend = base.Blend
+                    };
+                }
+            }
+
+            public ELogicOp LogicOp { get; private set; }
+            public List<ColorAttachmentBlendCreateInfo> Blend { get; private set; } = new List<ColorAttachmentBlendCreateInfo>();
+        }
+
+        public class DynamicStateCreateInfo
+        {
+            public sealed class Builder : DynamicStateCreateInfo
+            {
+                public Builder AddDynamicState(EDynamicState state)
+                {
+                    DynamicState.Add(state);
+                    return this;
+                }
+
+                public DynamicStateCreateInfo Build()
+                {
+                    return new DynamicStateCreateInfo()
+                    {
+                        DynamicState = base.DynamicState
+                    };
+                }
+            }
+
+            public List<EDynamicState> DynamicState { get; private set; } = new List<EDynamicState>();
+        }
+
+        public class CreateInfo
+        {
+            public sealed class Builder : CreateInfo
+            {
+                public Builder AddStageCreationInformation(ShaderStageCreateInfo stage)
+                {
+                    StageCreateInformation.Add(stage);
+                    return this;
+                }
+
+                public new Builder VertexAttributeCreationInformation(VertexAttributeCreateInfo info)
+                {
+                    base.VertexAttributeCreationInformation = info;
+                    return this;
+                }
+
+                public new Builder InputAssemblyCreationInformation(InputAssemblyCreateInfo info)
+                {
+                    base.InputAssemblyCreationInformation = info;
+                    return this;
+                }
+
+                public new Builder TessellationCreationInformtion(TessellationCreateInfo info)
+                {
+                    base.TessellationCreationInformtion = info;
+                    return this;
+                }
+
+                public new Builder ViewportCreationInformation(ViewportCreateInfo info)
+                {
+                    base.ViewportCreationInformation = info;
+                    return this;
+                }
+
+                public new Builder RasterizerCreationInformation(RasterizerCreateInfo info)
+                {
+                    base.RasterizerCreationInformation = info;
+                    return this;
+                }
+
+                public new Builder MultisamplingCreationInformation(MultisampleCreateInfo info)
+                {
+                    base.MultisamplingCreationInformation = info;
+                    return this;
+                }
+
+                public new Builder DynamicStateCreationInformation(DynamicStateCreateInfo info)
+                {
+                    base.DynamicStateCreationInformation = info;
+                    return this;
+                }
+
+                public new Builder RenderPass(IRenderPass pass)
+                {
+                    base.RenderPass = pass;
+                    return this;
+                }
+
+                public new Builder PipelineLayout(IPipelineLayout layout)
+                {
+                    base.PipelineLayout = layout;
+                    return this;
+                }
+
+                public CreateInfo Build()
+                {
+                    return new CreateInfo()
+                    {
+                        StageCreateInformation = base.StageCreateInformation,
+                        VertexAttributeCreationInformation = base.VertexAttributeCreationInformation,
+                        InputAssemblyCreationInformation = base.InputAssemblyCreationInformation,
+                        TessellationCreationInformtion = base.TessellationCreationInformtion,
+                        ViewportCreationInformation = base.ViewportCreationInformation,
+                        RasterizerCreationInformation = base.RasterizerCreationInformation,
+                        MultisamplingCreationInformation = base.MultisamplingCreationInformation,
+                        DynamicStateCreationInformation = base.DynamicStateCreationInformation,
+                        RenderPass = base.RenderPass,
+                        PipelineLayout = base.PipelineLayout
+                    };
+                }
+            }
+
+            public List<ShaderStageCreateInfo> StageCreateInformation { get; private set; } = new List<ShaderStageCreateInfo>();
+            public VertexAttributeCreateInfo VertexAttributeCreationInformation { get; private set; }
+            public InputAssemblyCreateInfo InputAssemblyCreationInformation { get; private set; }
+            public TessellationCreateInfo TessellationCreationInformtion { get; private set; }
+            public ViewportCreateInfo ViewportCreationInformation { get; private set; }
+            public RasterizerCreateInfo RasterizerCreationInformation { get; private set; }
+            public MultisampleCreateInfo MultisamplingCreationInformation { get; private set; }
+            public DynamicStateCreateInfo DynamicStateCreationInformation { get; private set; }
+            public IRenderPass RenderPass { get; private set; }
+            public IPipelineLayout PipelineLayout { get; private set; }
+        }
+
+        IPipelineLayout GetLayout();
+        IVertexAttributeArray createVertexAttributeArray(List<IBuffer> vertexBuffers);
+        IVertexAttributeArray createVertexAttributeArray(List<IBuffer> vertexBuffers, IBuffer elementBuffer);
     }
 }

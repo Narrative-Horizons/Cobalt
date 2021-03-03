@@ -194,4 +194,74 @@ namespace Cobalt.Graphics
         GreaterOrEqual,
         Always
     }
+
+    public enum EBlendOp : uint
+    {
+        Add,
+        Subtract,
+        ReverseSubtract,
+        Minimum,
+        Maximum
+    }
+
+    public enum EBlendFactor : uint
+    {
+        Zero,
+        One,
+        SrcColor,
+        OneMinusSrcColor,
+        DstColor,
+        OneMinusDstColor,
+        SrcAlpha,
+        OneMinusSrcAlpha,
+        DstAlpha,
+        OneMinusDstAlpha,
+        ConstantColor,
+        OneMinusConstantColor,
+        ConstantAlpha,
+        OneMinusConstantAlpha,
+        AlphaSaturate
+    }
+
+    public enum ELogicOp : uint
+    {
+        Clear,
+        Set,
+        Copy,
+        CopyInverted,
+        Invert,
+        And,
+        Nand,
+        Or,
+        Nor,
+        Xor,
+        Equiv,
+        AndReverse,
+        AndInverted,
+        OrReverse,
+        OrInverted
+    }
+
+    public enum EDynamicState : uint
+    {
+        Viewport,
+        Scissor,
+        LineWidth,
+        DepthBias,
+        BlendConstants,
+        DepthBounds,
+        StencilCompareMask,
+        WriteMask,
+        Reference
+    }
+
+    public enum EDescriptorType : uint
+    {
+        Sampler,
+        SampledImage,
+        CombinedImageSampler,
+        TextureBuffer,
+        UniformBuffer,
+        StorageBuffer
+    }
 }

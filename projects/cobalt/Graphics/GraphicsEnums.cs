@@ -264,4 +264,10 @@ namespace Cobalt.Graphics
         UniformBuffer,
         StorageBuffer
     }
+
+    public enum ECommandBufferLevel
+    {
+        Primary,
+        Secondary
+    }
 }

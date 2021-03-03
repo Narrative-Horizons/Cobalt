@@ -100,10 +100,10 @@ namespace Cobalt.Graphics
             }
         }
 
-        public uint ImageCount();
-
         void Present(PresentInfo info);
 
-        // TODO: Get framebuffer
+        IFrameBuffer GetFrameBuffer(int frame);
+
+        uint GetImageCount();
     }
 }

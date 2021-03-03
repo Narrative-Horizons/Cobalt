@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace Cobalt.Graphics.GL
 {
-    public class Buffer : IBuffer
+    internal class Buffer : IBuffer
     {
         public uint Id { get; private set; }
 

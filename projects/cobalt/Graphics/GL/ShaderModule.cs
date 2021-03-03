@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Cobalt.Graphics.GL
 {
-    public class ShaderModule : IShaderModule
+    internal class ShaderModule : IShaderModule
     {
         public uint Handle { get; private set; }
         public EShaderType ShaderType { get; private set; }

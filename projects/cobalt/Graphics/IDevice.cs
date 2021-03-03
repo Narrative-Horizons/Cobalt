@@ -47,5 +47,13 @@ namespace Cobalt.Graphics
         public List<IQueue> Queues();
 
         public IRenderSurface GetSurface(Window window);
+        public IRenderPass CreateRenderPass(IRenderPass.CreateInfo info);
+        public IFrameBuffer CreateFrameBuffer(IFrameBuffer.CreateInfo info);
+        public IBuffer CreateBuffer(IBuffer.CreateInfo info, IBuffer.MemoryInfo memory);
+        public IImage CreateImage(IImage.CreateInfo info, IImage.MemoryInfo memory);
+        public IShaderModule CreateShaderModule(IShaderModule.CreateInfo info);
+        public IDescriptorSetLayout CreateDescriptorSetLayout(IDescriptorSetLayout.CreateInfo info);
+        public IPipelineLayout CreatePipelineLayout(IPipelineLayout.CreateInfo info);
+        public IGraphicsPipeline CreateGraphicsPipeline(IGraphicsPipeline.CreateInfo info);
     }
 }

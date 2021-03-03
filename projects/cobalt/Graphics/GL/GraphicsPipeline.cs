@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Cobalt.Graphics.GL
 {
-    public class GraphicsPipeline : IGraphicsPipeline
+    internal class GraphicsPipeline : IGraphicsPipeline
     {
         public List<IVertexAttributeArray> Arrays { get; private set; }
         public IGraphicsPipeline.CreateInfo Info { get; private set; }

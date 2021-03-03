@@ -149,4 +149,49 @@ namespace Cobalt.Graphics
         TriangleStrip,
         TriangleFan
     }
+
+    public enum EPolygonMode : uint
+    {
+        Fill,
+        Point,
+        Wireframe
+    }
+
+    public enum EPolgyonFace : uint
+    {
+        None,
+        Back,
+        Front,
+        FrontAndBack
+    }
+
+    public enum EVertexWindingOrder : uint
+    {
+        Clockwise,
+        CounterClockwise
+    }
+
+    public enum EStencilOp : uint
+    {
+        Keep,
+        Zero,
+        Replace,
+        IncrementAndClamp,
+        DecrementAndClamp,
+        Invert,
+        IncrementAndWrap,
+        DecrementAndWrap
+    }
+
+    public enum ECompareOp : uint
+    {
+        Never,
+        Less,
+        Equal,
+        LessOrEqual,
+        Greater,
+        NotEqual,
+        GreaterOrEqual,
+        Always
+    }
 }

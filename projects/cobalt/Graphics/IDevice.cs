@@ -39,12 +39,7 @@ namespace Cobalt.Graphics
                 }
             }
 
-            public CreateInfo()
-            {
-                QueueInformation = new List<IQueue.CreateInfo>();
-            }
-
-            public List<IQueue.CreateInfo> QueueInformation { get; private set; }
+            public List<IQueue.CreateInfo> QueueInformation { get; private set; } = new List<IQueue.CreateInfo>();
 
             public bool Debug { get; private set; }
         }

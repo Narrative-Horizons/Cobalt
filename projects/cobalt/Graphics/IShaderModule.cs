@@ -26,6 +26,6 @@ namespace Cobalt.Graphics
             public EShaderType Type { get; private set; }
         }
 
-        public EShaderType GetType();
+        public EShaderType Type();
     }
 }

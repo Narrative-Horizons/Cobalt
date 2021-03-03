@@ -78,3 +78,43 @@ GLAD_BINDING_EXPORT void cobalt_gl_texture_view(unsigned int texture, unsigned i
 {
 	glTextureView(texture, target, origtexture, internalFormat, minLevel, numLevels, minLayer, numLayers);
 }
+
+GLAD_BINDING_EXPORT unsigned int cobalt_gl_create_program()
+{
+	return glCreateProgram();
+}
+
+GLAD_BINDING_EXPORT unsigned int cobalt_gl_create_shader(unsigned int type)
+{
+	return glCreateShader(type);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_attach_shader(unsigned int program, unsigned int shader)
+{
+	glAttachShader(program, shader);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_shader_source(unsigned int shader, int count, const char** string, int* length)
+{
+	glShaderSource(shader, count, string, length);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_compile_shader(unsigned int shader)
+{
+	glCompileShader(shader);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_get_shader_iv(unsigned int shader, unsigned int name, int* params)
+{
+	glGetShaderiv(shader, name, params);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_get_shader_info_log(unsigned int shader, int maxLength, int* length, char* infoLog)
+{
+	glGetShaderInfoLog(shader, maxLength, length, infoLog);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_delete_shader(unsigned int shader)
+{
+	glDeleteShader(shader);
+}

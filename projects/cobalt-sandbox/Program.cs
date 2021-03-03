@@ -1,6 +1,7 @@
 using Cobalt.Graphics;
 using Cobalt.Math;
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using OpenGL = Cobalt.Bindings.GL.GL;
 
@@ -52,9 +53,14 @@ namespace Cobalt.Sandbox
                 .AddRequiredProperty(EMemoryProperty.HostVisible).Usage(EMemoryUsage.CPUToGPU),
                 new IBuffer.CreateInfo.Builder().AddUsage(EBufferUsage.ArrayBuffer).InitialPayload(objectData).Size(Marshal.SizeOf(objectData[0]) * objectData.Length));
 
-            VertexData[] mapData = glBuf.Map() as VertexData[];
-            int jonathan = 0;
-            glBuf.Unmap();
+            string vsSource = "#version 460 \nvoid main()\n{\ngl_Position = vec4(0, 0, 0, 1);\n}";
+            MemoryStream stream = new MemoryStream();
+            StreamWriter writer = new StreamWriter(stream);
+            writer.Write(vsSource);
+            writer.Flush();
+            stream.Position = 0;
+
+            Cobalt.Graphics.GL.ShaderModule glShader = new Graphics.GL.ShaderModule(new IShaderModule.CreateInfo.Builder().Type(EShaderType.Vertex).ResourceStream(stream));
 
             while (window.IsOpen())
             {

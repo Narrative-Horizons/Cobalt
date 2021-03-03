@@ -1,6 +1,7 @@
 ﻿using Cobalt.Bindings.Utils;
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Cobalt.Bindings.GL
 {
@@ -72,6 +73,49 @@ namespace Cobalt.Bindings.GL
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_texture_view", CallingConvention = CallingConvention.Cdecl)]
         public static extern void TextureView(uint texture, uint target, uint origTexture, EPixelInternalFormat internalFormat, uint minLevel, uint numLevels, uint minLayer, uint numLayers);
 
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_create_program", CallingConvention = CallingConvention.Cdecl)]
+        public static extern uint CreateProgram();
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_create_shader", CallingConvention = CallingConvention.Cdecl)]
+        public static extern uint CreateShader(EShaderType type);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_attach_shader", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void AttachShader(uint program, uint shader);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_shader_source", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void ShaderSource(uint shader, int count, string[] strings, int[] length);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_compile_shader", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void CompileShader(uint shader);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_get_shader_iv", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void GetShaderiv(uint shader, uint name, int[] param);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_get_shader_info_log", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void GetShaderInfoLog(uint shader, int maxLength, IntPtr length, StringBuilder infoLog);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_delete_shader", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void DeleteShader(uint shader);
+
+
+        public static string GetShaderInfoLog(uint shader)
+        {
+            GetShaderiv(shader, EShaderParameter.InfoLogLength, out int size);
+
+            StringBuilder builder = new StringBuilder(size);
+            GetShaderInfoLog(shader, size, IntPtr.Zero, builder);
+
+            return builder.ToString();
+        }
+
+        public static void GetShaderiv(uint shader, EShaderParameter name, out int param)
+        {
+            int[] parameters = new int[] { 0 }; 
+            GetShaderiv(shader, (uint)name, parameters);
+
+            param = parameters[0];
+        }
+
         public static uint CreateBuffers()
         {
             uint[] buffers = new uint[1];
@@ -106,6 +150,14 @@ namespace Cobalt.Bindings.GL
         {
             uint[] textures = { texture };
             DeleteBuffers(1, textures);
+        }
+
+        public static void ShaderSource(uint shader, string contents)
+        {
+            string[] sources = new string[] { contents };
+            int[] lengths = new int[] { contents.Length };
+
+            ShaderSource(shader, 1, sources, lengths);
         }
 
         public static string GetString(EStringName name)

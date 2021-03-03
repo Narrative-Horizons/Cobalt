@@ -63,28 +63,28 @@ namespace Cobalt.Bindings.GLFW
         public static extern void SetWindowUserPointer(GLFWWindow window, IntPtr userPointer);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_glfw_get_current_context", CallingConvention = CallingConvention.Cdecl)]
-        private static extern GLFWWindow GetCurrentContext();
+        public static extern GLFWWindow GetCurrentContext();
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_glfw_get_primary_monitor", CallingConvention = CallingConvention.Cdecl)]
-        private static extern GLFWMonitor GetPrimaryMonitor();
+        public static extern GLFWMonitor GetPrimaryMonitor();
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_glfw_maximize_window", CallingConvention = CallingConvention.Cdecl)]
         public static extern void MaximizeWindow(GLFWWindow window);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_glfw_get_version_string", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr GetVersionString();
+        public static extern IntPtr GetVersionString();
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_glfw_get_time", CallingConvention = CallingConvention.Cdecl)]
-        private static extern double GetTime();
+        public static extern double GetTime();
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_glfw_set_time", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void SetTime(double time);
+        public static extern void SetTime(double time);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_glfw_get_timer_frequency", CallingConvention = CallingConvention.Cdecl)]
-        private static extern ulong GetTimerFrequency();
+        public static extern ulong GetTimerFrequency();
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_get_time_value", CallingConvention = CallingConvention.Cdecl)]
-        private static extern ulong GetTimerValue();
+        public static extern ulong GetTimerValue();
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_glfw_get_version", CallingConvention = CallingConvention.Cdecl)]
         public static extern void GetVersion(out int major, out int minor, out int revision);

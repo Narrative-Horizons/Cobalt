@@ -62,6 +62,9 @@ namespace Cobalt.Sandbox
 
             Cobalt.Graphics.GL.ShaderModule glShader = new Graphics.GL.ShaderModule(new IShaderModule.CreateInfo.Builder().Type(EShaderType.Vertex).ResourceStream(stream));
 
+            Graphics.GL.GraphicsPipeline glPipeline = new Graphics.GL.GraphicsPipeline(new IGraphicsPipeline.CreateInfo.Builder().AddStageCreationInformation(
+                new IGraphicsPipeline.ShaderStageCreateInfo.Builder().Module(glShader).EntryPoint("main")));
+
             while (window.IsOpen())
             {
                 window.Refresh();

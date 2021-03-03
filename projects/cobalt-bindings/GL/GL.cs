@@ -82,6 +82,9 @@ namespace Cobalt.Bindings.GL
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_attach_shader", CallingConvention = CallingConvention.Cdecl)]
         public static extern void AttachShader(uint program, uint shader);
 
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_detach_shader", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void DetachShader(uint program, uint shader);
+
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_shader_source", CallingConvention = CallingConvention.Cdecl)]
         public static extern void ShaderSource(uint shader, int count, string[] strings, int[] length);
 
@@ -97,6 +100,20 @@ namespace Cobalt.Bindings.GL
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_delete_shader", CallingConvention = CallingConvention.Cdecl)]
         public static extern void DeleteShader(uint shader);
 
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_link_program", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void LinkProgram(uint program);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_get_program_iv", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void GetProgramiv(uint program, uint name, int[] param);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_get_program_info_log", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void GetProgramInfoLog(uint program, int maxLength, IntPtr length, StringBuilder infoLog);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_validate_program", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void ValidateProgram(uint program);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_delete_program", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void DeleteProgram(uint program);
 
         public static string GetShaderInfoLog(uint shader)
         {
@@ -108,10 +125,28 @@ namespace Cobalt.Bindings.GL
             return builder.ToString();
         }
 
+        public static string GetProgramInfoLog(uint program)
+        {
+            GetProgramiv(program, EProgramParameter.InfoLogLength, out int size);
+
+            StringBuilder builder = new StringBuilder(size);
+            GetProgramInfoLog(program, size, IntPtr.Zero, builder);
+
+            return builder.ToString();
+        }
+
         public static void GetShaderiv(uint shader, EShaderParameter name, out int param)
         {
             int[] parameters = new int[] { 0 }; 
             GetShaderiv(shader, (uint)name, parameters);
+
+            param = parameters[0];
+        }
+
+        public static void GetProgramiv(uint program, EProgramParameter name, out int param)
+        {
+            int[] parameters = new int[] { 0 };
+            GetProgramiv(program, (uint)name, parameters);
 
             param = parameters[0];
         }

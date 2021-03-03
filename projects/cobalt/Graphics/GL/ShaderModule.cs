@@ -23,7 +23,7 @@ namespace Cobalt.Graphics.GL
             OpenGL.CompileShader(Handle);
 
             OpenGL.GetShaderiv(Handle, Bindings.GL.EShaderParameter.CompileStatus, out int compileStatus);
-            if(compileStatus == 0)
+            if(compileStatus != 1)
             {
                 string status = OpenGL.GetShaderInfoLog(Handle);
                 throw new InvalidOperationException(status);

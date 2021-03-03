@@ -94,6 +94,11 @@ GLAD_BINDING_EXPORT void cobalt_gl_attach_shader(unsigned int program, unsigned 
 	glAttachShader(program, shader);
 }
 
+GLAD_BINDING_EXPORT void cobalt_gl_detach_shader(unsigned int program, unsigned int shader)
+{
+	glDetachShader(program, shader);
+}
+
 GLAD_BINDING_EXPORT void cobalt_gl_shader_source(unsigned int shader, int count, const char** string, int* length)
 {
 	glShaderSource(shader, count, string, length);
@@ -117,4 +122,29 @@ GLAD_BINDING_EXPORT void cobalt_gl_get_shader_info_log(unsigned int shader, int 
 GLAD_BINDING_EXPORT void cobalt_gl_delete_shader(unsigned int shader)
 {
 	glDeleteShader(shader);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_link_program(unsigned int program)
+{
+	glLinkProgram(program);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_get_program_iv(unsigned int program, unsigned int name, int* params)
+{
+	glGetProgramiv(program, name, params);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_get_program_info_log(unsigned int program, int maxLength, int* length, char* infoLog)
+{
+	glGetProgramInfoLog(program, maxLength, length, infoLog);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_validate_program(unsigned int program)
+{
+	glValidateProgram(program);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_delete_program(unsigned int program)
+{
+	glDeleteProgram(program);
 }

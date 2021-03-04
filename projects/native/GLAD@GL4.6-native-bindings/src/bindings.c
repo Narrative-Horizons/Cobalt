@@ -33,7 +33,6 @@ GLAD_BINDING_EXPORT void cobalt_gl_create_textures(unsigned int target, unsigned
 GLAD_BINDING_EXPORT void cobalt_gl_create_buffers(unsigned int amount, unsigned int* buffers)
 {
 	glCreateBuffers(amount, buffers);
-	printf("%d\n", buffers[0]);
 }
 
 GLAD_BINDING_EXPORT void cobalt_gl_gen_textures(unsigned int amount, unsigned int* textures)
@@ -154,7 +153,6 @@ GLAD_BINDING_EXPORT void cobalt_gl_delete_program(unsigned int program)
 GLAD_BINDING_EXPORT void cobalt_gl_create_vertex_arrays(int amount, unsigned int* arrays)
 {
 	glCreateVertexArrays(amount, arrays);
-	printf("%d\n", arrays[0]);
 }
 
 GLAD_BINDING_EXPORT void cobalt_gl_vertex_array_vertex_buffer(unsigned int vaobj, unsigned int bindingIndex, unsigned int buffer, long long int offset, int stride)

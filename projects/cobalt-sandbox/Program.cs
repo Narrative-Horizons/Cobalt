@@ -62,18 +62,6 @@ namespace Cobalt.Sandbox
             objectData[2].position = new Vector3(0f, .5f, 0f);
             objectData[2].uv = new Vector2(.5f, 1);
 
-            float[] data = new float[3 * 5];
-            uint idx = 0;
-            for(int i = 0; i < 3; i++)
-            {
-                data[idx++] = objectData[i].position.x;
-                data[idx++] = objectData[i].position.y;
-                data[idx++] = objectData[i].position.z;
-
-                data[idx++] = objectData[i].uv.x;
-                data[idx++] = objectData[i].uv.y;
-            }
-
             IBuffer buf = device.CreateBuffer(
                 IBuffer.FromPayload(objectData).AddUsage(EBufferUsage.ArrayBuffer),
                 new IBuffer.MemoryInfo.Builder()

@@ -8,13 +8,13 @@ namespace Cobalt.Graphics.GL
 {
     internal class Buffer : IBuffer
     {
-        public uint Id { get; private set; }
+        public uint Handle { get; private set; }
 
         private GCHandle _mappedHandle;
 
         public Buffer(IBuffer.MemoryInfo memoryInfo, IBuffer.CreateInfo createInfo)
         {
-            Id = OpenGL.CreateBuffers();
+            Handle = OpenGL.CreateBuffers();
             int size = createInfo.Size;
             EBufferAccessMask flags = 0;
 
@@ -39,27 +39,23 @@ namespace Cobalt.Graphics.GL
 
             if(createInfo.InitialPayload == null)
             {
-                OpenGL.NamedBufferStorage(Id, 0, IntPtr.Zero, flags);
+                OpenGL.NamedBufferStorage(Handle, 0, IntPtr.Zero, flags);
             }
             else
             {
-                GCHandle handle = GCHandle.Alloc(createInfo.InitialPayload);
-                IntPtr ptr = (IntPtr)handle;
-
-                OpenGL.NamedBufferStorage(Id, size, ptr, flags);
-
-                handle.Free();
+                GCHandle handle = GCHandle.Alloc(createInfo.InitialPayload, GCHandleType.Pinned);
+                OpenGL.NamedBufferStorage(Handle, (uint)size, handle.AddrOfPinnedObject(), flags);
             }
         }
 
         public void Dispose()
         {
-            OpenGL.DeleteBuffers(Id);
+            OpenGL.DeleteBuffers(Handle);
         }
 
         public object Map()
         {
-            IntPtr ptr = OpenGL.MapNamedBuffer(Id, EBufferAccess.ReadOnly);
+            IntPtr ptr = OpenGL.MapNamedBuffer(Handle, EBufferAccess.ReadOnly);
             _mappedHandle = (GCHandle)ptr;
 
             return _mappedHandle.Target;
@@ -67,7 +63,7 @@ namespace Cobalt.Graphics.GL
 
         public object Map(int offset, int size)
         {
-            IntPtr ptr = OpenGL.MapNamedBufferRange(Id, offset, size, EBufferAccess.ReadOnly);
+            IntPtr ptr = OpenGL.MapNamedBufferRange(Handle, offset, size, EBufferAccess.ReadOnly);
             _mappedHandle = (GCHandle)ptr;
 
             return _mappedHandle.Target;
@@ -75,7 +71,7 @@ namespace Cobalt.Graphics.GL
 
         public void Unmap()
         {
-            OpenGL.UnmapNamedBuffer(Id);
+            OpenGL.UnmapNamedBuffer(Handle);
         }
     }
 }

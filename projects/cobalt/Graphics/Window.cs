@@ -80,6 +80,11 @@ namespace Cobalt.Graphics
             throw new Exception(Util.PtrToStringUTF8(message));
         }
 
+        public void Poll()
+        {
+            GLFW.PollEvents();
+        }
+
         private static void Resize(GLFWWindow window, int width, int height)
         {
 
@@ -87,9 +92,6 @@ namespace Cobalt.Graphics
 
         public void Refresh()
         {
-            OpenGL.Clear(Bindings.GL.EClearBufferMask.ColorBufferBit);
-
-            GLFW.PollEvents();
             GLFW.SwapBuffers(_window);
         }
     }

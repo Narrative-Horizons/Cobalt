@@ -115,6 +115,59 @@ namespace Cobalt.Bindings.GL
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_delete_program", CallingConvention = CallingConvention.Cdecl)]
         public static extern void DeleteProgram(uint program);
 
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_create_vertex_arrays", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void CreateVertexArrays(int amount, uint[] arrays);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_vertex_array_vertex_buffer", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void VertexArrayVertexBuffer(uint vaobj, uint bindingIndex, uint buffer, IntPtr offset, int stride);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_enable_vertex_array_attrib", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void EnableVertexArrayAttrib(uint vaobj, uint index);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_disable_vertex_array_attrib", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void DisableVertexArrayAttrib(uint vaobj, uint index);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_vertex_array_attrib_format", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void VertexArrayAttribFormat(uint vaobj, uint attribIndex, int size, EVertexAttribFormat type, bool normalized, uint relativeOffset);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_vertex_array_attrib_binding", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void VertexArrayAttribBinding(uint vaobj, uint attribIndex, uint bindingIndex);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_vertex_array_element_buffer", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void VertexArrayElementBuffer(uint vaobj, uint buffer);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_delete_vertex_arrays", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void DeleteVertexArrays(int amount, uint[] arrays);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_use_program", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void UseProgram(uint program);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_bind_vertex_array", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void BindVertexArray(uint varray);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_draw_elements_instanced_base_vertex_base_instance", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void DrawElementsInstancedBaseVertexBaseInstance(EBeginMode mode, int count, EDrawElementsType type, IntPtr indices, int instanceCount, int baseVertex, uint baseInstance);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_draw_arrays_instanced_base_instance", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void DrawArraysInstancedBaseInstance(EBeginMode mode, int first, int count, int instanceCount, uint baseInstance);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_clear_named_framebuffer_fv", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void ClearNamedFramebufferfv(uint framebuffer, EClearBuffer buffer, int drawbuffer, IntPtr value);
+
+        public static uint CreateVertexArrays()
+        {
+            uint[] arrays = new uint[] { 0 };
+            CreateVertexArrays(1, arrays);
+
+            return arrays[0];
+        }
+
+        public static void DeleteVertexArrays(uint array)
+        {
+            uint[] arrays = new uint[] { array };
+            DeleteVertexArrays(1, arrays);
+        }
+
         public static string GetShaderInfoLog(uint shader)
         {
             GetShaderiv(shader, EShaderParameter.InfoLogLength, out int size);

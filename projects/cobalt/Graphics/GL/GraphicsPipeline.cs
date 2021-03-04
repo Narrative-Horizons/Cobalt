@@ -7,7 +7,7 @@ namespace Cobalt.Graphics.GL
 {
     internal class GraphicsPipeline : IGraphicsPipeline
     {
-        public List<IVertexAttributeArray> Arrays { get; private set; }
+        public List<IVertexAttributeArray> Arrays { get; private set; } = new List<IVertexAttributeArray>();
         public IGraphicsPipeline.CreateInfo Info { get; private set; }
         public uint Handle { get; private set; }
 
@@ -46,14 +46,20 @@ namespace Cobalt.Graphics.GL
             });
         }
 
-        public IVertexAttributeArray createVertexAttributeArray(List<IBuffer> vertexBuffers)
+        public IVertexAttributeArray CreateVertexAttributeArray(List<IBuffer> vertexBuffers)
         {
-            throw new NotImplementedException();
+            VertexAttributeArray array = new VertexAttributeArray(Info.VertexAttributeCreationInformation, vertexBuffers);
+            Arrays.Add(array);
+
+            return array;
         }
 
-        public IVertexAttributeArray createVertexAttributeArray(List<IBuffer> vertexBuffers, IBuffer elementBuffer)
+        public IVertexAttributeArray CreateVertexAttributeArray(List<IBuffer> vertexBuffers, IBuffer elementBuffer)
         {
-            throw new NotImplementedException();
+            VertexAttributeArray array = new VertexAttributeArray(Info.VertexAttributeCreationInformation, vertexBuffers, elementBuffer);
+            Arrays.Add(array);
+
+            return array;
         }
 
         public void Dispose()
@@ -63,7 +69,29 @@ namespace Cobalt.Graphics.GL
 
         public IPipelineLayout GetLayout()
         {
-            throw new NotImplementedException();
+            return Info.PipelineLayout;
+        }
+
+        public Bindings.GL.EBeginMode DrawMode()
+        {
+            ETopology topo = Info.InputAssemblyCreationInformation.Topology;
+            switch (topo)
+            {
+                case ETopology.PointList:
+                    return Bindings.GL.EBeginMode.Points;
+                case ETopology.LineList:
+                    return Bindings.GL.EBeginMode.Lines;
+                case ETopology.LineStrip:
+                    return Bindings.GL.EBeginMode.LineStrip;
+                case ETopology.TriangleList:
+                    return Bindings.GL.EBeginMode.Triangles;
+                case ETopology.TriangleStrip:
+                    return Bindings.GL.EBeginMode.TriangleStrip;
+                case ETopology.TriangleFan:
+                    return Bindings.GL.EBeginMode.TriangleFan;
+            }
+
+            throw new InvalidOperationException("Unsupported data format");
         }
     }
 }

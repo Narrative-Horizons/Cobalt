@@ -19,6 +19,7 @@ namespace Cobalt.Graphics.GL
         public List<DescriptorSetLayout> DescSetLayouts { get; private set; } = new List<DescriptorSetLayout>();
         public List<PipelineLayout> Layouts { get; private set; } = new List<PipelineLayout>();
         public List<GraphicsPipeline> GraphicsPipelines { get; private set; } = new List<GraphicsPipeline>();
+        public List<CommandPool> CommandPools { get; private set; } = new List<CommandPool>();
 
         public Device(IDevice.CreateInfo info)
         {
@@ -111,6 +112,14 @@ namespace Cobalt.Graphics.GL
             GraphicsPipelines.Add(pipeline);
 
             return pipeline;
+        }
+
+        public ICommandPool CreateCommandPool(ICommandPool.CreateInfo info)
+        {
+            CommandPool pool = new CommandPool(info);
+            CommandPools.Add(pool);
+
+            return pool;
         }
     }
 }

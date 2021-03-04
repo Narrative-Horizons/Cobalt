@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using OpenGL = Cobalt.Bindings.GL.GL;
 
 namespace Cobalt.Graphics.GL.Commands
 {
@@ -19,7 +17,7 @@ namespace Cobalt.Graphics.GL.Commands
 
         public void Execute()
         {
-            // TODO Bind vao
+            StateMachine.BindVertexArray(VAO);
         }
     }
 }

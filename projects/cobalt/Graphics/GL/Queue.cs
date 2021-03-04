@@ -22,6 +22,12 @@ namespace Cobalt.Graphics.GL
             // Do Nothing
         }
 
+        public void Execute(IQueue.SubmitInfo info)
+        {
+            CommandBuffer buffer = info.Buffer as CommandBuffer;
+            buffer.Execute();
+        }
+
         public uint GetFamilyIndex()
         {
             return _family;

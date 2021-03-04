@@ -53,10 +53,23 @@ namespace Cobalt.Graphics
             public QueueProperties Properties { get; private set; }
         }
 
+        public class SubmitInfo
+        {
+            public ICommandBuffer Buffer { get; private set; }
+
+            public SubmitInfo(ICommandBuffer buffer)
+            {
+                Buffer = buffer;
+            }
+        }
+
+        void Execute(SubmitInfo info);
+
         uint GetQueueIndex();
 
         uint GetFamilyIndex();
 
         QueueProperties GetProperties();
+
     }
 }

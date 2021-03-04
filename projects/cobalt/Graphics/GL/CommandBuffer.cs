@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Cobalt.Graphics.GL.Commands;
+using Cobalt.Math;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -8,64 +10,90 @@ namespace Cobalt.Graphics.GL
     {
         public List<ICommand> commands { get; private set; } = new List<ICommand>();
 
+        private bool _recording = false;
+        private bool _reset = false;
+
+        public CommandBuffer(ICommandBuffer.AllocateInfo info, bool resetFlag)
+        {
+            _reset = resetFlag;
+        }
+
         public void BeginRenderPass(ICommandBuffer.RenderPassBeginInfo info)
         {
-            throw new NotImplementedException();
+            List<Vector4> clearValues = new List<Vector4>(info.ClearValues);
+            for(int i = 0; i < info.RenderPass.GetAttachments().Count; i++)
+            {
+                IRenderPass.AttachmentDescription attachmentInfo = info.RenderPass.GetAttachments()[i];
+                if(attachmentInfo.LoadOp == EAttachmentLoad.Clear)
+                {
+                    clearValues[i] = null;
+                }
+            }
+
+            commands.Add(new ClearFrameBufferCommand((FrameBuffer)info.FrameBuffer, clearValues));
         }
 
         public void Bind(IGraphicsPipeline pipeline)
         {
-            throw new NotImplementedException();
+            commands.Add(new GL.Commands.BindGraphicsPipelineCommand(pipeline as GraphicsPipeline));
         }
 
         public void Bind(IVertexAttributeArray vao)
         {
-            throw new NotImplementedException();
+            commands.Add(new GL.Commands.BindVertexArrayObjectCommand(vao as VertexAttributeArray));
         }
 
         public void Bind(IPipelineLayout layout, int firstSet)
         {
-            throw new NotImplementedException();
         }
 
         public void Copy(IBuffer source, IBuffer destination, List<ICommandBuffer.BufferCopyRegion> regions)
         {
-            throw new NotImplementedException();
         }
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            commands.Clear();
         }
 
         public void Draw(int baseVertex, int vertexCount, int baseInstance, int instanceCount)
         {
-            throw new NotImplementedException();
+            commands.Add(new GL.Commands.DrawArraysCommand(baseVertex, vertexCount, baseInstance, instanceCount));
         }
 
         public void DrawElements(int elementCount, int baseVertex, int baseInstance, int instanceCount)
         {
-            throw new NotImplementedException();
         }
 
         public void DrawElements(int elementCount, int baseVertex, int baseInstance, int instanceCount, long indexOffset)
         {
-            throw new NotImplementedException();
         }
 
         public void End()
         {
-            throw new NotImplementedException();
+            _recording = false;
+        }
+
+        public void Execute()
+        {
+            foreach(ICommand com in commands)
+            {
+                com.Execute();
+            }
         }
 
         public void Record(ICommandBuffer.RecordInfo info)
         {
-            throw new NotImplementedException();
+            Reset();
+            _recording = true;
         }
 
         public void Reset()
         {
-            throw new NotImplementedException();
+            if (_reset)
+            {
+                commands.Clear();
+            }
         }
     }
 }

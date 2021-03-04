@@ -17,7 +17,7 @@ namespace Cobalt.Graphics
                     return this;
                 }
 
-                public new Builder Count(int count)
+                public new Builder Count(uint count)
                 {
                     base.Count = count;
                     return this;
@@ -34,7 +34,7 @@ namespace Cobalt.Graphics
             }
 
             public ECommandBufferLevel Level { get; private set; }
-            public int Count { get; private set; }
+            public uint Count { get; private set; }
         }
 
         public class SecondaryInheritanceInfo

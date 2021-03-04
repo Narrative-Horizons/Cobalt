@@ -89,7 +89,7 @@ namespace Cobalt.Graphics
             public uint Width { get; private set; }
             public uint Height { get; private set; }
             public uint Layers { get; private set; }
-            public List<IQueue> Queues { get; private set; }
+            public List<IQueue> Queues { get; private set; } = new List<IQueue>();
         }
 
         public class PresentInfo

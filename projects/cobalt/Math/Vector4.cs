@@ -345,7 +345,7 @@ namespace Cobalt.Math
 
         public static bool operator ==(Vector4 left, Vector4 right)
         {
-            return left.Equals(right);
+            return left?.Equals(right) ?? false;
         }
 
         public static bool operator !=(Vector4 left, Vector4 right)

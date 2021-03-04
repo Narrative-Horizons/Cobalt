@@ -1,6 +1,7 @@
 #include <glad/glad.h>
 
 #include <stdio.h>
+#include <stdbool.h>
 
 #define GLAD_BINDING_EXPORT __declspec(dllexport)
 
@@ -32,6 +33,7 @@ GLAD_BINDING_EXPORT void cobalt_gl_create_textures(unsigned int target, unsigned
 GLAD_BINDING_EXPORT void cobalt_gl_create_buffers(unsigned int amount, unsigned int* buffers)
 {
 	glCreateBuffers(amount, buffers);
+	printf("%d\n", buffers[0]);
 }
 
 GLAD_BINDING_EXPORT void cobalt_gl_gen_textures(unsigned int amount, unsigned int* textures)
@@ -147,4 +149,70 @@ GLAD_BINDING_EXPORT void cobalt_gl_validate_program(unsigned int program)
 GLAD_BINDING_EXPORT void cobalt_gl_delete_program(unsigned int program)
 {
 	glDeleteProgram(program);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_create_vertex_arrays(int amount, unsigned int* arrays)
+{
+	glCreateVertexArrays(amount, arrays);
+	printf("%d\n", arrays[0]);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_vertex_array_vertex_buffer(unsigned int vaobj, unsigned int bindingIndex, unsigned int buffer, long long int offset, int stride)
+{
+	glVertexArrayVertexBuffer(vaobj, bindingIndex, buffer, offset, stride);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_enable_vertex_array_attrib(unsigned int vaobj, unsigned int index)
+{
+	glEnableVertexArrayAttrib(vaobj, index);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_disable_vertex_array_attrib(unsigned int vaobj, unsigned int index)
+{
+	glDisableVertexArrayAttrib(vaobj, index);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_vertex_array_attrib_format(unsigned int vaobj, unsigned int attribIndex, int size, unsigned int type, bool normalized, unsigned int relativeOffset)
+{
+	glVertexArrayAttribFormat(vaobj, attribIndex, size, type, normalized ? GL_TRUE : GL_FALSE, relativeOffset);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_vertex_array_attrib_binding(unsigned int vaobj, unsigned int attribIndex, unsigned int bindingIndex)
+{
+	glVertexArrayAttribBinding(vaobj, attribIndex, bindingIndex);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_vertex_array_element_buffer(unsigned int vaobj, unsigned int buffer)
+{
+	glVertexArrayElementBuffer(vaobj, buffer);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_delete_vertex_arrays(int amount, const unsigned int* arrays)
+{
+	glDeleteVertexArrays(amount, arrays);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_use_program(unsigned int program)
+{
+	glUseProgram(program);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_bind_vertex_array(unsigned int varray)
+{
+	glBindVertexArray(varray);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_draw_elements_instanced_base_vertex_base_instance(unsigned int mode, int count, unsigned int type, void* indices, int instanceCount, int baseVertex, unsigned int baseInstance)
+{
+	glDrawElementsInstancedBaseVertexBaseInstance(mode, count, type, indices, instanceCount, baseVertex, baseInstance);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_draw_arrays_instanced_base_instance(unsigned int mode, int first, int count, int instanceCount, unsigned int baseInstance)
+{
+	glDrawArraysInstancedBaseInstance(mode, first, count, instanceCount, baseInstance);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_clear_named_framebuffer_fv(unsigned int framebuffer, unsigned int buffer, int drawbuffer, const float* value)
+{
+	glClearNamedFramebufferfv(framebuffer, buffer, drawbuffer, value);
 }

@@ -55,5 +55,6 @@ namespace Cobalt.Graphics
         public IDescriptorSetLayout CreateDescriptorSetLayout(IDescriptorSetLayout.CreateInfo info);
         public IPipelineLayout CreatePipelineLayout(IPipelineLayout.CreateInfo info);
         public IGraphicsPipeline CreateGraphicsPipeline(IGraphicsPipeline.CreateInfo info);
+        public ICommandPool CreateCommandPool(ICommandPool.CreateInfo info);
     }
 }

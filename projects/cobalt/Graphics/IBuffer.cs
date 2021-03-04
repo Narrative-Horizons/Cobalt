@@ -58,6 +58,7 @@ namespace Cobalt.Graphics
                 public new Builder InitialPayload(object payload)
                 {
                     base.InitialPayload = payload;
+                    PayloadType = payload.GetType();
                     return this;
                 }
             }
@@ -65,6 +66,7 @@ namespace Cobalt.Graphics
             public List<EBufferUsage> Usage { get; private set; } = new List<EBufferUsage>();
             public List<IQueue> Queues { get; private set; } = new List<IQueue>();
             public object InitialPayload { get; private set; }
+            public Type PayloadType { get; private set; }
         }
 
         object Map();

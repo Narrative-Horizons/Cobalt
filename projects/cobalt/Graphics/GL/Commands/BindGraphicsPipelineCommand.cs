@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Cobalt.Graphics.GL.Commands
+﻿namespace Cobalt.Graphics.GL.Commands
 {
     internal class BindGraphicsPipelineCommand : ICommand
     {
@@ -13,15 +9,14 @@ namespace Cobalt.Graphics.GL.Commands
             Pipeline = pipeline;
         }
 
-
         public void Dispose()
         {
-
+            
         }
 
         public void Execute()
         {
-            // TODO: Bind graphics pipeline
+            StateMachine.UseProgram(Pipeline);
         }
     }
 }

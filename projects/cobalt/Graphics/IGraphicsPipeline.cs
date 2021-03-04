@@ -761,7 +761,7 @@ namespace Cobalt.Graphics
         }
 
         IPipelineLayout GetLayout();
-        IVertexAttributeArray createVertexAttributeArray(List<IBuffer> vertexBuffers);
-        IVertexAttributeArray createVertexAttributeArray(List<IBuffer> vertexBuffers, IBuffer elementBuffer);
+        IVertexAttributeArray CreateVertexAttributeArray(List<IBuffer> vertexBuffers);
+        IVertexAttributeArray CreateVertexAttributeArray(List<IBuffer> vertexBuffers, IBuffer elementBuffer);
     }
 }

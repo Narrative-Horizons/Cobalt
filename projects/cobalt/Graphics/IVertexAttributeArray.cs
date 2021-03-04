@@ -6,5 +6,6 @@ namespace Cobalt.Graphics
 {
     public interface IVertexAttributeArray : IDisposable
     {
+
     }
 }

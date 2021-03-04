@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace Cobalt.Graphics
 {
+
     public interface IBuffer : IDisposable
     {
         public class MemoryInfo
@@ -33,10 +34,10 @@ namespace Cobalt.Graphics
             public List<EMemoryProperty> Preferred { get; private set; } = new List<EMemoryProperty>();
         }
 
-        public class CreateInfo
+        public class CreateInfo<T> where T : unmanaged
         {
-            public sealed class Builder : CreateInfo
-            {
+            public sealed class Builder : CreateInfo<T> {
+
                 public new Builder Size(int size)
                 {
                     base.Size = size;
@@ -55,18 +56,35 @@ namespace Cobalt.Graphics
                     return this;
                 }
 
-                public new Builder InitialPayload(object payload)
+                public new Builder InitialPayload(T payload)
+                {
+                    return InitialPayload(new T[] { payload });
+                }
+
+                public new Builder InitialPayload(T[] payload)
                 {
                     base.InitialPayload = payload;
-                    PayloadType = payload.GetType();
+                    unsafe
+                    {
+                        base.Size = sizeof(T) * payload.Length;
+                    }
                     return this;
                 }
             }
             public int Size { get; private set; }
             public List<EBufferUsage> Usage { get; private set; } = new List<EBufferUsage>();
             public List<IQueue> Queues { get; private set; } = new List<IQueue>();
-            public object InitialPayload { get; private set; }
-            public Type PayloadType { get; private set; }
+            public T[] InitialPayload { get; private set; }
+        }
+
+        public static CreateInfo<T>.Builder FromPayload<T>(T payload) where T : unmanaged
+        {
+            return new CreateInfo<T>.Builder().InitialPayload(payload);
+        }
+
+        public static CreateInfo<T>.Builder FromPayload<T>(T[] payload) where T : unmanaged
+        {
+            return new CreateInfo<T>.Builder().InitialPayload(payload);
         }
 
         object Map();

@@ -15,8 +15,9 @@ namespace Cobalt.Graphics.GL
 
             info.Attributes.ForEach(attribute =>
             {
-                Buffer buffer = buffers[attribute.Binding] as Buffer;
-                OpenGL.VertexArrayVertexBuffer(Handle, (uint)attribute.Binding, buffer.Handle, IntPtr.Zero, attribute.Stride);
+                IBuffer buffer = buffers[attribute.Binding];
+                uint handle = BufferHelper.GetHandle(buffer);
+                OpenGL.VertexArrayVertexBuffer(Handle, (uint)attribute.Binding, handle, IntPtr.Zero, attribute.Stride);
             });
 
             info.Attributes.ForEach(attribute =>
@@ -39,7 +40,7 @@ namespace Cobalt.Graphics.GL
 
         public VertexAttributeArray(IGraphicsPipeline.VertexAttributeCreateInfo info, List<IBuffer> vertexBuffers, IBuffer elementBuffer) : this(info, vertexBuffers)
         {
-            OpenGL.VertexArrayElementBuffer(Handle, ((Buffer)elementBuffer).Handle);
+            OpenGL.VertexArrayElementBuffer(Handle, BufferHelper.GetHandle(elementBuffer));
         }
 
         public void Dispose()

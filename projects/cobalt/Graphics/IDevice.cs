@@ -49,7 +49,7 @@ namespace Cobalt.Graphics
         public IRenderSurface GetSurface(Window window);
         public IRenderPass CreateRenderPass(IRenderPass.CreateInfo info);
         public IFrameBuffer CreateFrameBuffer(IFrameBuffer.CreateInfo info);
-        public IBuffer CreateBuffer(IBuffer.CreateInfo info, IBuffer.MemoryInfo memory);
+        public IBuffer CreateBuffer<T>(IBuffer.CreateInfo<T> info, IBuffer.MemoryInfo memory) where T : unmanaged;
         public IImage CreateImage(IImage.CreateInfo info, IImage.MemoryInfo memory);
         public IShaderModule CreateShaderModule(IShaderModule.CreateInfo info);
         public IDescriptorSetLayout CreateDescriptorSetLayout(IDescriptorSetLayout.CreateInfo info);

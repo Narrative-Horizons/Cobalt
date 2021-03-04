@@ -9,18 +9,11 @@ namespace Cobalt.Math
 {
     [Serializable]
     [StructLayout(LayoutKind.Sequential)]
-    public class Vector3 : IEquatable<Vector3>
+    public struct Vector3 : IEquatable<Vector3>
     {
         public float x;
         public float y;
         public float z;
-
-        public Vector3()
-        {
-            x = 0.0f;
-            y = 0.0f;
-            z = 0.0f;
-        }
 
         public Vector3(float value)
         {

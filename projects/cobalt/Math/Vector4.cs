@@ -9,20 +9,12 @@ namespace Cobalt.Math
 {
     [Serializable]
     [StructLayout(LayoutKind.Sequential)]
-    public class Vector4 : IEquatable<Vector4>
+    public struct Vector4 : IEquatable<Vector4>
     {
         public float x;
         public float y;
         public float z;
         public float w;
-
-        public Vector4()
-        {
-            x = 0.0f;
-            y = 0.0f;
-            z = 0.0f;
-            w = 0.0f;
-        }
 
         public Vector4(float value)
         {
@@ -345,7 +337,7 @@ namespace Cobalt.Math
 
         public static bool operator ==(Vector4 left, Vector4 right)
         {
-            return left?.Equals(right) ?? false;
+            return left.Equals(right);
         }
 
         public static bool operator !=(Vector4 left, Vector4 right)

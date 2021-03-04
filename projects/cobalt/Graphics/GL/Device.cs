@@ -13,7 +13,7 @@ namespace Cobalt.Graphics.GL
 
         public List<RenderPass> Passes { get; private set; } = new List<RenderPass>();
         public List<FrameBuffer> FrameBuffers { get; private set; } = new List<FrameBuffer>();
-        public List<Buffer> Buffers { get; private set; } = new List<Buffer>();
+        public List<IBuffer> Buffers { get; private set; } = new List<IBuffer>();
         public List<Image> Images { get; private set; } = new List<Image>();
         public List<ShaderModule> Modules { get; private set; } = new List<ShaderModule>();
         public List<DescriptorSetLayout> DescSetLayouts { get; private set; } = new List<DescriptorSetLayout>();
@@ -66,9 +66,9 @@ namespace Cobalt.Graphics.GL
             return fb;
         }
 
-        public IBuffer CreateBuffer(IBuffer.CreateInfo info, IBuffer.MemoryInfo memory)
+        public IBuffer CreateBuffer<T>(IBuffer.CreateInfo<T> info, IBuffer.MemoryInfo memory) where T : unmanaged
         {
-            Buffer buffer = new Buffer(memory, info);
+            Buffer<T> buffer = new Buffer<T>(memory, info);
             Buffers.Add(buffer);
 
             return buffer;

@@ -53,7 +53,7 @@ namespace Cobalt.Graphics
             public IFrameBuffer FrameBuffer { get; set; }
             public int Width { get; set; }
             public int Height { get; set; }
-            public List<Vector4> ClearValues { get; set; } = new List<Vector4>();
+            public List<Vector4?> ClearValues { get; set; } = new List<Vector4?>();
         }
 
         public class BufferCopyRegion

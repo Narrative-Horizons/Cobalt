@@ -19,6 +19,8 @@ project "Cobalt Bindings"
         "**.cs"
     }
 
+    clr "Unsafe"
+
     filter "system:windows"
         defines {
             "COBALT_PLATFORM_WINDOWS"

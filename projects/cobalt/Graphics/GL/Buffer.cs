@@ -6,13 +6,13 @@ using System.Runtime.InteropServices;
 
 namespace Cobalt.Graphics.GL
 {
-    internal class Buffer : IBuffer
+    internal class Buffer<T> : IBuffer, IHandledType where T : unmanaged
     {
         public uint Handle { get; private set; }
 
         private GCHandle _mappedHandle;
 
-        public Buffer(IBuffer.MemoryInfo memoryInfo, IBuffer.CreateInfo createInfo)
+        public Buffer(IBuffer.MemoryInfo memoryInfo, IBuffer.CreateInfo<T> createInfo)
         {
             Handle = OpenGL.CreateBuffers();
             int size = createInfo.Size;
@@ -43,8 +43,8 @@ namespace Cobalt.Graphics.GL
             }
             else
             {
-                GCHandle handle = GCHandle.Alloc(createInfo.InitialPayload, GCHandleType.Pinned);
-                OpenGL.NamedBufferStorage(Handle, (uint)size, handle.AddrOfPinnedObject(), flags);
+                T[] payload = createInfo.InitialPayload;
+                OpenGL.NamedBufferStorageTyped(Handle, (uint)size, payload, flags);
             }
         }
 
@@ -72,6 +72,19 @@ namespace Cobalt.Graphics.GL
         public void Unmap()
         {
             OpenGL.UnmapNamedBuffer(Handle);
+        }
+
+        public uint GetHandle()
+        {
+            return Handle;
+        }
+    }
+
+    internal static class BufferHelper
+    {
+        public static uint GetHandle(IBuffer buffer)
+        {
+            return (buffer as IHandledType).GetHandle();
         }
     }
 }

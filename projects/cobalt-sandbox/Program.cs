@@ -1,19 +1,17 @@
 using Cobalt.Graphics;
 using Cobalt.Math;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
-using OpenGL = Cobalt.Bindings.GL.GL;
 
 namespace Cobalt.Sandbox
 {
+    [StructLayout(LayoutKind.Sequential)]
     public struct VertexData
     {
         public Vector3 position;
         public Vector2 uv;
     }
-
     public class Program
     {
         public static void Main(string[] args)
@@ -76,9 +74,11 @@ namespace Cobalt.Sandbox
                 data[idx++] = objectData[i].uv.y;
             }
 
-            IBuffer buf = device.CreateBuffer(new IBuffer.CreateInfo.Builder().AddUsage(EBufferUsage.ArrayBuffer).InitialPayload(data).Size(60),
-                new IBuffer.MemoryInfo.Builder().AddRequiredProperty(EMemoryProperty.DeviceLocal)
-                .Usage(EMemoryUsage.GPUOnly));
+            IBuffer buf = device.CreateBuffer(
+                IBuffer.FromPayload(objectData).AddUsage(EBufferUsage.ArrayBuffer),
+                new IBuffer.MemoryInfo.Builder()
+                    .AddRequiredProperty(EMemoryProperty.DeviceLocal)
+                    .Usage(EMemoryUsage.GPUOnly));
 
             string vsSource = "#version 460\nlayout (location=0) in vec3 position;\nlayout (location=1) in vec2 uv;\nvoid main()\n{\ngl_Position = vec4(position, 1);\n}";
             MemoryStream stream = new MemoryStream();
@@ -171,7 +171,7 @@ namespace Cobalt.Sandbox
 
                 buffer.BeginRenderPass(new ICommandBuffer.RenderPassBeginInfo()
                 {
-                    ClearValues = new List<Vector4>() { new Vector4(0, 0, 0, 1)},
+                    ClearValues = new List<Vector4?>() { new Vector4(0, 0, 0, 1)},
                     Width = 1280,
                     Height = 720,
                     FrameBuffer = swapchain.GetFrameBuffer(frame),

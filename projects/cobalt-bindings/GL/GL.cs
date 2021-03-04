@@ -1,5 +1,6 @@
 ﻿using Cobalt.Bindings.Utils;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -153,6 +154,17 @@ namespace Cobalt.Bindings.GL
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_clear_named_framebuffer_fv", CallingConvention = CallingConvention.Cdecl)]
         public static extern void ClearNamedFramebufferfv(uint framebuffer, EClearBuffer buffer, int drawbuffer, IntPtr value);
+
+        public static void NamedBufferStorageTyped<T>(uint buffer, long size, [NotNull] [In, Out] T[] data, EBufferAccessMask flags) where T : unmanaged
+        {
+            unsafe
+            {
+                fixed (T* objPtr = &data[0])
+                {
+                    NamedBufferStorage(buffer, size, (IntPtr)objPtr, flags);
+                }
+            }
+        }
 
         public static uint CreateVertexArrays()
         {

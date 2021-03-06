@@ -16,6 +16,9 @@ namespace Cobalt.Sandbox
     {
         public static void Main(string[] args)
         {
+            var image = Bindings.STB.ImageLoader.LoadImage("../../../../CobaltLogo.png");
+            Bindings.STB.ImageLoader.ReleaseImage(ref image);
+
             GraphicsContext gfxContext = GraphicsContext.GetInstance(GraphicsContext.API.OpenGL_4);
 
             Window window = gfxContext.CreateWindow(new Window.CreateInfo.Builder()

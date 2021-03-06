@@ -20,7 +20,7 @@ project "GLAD@GL4.6"
     toolset "clang"
 
     -- OS filters
-    filter "system:window"
+    filter "system:windows"
         systemversion "latest"
         staticruntime "Off"
 

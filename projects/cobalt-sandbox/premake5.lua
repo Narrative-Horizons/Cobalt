@@ -26,3 +26,12 @@ project "Cobalt Sandbox"
         defines {
             "COBALT_PLATFORM_WINDOWS"
         }
+
+        postbuildcommands {
+            "xcopy /E /I \"%{sln.location}bin\\$(Configuration)\\%{cfg.system}\\%{cfg.platformtarget}\" \"%{sln.location}bin\\$(Configuration)\\%{cfg.system}\\%{cfg.dotnetframework}\\bin\""
+        }
+
+    filter {}
+
+    filter "configurations:Release"
+        optimize "Full"

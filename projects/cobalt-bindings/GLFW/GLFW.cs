@@ -12,11 +12,11 @@ namespace Cobalt.Bindings.GLFW
     {
         #region DLL Loading
 #if COBALT_PLATFORM_WINDOWS
-        public const string LIBRARY = "../x86_64/GLFW@3.3.3-native-bindings.dll";
+        public const string LIBRARY = "bin/GLFW@3.3.3-native-bindings.dll";
 #elif COBALT_PLATFORM_MACOS
-        public const string LIBRARY = "../x86_64/GLFW@3.3.3-native-bindings";
+        public const string LIBRARY = "bin/GLFW@3.3.3-native-bindings";
 #else
-        public const string LIBRARY = "../x86_64/GLFW@3.3.3-native-bindings";
+        public const string LIBRARY = "bin/GLFW@3.3.3-native-bindings";
 #endif
         #endregion
 

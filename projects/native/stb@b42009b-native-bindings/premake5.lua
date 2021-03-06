@@ -1,4 +1,4 @@
-project "GLFW@3.3.3-native-bindings"
+project "stb@b42009b-native-bindings"
     kind "SharedLib"
     language "C"
     cdialect "C11"
@@ -13,11 +13,11 @@ project "GLFW@3.3.3-native-bindings"
     }
 
     includedirs {
-        "%{NativeIncludeDirs.glfw}"
+        "%{NativeIncludeDirs.stb}"
     }
 
     links {
-        "GLFW@3.3.3"
+        "stb@b42009b"
     }
 
     toolset "clang"
@@ -26,6 +26,10 @@ project "GLFW@3.3.3-native-bindings"
     filter "system:windows"
         systemversion "latest"
         staticruntime "Off"
+
+        defines {
+            "_CRT_SECURE_NO_WARNINGS"
+        }
 
     filter {}
 

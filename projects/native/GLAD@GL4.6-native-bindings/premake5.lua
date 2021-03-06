@@ -23,7 +23,7 @@ project "GLAD@GL4.6-native-bindings"
     toolset "clang"
 
     -- OS filters
-    filter "system:window"
+    filter "system:windows"
         systemversion "latest"
         staticruntime "Off"
 

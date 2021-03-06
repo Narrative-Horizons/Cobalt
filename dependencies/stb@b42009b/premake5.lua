@@ -1,26 +1,23 @@
-project "GLFW@3.3.3-native-bindings"
-    kind "SharedLib"
+project "stb@b42009b"
+    kind "StaticLib"
     language "C"
     cdialect "C11"
-
-    architecture "x64"
 
     targetdir (binaries)
     objdir (intermediate)
 
+    architecture "x64"
+
+    toolset "clang"
+
     files {
+        "include/**.h",
         "src/**.c"
     }
 
     includedirs {
-        "%{NativeIncludeDirs.glfw}"
+        "include/"
     }
-
-    links {
-        "GLFW@3.3.3"
-    }
-
-    toolset "clang"
 
     -- OS filters
     filter "system:windows"

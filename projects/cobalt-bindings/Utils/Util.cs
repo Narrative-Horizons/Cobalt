@@ -25,6 +25,19 @@ namespace Cobalt.Bindings.Utils
             return "";
         }
 
+        public static void Copy(IntPtr source, ushort[] destination, int startIndex, int length)
+        {
+            unsafe
+            {
+                var srcPtr = (ushort*)source;
+                for (var i = startIndex; i < startIndex + length; ++i)
+                {
+                    destination[i] = *srcPtr;
+                    ++srcPtr;
+                }
+            }
+        }
+
         public delegate IntPtr FunctionLoader(byte[] name);
     }
 }

@@ -8,12 +8,12 @@ namespace Cobalt.Bindings.STB
         [StructLayout(LayoutKind.Sequential)]
         public struct ImagePayload
         {
-            IntPtr sdr_ub_image;
-            IntPtr sdr_us_image;
-            IntPtr hdr_f_image;
-            int width;
-            int height;
-            int channels;
+            public IntPtr sdr_ub_image;
+            public IntPtr sdr_us_image;
+            public IntPtr hdr_f_image;
+            public int width;
+            public int height;
+            public int channels;
         }
 
         #region DLL Loading

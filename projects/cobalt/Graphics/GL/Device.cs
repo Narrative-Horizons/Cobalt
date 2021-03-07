@@ -20,6 +20,7 @@ namespace Cobalt.Graphics.GL
         public List<PipelineLayout> Layouts { get; private set; } = new List<PipelineLayout>();
         public List<GraphicsPipeline> GraphicsPipelines { get; private set; } = new List<GraphicsPipeline>();
         public List<CommandPool> CommandPools { get; private set; } = new List<CommandPool>();
+        public List<Sampler> Samplers { get; private set; } = new List<Sampler>();
 
         public Device(IDevice.CreateInfo info)
         {
@@ -33,7 +34,34 @@ namespace Cobalt.Graphics.GL
 
         public void Dispose()
         {
+            foreach (var pair in _surfaces)
+            {
+                pair.Value.Dispose();
+            }
+            
             _queues.ForEach(queue => queue.Dispose());
+            Passes.ForEach(pass => pass.Dispose());
+            FrameBuffers.ForEach(fb => fb.Dispose());
+            Buffers.ForEach(buf => buf.Dispose());
+            Images.ForEach(img => img.Dispose());
+            Modules.ForEach(mod => mod.Dispose());
+            DescSetLayouts.ForEach(set => set.Dispose());
+            Layouts.ForEach(layout => layout.Dispose());
+            GraphicsPipelines.ForEach(pipe => pipe.Dispose());
+            CommandPools.ForEach(cp => cp.Dispose());
+            Samplers.ForEach(samp => samp.Dispose());
+
+            _surfaces.Clear();
+            Passes.Clear();
+            FrameBuffers.Clear();
+            Buffers.Clear();
+            Images.Clear();
+            Modules.Clear(); ;
+            DescSetLayouts.Clear();
+            Layouts.Clear();
+            GraphicsPipelines.Clear();
+            CommandPools.Clear();
+            Samplers.Clear();
         }
 
         public List<IQueue> Queues()
@@ -120,6 +148,14 @@ namespace Cobalt.Graphics.GL
             CommandPools.Add(pool);
 
             return pool;
+        }
+
+        public ISampler CreateSampler(ISampler.CreateInfo info)
+        {
+            Sampler sampler = new Sampler(info);
+            Samplers.Add(sampler);
+
+            return sampler;
         }
     }
 }

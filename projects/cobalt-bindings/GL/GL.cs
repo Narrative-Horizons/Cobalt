@@ -155,6 +155,18 @@ namespace Cobalt.Bindings.GL
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_clear_named_framebuffer_fv", CallingConvention = CallingConvention.Cdecl)]
         public static extern void ClearNamedFramebufferfv(uint framebuffer, EClearBuffer buffer, int drawbuffer, IntPtr value);
 
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_create_samplers", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void CreateSamplers(uint count, uint[] samplers);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_delete_samplers", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void DeleteSamplers(uint count, uint[] samplers);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_sampler_parameter_i", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SamplerParameterI(uint sampler, uint pname, int param);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_sampler_parameter_f", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SamplerParameterF(uint sampler, uint pname, float param);
+
         public static void NamedBufferStorageTyped<T>(uint buffer, long size, [NotNull] [In, Out] T[] data, EBufferAccessMask flags) where T : unmanaged
         {
             unsafe
@@ -240,6 +252,14 @@ namespace Cobalt.Bindings.GL
             return images[0];
         }
 
+        public static uint CreateSamplers()
+        {
+            uint[] samplers = new uint[1];
+            CreateSamplers(1, samplers);
+
+            return samplers[0];
+        }
+
         public static void DeleteBuffers(uint buffer)
         {
             uint[] buffers = { buffer };
@@ -250,6 +270,12 @@ namespace Cobalt.Bindings.GL
         {
             uint[] textures = { texture };
             DeleteBuffers(1, textures);
+        }
+
+        public static void DeleteSamplers(uint sampler)
+        {
+            uint[] samplers = { sampler };
+            DeleteSamplers(1, samplers);
         }
 
         public static void ShaderSource(uint shader, string contents)

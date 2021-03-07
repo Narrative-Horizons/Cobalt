@@ -15,7 +15,7 @@ namespace Cobalt.Graphics.GL
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            // Do nothing
         }
 
         public List<IRenderPass.AttachmentDescription> GetAttachments()

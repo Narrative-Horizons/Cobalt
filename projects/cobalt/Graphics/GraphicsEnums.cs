@@ -265,9 +265,29 @@ namespace Cobalt.Graphics
         StorageBuffer
     }
 
-    public enum ECommandBufferLevel
+    public enum ECommandBufferLevel : uint
     {
         Primary,
         Secondary
+    }
+
+    public enum EFilter : uint
+    {
+        Nearest,
+        Linear
+    }
+
+    public enum EMipmapMode : uint
+    {
+        Nearest,
+        Linear
+    }
+
+    public enum EAddressMode : uint
+    {
+        Repeat,
+        MirroredRepeat,
+        ClampToEdge,
+        MirroredClampToEdge
     }
 }

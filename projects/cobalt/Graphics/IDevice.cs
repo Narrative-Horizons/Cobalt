@@ -56,5 +56,6 @@ namespace Cobalt.Graphics
         public IPipelineLayout CreatePipelineLayout(IPipelineLayout.CreateInfo info);
         public IGraphicsPipeline CreateGraphicsPipeline(IGraphicsPipeline.CreateInfo info);
         public ICommandPool CreateCommandPool(ICommandPool.CreateInfo info);
+        public ISampler CreateSampler(ISampler.CreateInfo info);
     }
 }

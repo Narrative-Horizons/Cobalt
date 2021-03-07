@@ -214,3 +214,23 @@ GLAD_BINDING_EXPORT void cobalt_gl_clear_named_framebuffer_fv(unsigned int frame
 {
 	glClearNamedFramebufferfv(framebuffer, buffer, drawbuffer, value);
 }
+
+GLAD_BINDING_EXPORT void cobalt_gl_create_samplers(unsigned int count, unsigned int* samplers)
+{
+	glCreateSamplers(count, samplers);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_delete_samplers(unsigned int count, const unsigned int* samplers)
+{
+	glDeleteSamplers(count, samplers);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_sampler_parameter_i(unsigned int sampler, unsigned int pname, int param)
+{
+	glSamplerParameteri(sampler, pname, param);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_sampler_parameter_f(unsigned int sampler, unsigned int pname, float param)
+{
+	glSamplerParameterf(sampler, pname, param);
+}

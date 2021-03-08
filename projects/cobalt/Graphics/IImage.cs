@@ -74,6 +74,12 @@ namespace Cobalt.Graphics
                     return this;
                 }
 
+                public new Builder LayerCount(int layerCount)
+                {
+                    base.LayerCount = layerCount;
+                    return this;
+                }
+
                 public new Builder SampleCount(ESampleCount count)
                 {
                     base.SampleCount = count;
@@ -105,10 +111,13 @@ namespace Cobalt.Graphics
             public int Height { get; private set; }
             public int Depth { get; private set; }
             public int MipCount { get; private set; }
+            public int LayerCount { get; private set; }
             public ESampleCount SampleCount { get; private set; }
             public List<EImageUsage> Usage { get; private set; }
             public List<IQueue> Queues { get; private set; }
             public EImageLayout InitialLayout { get; private set; }
         }
+
+        public IImageView CreateImageView(IImageView.CreateInfo info);
     }
 }

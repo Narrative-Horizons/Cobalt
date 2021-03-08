@@ -68,9 +68,6 @@ namespace Cobalt.Bindings.GL
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_unmap_named_buffer", CallingConvention = CallingConvention.Cdecl)]
         public static extern void UnmapNamedBuffer(uint buffer);
 
-        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_texture_storage_2D", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void TextureStorage2D(uint texture, int levels, EPixelInternalFormat internalFormat, int width, int height);
-
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_texture_view", CallingConvention = CallingConvention.Cdecl)]
         public static extern void TextureView(uint texture, uint target, uint origTexture, EPixelInternalFormat internalFormat, uint minLevel, uint numLevels, uint minLayer, uint numLayers);
 
@@ -166,6 +163,15 @@ namespace Cobalt.Bindings.GL
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_sampler_parameter_f", CallingConvention = CallingConvention.Cdecl)]
         public static extern void SamplerParameterF(uint sampler, uint pname, float param);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_texture_storage_1d", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void TextureStorage1D(uint texture, int levels, EPixelInternalFormat internalFormat, int width);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_texture_storage_2d", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void TextureStorage2D(uint texture, int levels, EPixelInternalFormat internalFormat, int width, int height);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_texture_storage_3d", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void TextureStorage3D(uint texture, int levels, EPixelInternalFormat internalFormat, int width, int height, int depth);
 
         public static void NamedBufferStorageTyped<T>(uint buffer, long size, [NotNull] [In, Out] T[] data, EBufferAccessMask flags) where T : unmanaged
         {

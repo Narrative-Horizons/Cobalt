@@ -137,7 +137,7 @@ GLAD_BINDING_EXPORT void cobalt_gl_get_program_iv(unsigned int program, unsigned
 
 GLAD_BINDING_EXPORT void cobalt_gl_get_program_info_log(unsigned int program, int maxLength, int* length, char* infoLog)
 {
-	glGetProgramInfoLog(program, maxLength, length, infoLog);
+glGetProgramInfoLog(program, maxLength, length, infoLog);
 }
 
 GLAD_BINDING_EXPORT void cobalt_gl_validate_program(unsigned int program)
@@ -233,4 +233,19 @@ GLAD_BINDING_EXPORT void cobalt_gl_sampler_parameter_i(unsigned int sampler, uns
 GLAD_BINDING_EXPORT void cobalt_gl_sampler_parameter_f(unsigned int sampler, unsigned int pname, float param)
 {
 	glSamplerParameterf(sampler, pname, param);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_texture_storage_1d(unsigned int texture, int levels, unsigned int internalFormat, int width)
+{
+	glTextureStorage1D(texture, levels, internalFormat, width);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_texture_storage_2d(unsigned int texture, int levels, unsigned int internalFormat, int width, int height)
+{
+	glTextureStorage2D(texture, levels, internalFormat, width, height);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_texture_storage_3d(unsigned int texture, int levels, unsigned int internalFormat, int width, int height, int depth)
+{
+	glTextureStorage3D(texture, levels, internalFormat, width, height, depth);
 }

@@ -1,6 +1,7 @@
 ﻿using OpenGL = Cobalt.Bindings.GL.GL;
 
 using Cobalt.Bindings.GL;
+using Cobalt.Graphics.API;
 using System;
 using System.Runtime.InteropServices;
 

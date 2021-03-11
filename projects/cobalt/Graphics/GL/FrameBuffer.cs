@@ -1,4 +1,6 @@
-﻿namespace Cobalt.Graphics.GL
+﻿using Cobalt.Graphics.API;
+
+namespace Cobalt.Graphics.GL
 {
     internal class FrameBuffer : IFrameBuffer
     {

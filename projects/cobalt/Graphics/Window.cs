@@ -1,7 +1,6 @@
-using System;
-using OpenGL = Cobalt.Bindings.GL.GL;
 using Cobalt.Bindings.GLFW;
 using Cobalt.Bindings.Utils;
+using System;
 
 namespace Cobalt.Graphics
 {

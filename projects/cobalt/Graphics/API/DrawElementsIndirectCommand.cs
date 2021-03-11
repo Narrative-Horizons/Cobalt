@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Text;
+﻿using System.Runtime.InteropServices;
 
-namespace Cobalt.Graphics
+namespace Cobalt.Graphics.API
 {
     [StructLayout(LayoutKind.Sequential)]
     public struct DrawElementsIndirectCommandPayload

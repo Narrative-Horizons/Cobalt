@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Cobalt.Graphics
+namespace Cobalt.Graphics.API
 {
     public sealed class QueueProperties
     {

@@ -1,7 +1,8 @@
 ﻿using OpenGL = Cobalt.Bindings.GL.GL;
 
-using System.Collections.Generic;
 using Cobalt.Bindings.GL;
+using Cobalt.Graphics.API;
+using System.Collections.Generic;
 
 namespace Cobalt.Graphics.GL
 {

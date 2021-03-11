@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Cobalt.Graphics
+namespace Cobalt.Graphics.API
 {
     /// <summary>
     /// Interface for graphics applications used to instantiate graphics objects.

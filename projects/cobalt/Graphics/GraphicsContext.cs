@@ -1,5 +1,7 @@
 ﻿using GLAD = Cobalt.Bindings.GL.GL;
+
 using Cobalt.Bindings.GLFW;
+using Cobalt.Graphics.API;
 using System;
 using System.Collections.Generic;
 

@@ -1,6 +1,5 @@
-﻿using System;
+﻿using Cobalt.Graphics.API;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Cobalt.Graphics.GL
 {

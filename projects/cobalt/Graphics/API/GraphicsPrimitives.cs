@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Cobalt.Graphics
+namespace Cobalt.Graphics.API
 {
     public static class GraphicsPrimitives
     {

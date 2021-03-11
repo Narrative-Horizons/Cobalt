@@ -1,4 +1,4 @@
-﻿using System;
+﻿using Cobalt.Graphics.API;
 
 namespace Cobalt.Graphics.GL
 {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Cobalt.Graphics
+namespace Cobalt.Graphics.API
 {
     public interface IShaderModule : IDisposable
     {

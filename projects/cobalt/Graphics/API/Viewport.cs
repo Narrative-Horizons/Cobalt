@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Cobalt.Graphics
+namespace Cobalt.Graphics.API
 {
     public class Viewport : IEquatable<Viewport>
     {

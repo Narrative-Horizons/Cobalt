@@ -1,8 +1,7 @@
-﻿using Cobalt.Graphics.GL.Commands;
+﻿using Cobalt.Graphics.API;
+using Cobalt.Graphics.GL.Commands;
 using Cobalt.Math;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Cobalt.Graphics.GL
 {

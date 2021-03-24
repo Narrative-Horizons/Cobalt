@@ -134,11 +134,10 @@ namespace Cobalt.Graphics.API
                 {
                     ArrayElement = base.ArrayElement,
                     BindingIndex = base.BindingIndex,
-                    DescriptorSet = base.DescriptorSet
+                    DescriptorSet = base.DescriptorSet,
+                    ImageInfo = base.ImageInfo,
+                    BufferInfo = base.BufferInfo
                 };
-
-                base.BufferInfo.ForEach(info => BufferInfo.Add(info));
-                base.ImageInfo.ForEach(info => ImageInfo.Add(info));
 
                 return info;
             }

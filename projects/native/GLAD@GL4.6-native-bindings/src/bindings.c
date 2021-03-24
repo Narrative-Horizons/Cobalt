@@ -262,6 +262,8 @@ GLAD_BINDING_EXPORT void cobalt_gl_uniform_handle_ui64v_ARB(int location, int co
 
 GLAD_BINDING_EXPORT unsigned long long cobalt_gl_get_texture_sampler_handle_ARB(unsigned int texture, unsigned int sampler)
 {
+	printf("%d, %d\n", texture, sampler);
+
 	return glGetTextureSamplerHandleARB(texture, sampler);
 }
 

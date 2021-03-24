@@ -38,7 +38,7 @@ namespace Cobalt.Graphics.GL
         }
 
         private IDescriptorSetLayout _layout;
-        private List<IBinding> _bindings;
+        private List<IBinding> _bindings = new List<IBinding>();
 
         public DescriptorSet(IDescriptorSetLayout layout)
         {

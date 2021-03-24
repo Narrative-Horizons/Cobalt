@@ -29,8 +29,8 @@ namespace Cobalt.Graphics.API
             }
 
             public EMemoryUsage Usage { get; private set; }
-            public List<EMemoryProperty> Required { get; private set; }
-            public List<EMemoryProperty> Preferred { get; private set; }
+            public List<EMemoryProperty> Required { get; private set; } = new List<EMemoryProperty>();
+            public List<EMemoryProperty> Preferred { get; private set; } = new List<EMemoryProperty>();
 
         }
 

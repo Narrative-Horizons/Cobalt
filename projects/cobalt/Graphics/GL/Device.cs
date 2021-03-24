@@ -15,6 +15,7 @@ namespace Cobalt.Graphics.GL
         public List<IBuffer> Buffers { get; private set; } = new List<IBuffer>();
         public List<Image> Images { get; private set; } = new List<Image>();
         public List<ShaderModule> Modules { get; private set; } = new List<ShaderModule>();
+        public List<DescriptorPool> DescriptorPools { get; private set; } = new List<DescriptorPool>();
         public List<DescriptorSetLayout> DescSetLayouts { get; private set; } = new List<DescriptorSetLayout>();
         public List<PipelineLayout> Layouts { get; private set; } = new List<PipelineLayout>();
         public List<GraphicsPipeline> GraphicsPipelines { get; private set; } = new List<GraphicsPipeline>();
@@ -48,6 +49,7 @@ namespace Cobalt.Graphics.GL
             Layouts.ForEach(layout => layout.Dispose());
             GraphicsPipelines.ForEach(pipe => pipe.Dispose());
             CommandPools.ForEach(cp => cp.Dispose());
+            DescriptorPools.ForEach(dp => dp.Dispose());
             Samplers.ForEach(samp => samp.Dispose());
 
             _surfaces.Clear();
@@ -60,6 +62,7 @@ namespace Cobalt.Graphics.GL
             Layouts.Clear();
             GraphicsPipelines.Clear();
             CommandPools.Clear();
+            DescriptorPools.Clear();
             Samplers.Clear();
         }
 
@@ -117,6 +120,14 @@ namespace Cobalt.Graphics.GL
             return module;
         }
 
+        public IDescriptorPool CreateDescriptorPool(IDescriptorPool.CreateInfo info)
+        {
+            DescriptorPool pool = new DescriptorPool(info);
+            DescriptorPools.Add(pool);
+
+            return pool;
+        }
+
         public IDescriptorSetLayout CreateDescriptorSetLayout(IDescriptorSetLayout.CreateInfo info)
         {
             DescriptorSetLayout layout = new DescriptorSetLayout(info);
@@ -155,6 +166,17 @@ namespace Cobalt.Graphics.GL
             Samplers.Add(sampler);
 
             return sampler;
+        }
+
+        public void UpdateDescriptorSets(List<DescriptorWriteInfo> writeInformation)
+        {
+            List<IDescriptorSet> sets = new List<IDescriptorSet>();
+            writeInformation.ForEach(writeInfo =>
+            {
+                DescriptorSet s = (DescriptorSet)writeInfo.DescriptorSet;
+
+                s.Write(writeInformation);
+            });
         }
     }
 }

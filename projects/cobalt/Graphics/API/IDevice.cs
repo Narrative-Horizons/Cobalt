@@ -52,10 +52,12 @@ namespace Cobalt.Graphics.API
         public IBuffer CreateBuffer<T>(IBuffer.CreateInfo<T> info, IBuffer.MemoryInfo memory) where T : unmanaged;
         public IImage CreateImage(IImage.CreateInfo info, IImage.MemoryInfo memory);
         public IShaderModule CreateShaderModule(IShaderModule.CreateInfo info);
+        public IDescriptorPool CreateDescriptorPool(IDescriptorPool.CreateInfo info);
         public IDescriptorSetLayout CreateDescriptorSetLayout(IDescriptorSetLayout.CreateInfo info);
         public IPipelineLayout CreatePipelineLayout(IPipelineLayout.CreateInfo info);
         public IGraphicsPipeline CreateGraphicsPipeline(IGraphicsPipeline.CreateInfo info);
         public ICommandPool CreateCommandPool(ICommandPool.CreateInfo info);
         public ISampler CreateSampler(ISampler.CreateInfo info);
+        public void UpdateDescriptorSets(List<DescriptorWriteInfo> writeInformation);
     }
 }

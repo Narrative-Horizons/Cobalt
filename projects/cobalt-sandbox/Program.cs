@@ -71,7 +71,18 @@ namespace Cobalt.Sandbox
                     .AddRequiredProperty(EMemoryProperty.DeviceLocal)
                     .Usage(EMemoryUsage.GPUOnly));
 
-            string vsSource = "#version 460\nlayout (location=0) in vec3 position;\nlayout (location=1) in vec2 uv;\nvoid main()\n{\ngl_Position = vec4(position, 1);\n}";
+            string vsSource = 
+                @"#version 460
+                  layout (location=0) in vec3 position;
+                  layout (location=1) in vec2 uv;
+                  layout (location = 0) out vec2 iUV;
+
+                  void main()
+                  {
+                    iUV = uv;
+                    gl_Position = vec4(position, 1);
+                  }";
+
             MemoryStream stream = new MemoryStream();
             StreamWriter writer = new StreamWriter(stream);
             writer.Write(vsSource);
@@ -80,7 +91,17 @@ namespace Cobalt.Sandbox
 
             IShaderModule vsshaderModule = device.CreateShaderModule(new IShaderModule.CreateInfo.Builder().Type(EShaderType.Vertex).ResourceStream(stream));
 
-            string fsSource = "#version 460 \nvoid main()\n{\ngl_FragColor = vec4(1, 0, 1, 1);\n}";
+            string fsSource = 
+                @"#version 460
+                  #extension GL_ARB_bindless_texture : enable
+                  layout (location = 0) in vec2 iUV;
+                  layout(location = 0, bindless_sampler) uniform sampler2D tex;
+        
+                  void main()
+                  {
+                    gl_FragColor = texture(tex, iUV);
+                  }";
+
             MemoryStream fstream = new MemoryStream();
             StreamWriter fwriter = new StreamWriter(fstream);
             fwriter.Write(fsSource);
@@ -154,7 +175,7 @@ namespace Cobalt.Sandbox
 
             IVertexAttributeArray vao = pipeline.CreateVertexAttributeArray(new List<IBuffer>() { buf });
 
-            Bindings.STB.ImageLoader.ImagePayload image = Bindings.STB.ImageLoader.LoadImage("../../../../CobaltLogo.png");
+            Bindings.STB.ImageLoader.ImagePayload image = Bindings.STB.ImageLoader.LoadImage("CobaltLogo.png");
             IImage logoImage = device.CreateImage(new IImage.CreateInfo.Builder()
                     .Depth(1).Format(EDataFormat.R8G8B8A8).Height(image.height).Width(image.width)
                     .InitialLayout(EImageLayout.Undefined).LayerCount(1).MipCount(1).SampleCount(ESampleCount.Samples1)
@@ -162,9 +183,10 @@ namespace Cobalt.Sandbox
                 new IImage.MemoryInfo.Builder()
                     .AddRequiredProperty(EMemoryProperty.DeviceLocal).Usage(EMemoryUsage.GPUOnly));
 
+            byte[] pixels = new byte[image.width * image.height * 4];
+            Marshal.Copy(image.sdr_ub_image, pixels, 0, image.width * image.height * 4);
+
             ICommandBuffer transferCmdBuffer = transferPool.Allocate(new ICommandBuffer.AllocateInfo.Builder().Count(1).Level(ECommandBufferLevel.Primary))[0];
-            GCHandle pixelHandle = (GCHandle)image.sdr_ub_image;
-            byte[] pixels = (byte[])pixelHandle.Target;
             transferCmdBuffer.Copy(pixels, logoImage, new List<ICommandBuffer.BufferImageCopyRegion>(){new ICommandBuffer.BufferImageCopyRegion.Builder().ArrayLayer(0)
                 .BufferOffset(0).ColorAspect(true).Depth(1).Height(image.height).Width(image.width).MipLevel(0).Build() });
 
@@ -178,7 +200,19 @@ namespace Cobalt.Sandbox
                 .AddressModeV(EAddressMode.Repeat).AddressModeW(EAddressMode.Repeat).MagFilter(EFilter.Linear).MinFilter(EFilter.Linear)
                 .MipmapMode(EMipmapMode.Linear));
 
-            
+            IDescriptorPool descriptorPool = device.CreateDescriptorPool(new IDescriptorPool.CreateInfo.Builder().AddPoolSize(EDescriptorType.CombinedImageSampler, 2).MaxSetCount(2).Build());
+
+            List<IDescriptorSet> descriptorSets = descriptorPool.Allocate(new IDescriptorSet.CreateInfo.Builder().AddLayout(layout.GetDescriptorSetLayouts()[0])
+                .AddLayout(layout.GetDescriptorSetLayouts()[0]).Build());
+
+            descriptorSets.ForEach(set =>
+            {
+                DescriptorWriteInfo writeInfo = new DescriptorWriteInfo.Builder()
+                    .AddImageInfo(new DescriptorWriteInfo.DescriptorImageInfo.Builder().Layout(EImageLayout.ShaderReadOnly)
+                    .Sampler(logoImageSampler).View(logoImageView)).ArrayElement(0).BindingIndex(0).DescriptorSet(set).Build();
+
+                device.UpdateDescriptorSets(new List<DescriptorWriteInfo>() { writeInfo });
+            });
 
             int frame = 0;
 
@@ -194,6 +228,8 @@ namespace Cobalt.Sandbox
                     FrameBuffer = swapchain.GetFrameBuffer(frame),
                     RenderPass = renderPass
                 });
+
+                buffer.Bind(layout, 0, descriptorSets);
 
                 buffer.Bind(pipeline);
                 buffer.Bind(vao);

@@ -207,8 +207,7 @@ namespace Cobalt.Graphics.API
 
         void Bind(IVertexAttributeArray vao);
 
-        // TODO: IDescriptorSet
-        void Bind(IPipelineLayout layout, int firstSet);
+        void Bind(IPipelineLayout layout, int firstSet, List<IDescriptorSet> sets);
 
         void Draw(int baseVertex, int vertexCount, int baseInstance, int instanceCount);
 

@@ -43,8 +43,9 @@ namespace Cobalt.Graphics.GL
             commands.Add(new GL.Commands.BindVertexArrayObjectCommand(vao as VertexAttributeArray));
         }
 
-        public void Bind(IPipelineLayout layout, int firstSet)
+        public void Bind(IPipelineLayout layout, int firstSet, List<IDescriptorSet> sets)
         {
+            commands.Add(new GL.Commands.BindDescriptorSetsCommand(sets));
         }
 
         public void Copy(IBuffer source, IBuffer destination, List<ICommandBuffer.BufferCopyRegion> regions)
@@ -130,14 +131,12 @@ namespace Cobalt.Graphics.GL
                     break;
                 case EDataFormat.BGRA8_SRGB:
                     break;
-                case EDataFormat.R8G8B8A8_SRGB:
-                    break;
-                case EDataFormat.R8G8B8A8:
-                    break;
                 case EDataFormat.R32G32_SFLOAT:
                     break;
                 case EDataFormat.R32G32B32_SFLOAT:
                     return Bindings.GL.EPixelInternalFormat.Rgb;
+                case EDataFormat.R8G8B8A8_SRGB:
+                case EDataFormat.R8G8B8A8:
                 case EDataFormat.R32G32B32A32_SFLOAT:
                     return Bindings.GL.EPixelInternalFormat.Rgba;
             }

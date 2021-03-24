@@ -7,11 +7,11 @@ namespace Cobalt.Graphics.GL
 {
     internal class Sampler : ISampler
     {
-        private readonly uint _handle;
+        public readonly uint Handle;
 
         public Sampler(ISampler.CreateInfo info)
         {
-            _handle = CreateSamplers();
+            Handle = CreateSamplers();
             var wrapU = ToWrap(info.AddressModeU);
             var wrapV = ToWrap(info.AddressModeV);
             var wrapW = ToWrap(info.AddressModeW);
@@ -21,20 +21,20 @@ namespace Cobalt.Graphics.GL
             var maxLod = info.MaximumLod;
             var lodBias = info.MipLodBias;
 
-            SamplerParameterI(_handle, (uint)ETextureParameterName.TextureWrapS, (int)wrapU);
-            SamplerParameterI(_handle, (uint)ETextureParameterName.TextureWrapT, (int)wrapV);
-            SamplerParameterI(_handle, (uint)ETextureParameterName.TextureWrapR, (int)wrapW);
-            SamplerParameterI(_handle, (uint)ETextureParameterName.TextureMinFilter, (int)minFilter);
-            SamplerParameterI(_handle, (uint)ETextureParameterName.TextureMagFilter, (int)magFilter);
-            SamplerParameterF(_handle, (uint)ETextureParameterName.TextureMinLod, minLod);
-            SamplerParameterF(_handle, (uint)ETextureParameterName.TextureMaxLod, maxLod);
-            SamplerParameterF(_handle, (uint)ETextureParameterName.TextureLodBias, lodBias);
+            SamplerParameterI(Handle, (uint)ETextureParameterName.TextureWrapS, (int)wrapU);
+            SamplerParameterI(Handle, (uint)ETextureParameterName.TextureWrapT, (int)wrapV);
+            SamplerParameterI(Handle, (uint)ETextureParameterName.TextureWrapR, (int)wrapW);
+            SamplerParameterI(Handle, (uint)ETextureParameterName.TextureMinFilter, (int)minFilter);
+            SamplerParameterI(Handle, (uint)ETextureParameterName.TextureMagFilter, (int)magFilter);
+            SamplerParameterF(Handle, (uint)ETextureParameterName.TextureMinLod, minLod);
+            SamplerParameterF(Handle, (uint)ETextureParameterName.TextureMaxLod, maxLod);
+            SamplerParameterF(Handle, (uint)ETextureParameterName.TextureLodBias, lodBias);
 
             if (info.CompareOp != null)
             {
                 var func = ToFunc((ECompareOp) info.CompareOp);
-                SamplerParameterI(_handle, (uint)ETextureParameterName.TextureCompareMode, (int)ETextureParameter.CompareRefToTexture);
-                SamplerParameterI(_handle, (uint)ETextureParameterName.TextureCompareFunc, (int)func);
+                SamplerParameterI(Handle, (uint)ETextureParameterName.TextureCompareMode, (int)ETextureParameter.CompareRefToTexture);
+                SamplerParameterI(Handle, (uint)ETextureParameterName.TextureCompareFunc, (int)func);
             }
 
             // TODO: Aniso
@@ -42,7 +42,7 @@ namespace Cobalt.Graphics.GL
 
         public void Dispose()
         {
-            DeleteSamplers(_handle);
+            DeleteSamplers(Handle);
         }
 
         private static ETextureParameter ToWrap(EAddressMode addrMode)

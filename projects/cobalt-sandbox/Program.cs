@@ -1,4 +1,5 @@
 using Cobalt.Graphics;
+using Cobalt.Graphics.API;
 using Cobalt.Math;
 using System.Collections.Generic;
 using System.IO;
@@ -16,9 +17,6 @@ namespace Cobalt.Sandbox
     {
         public static void Main(string[] args)
         {
-            var image = Bindings.STB.ImageLoader.LoadImage("../../../../CobaltLogo.png");
-            Bindings.STB.ImageLoader.ReleaseImage(ref image);
-
             GraphicsContext gfxContext = GraphicsContext.GetInstance(GraphicsContext.API.OpenGL_4);
 
             Window window = gfxContext.CreateWindow(new Window.CreateInfo.Builder()
@@ -30,7 +28,7 @@ namespace Cobalt.Sandbox
                 .Debug(true)
                 .Name("Sandbox")
                 .Build());
-            
+
             IPhysicalDevice physicalDevice = gfxApplication.GetPhysicalDevices()
                 .Find(device => device.SupportsGraphics() && device.SupportsPresent() && device.SupportsCompute() && device.SupportsTransfer());
 
@@ -39,7 +37,7 @@ namespace Cobalt.Sandbox
                 .QueueInformation(physicalDevice.QueueInfos())
                 .Build());
             IQueue graphicsQueue = device.Queues().Find(queue => queue.GetProperties().Graphics);
-            IQueue presentQueue  = device.Queues().Find(queue => queue.GetProperties().Present);
+            IQueue presentQueue = device.Queues().Find(queue => queue.GetProperties().Present);
             IQueue transferQueue = device.Queues().Find(queue => queue.GetProperties().Transfer);
 
             IRenderSurface surface = device.GetSurface(window);
@@ -55,13 +53,15 @@ namespace Cobalt.Sandbox
             ICommandPool commandPool = device.CreateCommandPool(new ICommandPool.CreateInfo.Builder().Queue(graphicsQueue).ResetAllocations(true).TransientAllocations(true));
             List<ICommandBuffer> commandBuffers = commandPool.Allocate(new ICommandBuffer.AllocateInfo.Builder().Count(swapchain.GetImageCount()).Level(ECommandBufferLevel.Primary).Build());
 
+            ICommandPool transferPool = device.CreateCommandPool(new ICommandPool.CreateInfo.Builder().Queue(transferQueue).ResetAllocations(false).TransientAllocations(true));
+
             VertexData[] objectData = new VertexData[3];
             objectData[0].position = new Vector3(-.5f, -.5f, 0f);
             objectData[0].uv = new Vector2(0, 0);
 
             objectData[1].position = new Vector3(.5f, -.5f, 0f);
             objectData[1].uv = new Vector2(1, 0);
-            
+
             objectData[2].position = new Vector3(0f, .5f, 0f);
             objectData[2].uv = new Vector2(.5f, 1);
 
@@ -154,6 +154,32 @@ namespace Cobalt.Sandbox
 
             IVertexAttributeArray vao = pipeline.CreateVertexAttributeArray(new List<IBuffer>() { buf });
 
+            Bindings.STB.ImageLoader.ImagePayload image = Bindings.STB.ImageLoader.LoadImage("../../../../CobaltLogo.png");
+            IImage logoImage = device.CreateImage(new IImage.CreateInfo.Builder()
+                    .Depth(1).Format(EDataFormat.R8G8B8A8).Height(image.height).Width(image.width)
+                    .InitialLayout(EImageLayout.Undefined).LayerCount(1).MipCount(1).SampleCount(ESampleCount.Samples1)
+                    .Type(EImageType.Image2D),
+                new IImage.MemoryInfo.Builder()
+                    .AddRequiredProperty(EMemoryProperty.DeviceLocal).Usage(EMemoryUsage.GPUOnly));
+
+            ICommandBuffer transferCmdBuffer = transferPool.Allocate(new ICommandBuffer.AllocateInfo.Builder().Count(1).Level(ECommandBufferLevel.Primary))[0];
+            GCHandle pixelHandle = (GCHandle)image.sdr_ub_image;
+            byte[] pixels = (byte[])pixelHandle.Target;
+            transferCmdBuffer.Copy(pixels, logoImage, new List<ICommandBuffer.BufferImageCopyRegion>(){new ICommandBuffer.BufferImageCopyRegion.Builder().ArrayLayer(0)
+                .BufferOffset(0).ColorAspect(true).Depth(1).Height(image.height).Width(image.width).MipLevel(0).Build() });
+
+            IQueue.SubmitInfo transferSubmission = new IQueue.SubmitInfo(transferCmdBuffer);
+            transferQueue.Execute(transferSubmission);
+
+            IImageView logoImageView = logoImage.CreateImageView(new IImageView.CreateInfo.Builder().ArrayLayerCount(1).BaseArrayLayer(0).BaseMipLevel(0).Format(EDataFormat.R8G8B8A8)
+                .MipLevelCount(1).ViewType(EImageViewType.ViewType2D));
+
+            ISampler logoImageSampler = device.CreateSampler(new ISampler.CreateInfo.Builder().AddressModeU(EAddressMode.Repeat)
+                .AddressModeV(EAddressMode.Repeat).AddressModeW(EAddressMode.Repeat).MagFilter(EFilter.Linear).MinFilter(EFilter.Linear)
+                .MipmapMode(EMipmapMode.Linear));
+
+            
+
             int frame = 0;
 
             foreach (ICommandBuffer buffer in commandBuffers)
@@ -162,7 +188,7 @@ namespace Cobalt.Sandbox
 
                 buffer.BeginRenderPass(new ICommandBuffer.RenderPassBeginInfo()
                 {
-                    ClearValues = new List<Vector4?>() { new Vector4(0, 0, 0, 1)},
+                    ClearValues = new List<Vector4?>() { new Vector4(0, 0, 0, 1) },
                     Width = 1280,
                     Height = 720,
                     FrameBuffer = swapchain.GetFrameBuffer(frame),

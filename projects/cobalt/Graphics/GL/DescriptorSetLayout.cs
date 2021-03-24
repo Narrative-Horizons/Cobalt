@@ -5,16 +5,16 @@ namespace Cobalt.Graphics.GL
 {
     internal class DescriptorSetLayout : IDescriptorSetLayout
     {
-        public List<IDescriptorSetLayout.DescriptorSetLayoutBinding> bindings { get; private set; } = new List<IDescriptorSetLayout.DescriptorSetLayoutBinding>();
+        public List<IDescriptorSetLayout.DescriptorSetLayoutBinding> Bindings { get; private set; } = new List<IDescriptorSetLayout.DescriptorSetLayoutBinding>();
 
         public DescriptorSetLayout(IDescriptorSetLayout.CreateInfo info)
         {
-            bindings = info.Binding;
+            Bindings = info.Binding;
         }
 
         public void Dispose()
         {
-            bindings.Clear();
+            Bindings.Clear();
         }
     }
 }

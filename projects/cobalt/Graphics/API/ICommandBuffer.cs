@@ -217,5 +217,6 @@ namespace Cobalt.Graphics.API
         void DrawElements(int elementCount, int baseVertex, int baseInstance, int instanceCount, long indexOffset);
 
         void Copy(IBuffer source, IBuffer destination, List<BufferCopyRegion> regions);
+        void Copy(byte[] source, IImage destination, List<BufferImageCopyRegion> regions);
     }
 }

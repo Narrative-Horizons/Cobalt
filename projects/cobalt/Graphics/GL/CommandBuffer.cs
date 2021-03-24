@@ -1,6 +1,7 @@
 ﻿using Cobalt.Graphics.API;
 using Cobalt.Graphics.GL.Commands;
 using Cobalt.Math;
+using System;
 using System.Collections.Generic;
 
 namespace Cobalt.Graphics.GL
@@ -48,6 +49,7 @@ namespace Cobalt.Graphics.GL
 
         public void Copy(IBuffer source, IBuffer destination, List<ICommandBuffer.BufferCopyRegion> regions)
         {
+
         }
 
         public void Dispose()
@@ -93,6 +95,74 @@ namespace Cobalt.Graphics.GL
             {
                 commands.Clear();
             }
+        }
+
+        public void Copy(byte[] source, IImage destination, List<ICommandBuffer.BufferImageCopyRegion> regions)
+        {
+            regions.ForEach(region =>
+            {
+                Image image = (Image)destination;
+                switch (image.Type)
+                {
+                    case EImageType.Image1D:
+                        break;
+                    case EImageType.Image2D:
+                        if(image.LayerCount == 1)
+                        {
+                            commands.Add(new TextureSubImage2DCommand(image, source, region.MipLevel,
+                                region.X, region.Y, region.Width, region.Height, ToInternalFormat(image.Format), ToType(image.Format),
+                                region.BufferOffset));
+                        }
+                        break;
+                    case EImageType.Image3D:
+                        break;
+                    case EImageType.ImageCube:
+                        break;
+                }
+            });
+        }
+
+        private static Bindings.GL.EPixelInternalFormat ToInternalFormat(EDataFormat format)
+        {
+            switch (format)
+            {
+                case EDataFormat.Unknown:
+                    break;
+                case EDataFormat.BGRA8_SRGB:
+                    break;
+                case EDataFormat.R8G8B8A8_SRGB:
+                    break;
+                case EDataFormat.R8G8B8A8:
+                    break;
+                case EDataFormat.R32G32_SFLOAT:
+                    break;
+                case EDataFormat.R32G32B32_SFLOAT:
+                    return Bindings.GL.EPixelInternalFormat.Rgb;
+                case EDataFormat.R32G32B32A32_SFLOAT:
+                    return Bindings.GL.EPixelInternalFormat.Rgba;
+            }
+
+            throw new InvalidOperationException("Format unsupported");
+        }
+
+        private static Bindings.GL.EPixelType ToType(EDataFormat format)
+        {
+            switch (format)
+            {
+                case EDataFormat.Unknown:
+                    break;
+                case EDataFormat.BGRA8_SRGB:
+                    break;
+                case EDataFormat.R8G8B8A8_SRGB:
+                case EDataFormat.R8G8B8A8:
+                    return Bindings.GL.EPixelType.UnsignedByte;
+                case EDataFormat.R32G32_SFLOAT:
+                case EDataFormat.R32G32B32_SFLOAT:
+                case EDataFormat.R32G32B32A32_SFLOAT:
+                    return Bindings.GL.EPixelType.Float;
+            }
+
+            throw new InvalidOperationException("Format unsupported");
         }
     }
 }

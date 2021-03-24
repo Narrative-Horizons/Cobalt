@@ -249,3 +249,23 @@ GLAD_BINDING_EXPORT void cobalt_gl_texture_storage_3d(unsigned int texture, int 
 {
 	glTextureStorage3D(texture, levels, internalFormat, width, height, depth);
 }
+
+GLAD_BINDING_EXPORT void cobalt_gl_make_texture_handle_resident_ARB(unsigned long handle)
+{
+	glMakeTextureHandleResidentARB(handle);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_uniform_handle_ui64v_ARB(int location, int count, const unsigned long long* value)
+{
+	glUniformHandleui64vARB(location, count, value);
+}
+
+GLAD_BINDING_EXPORT unsigned long long cobalt_gl_get_texture_sampler_handle_ARB(unsigned int texture, unsigned int sampler)
+{
+	return glGetTextureSamplerHandleARB(texture, sampler);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_texture_sub_image_2D(unsigned int texture, int level, int xoffset, int yoffset, int width, int height, unsigned int format, unsigned int type, const void* pixels)
+{
+	glTextureSubImage2D(texture, level, xoffset, yoffset, width, height, format, type, pixels);
+}

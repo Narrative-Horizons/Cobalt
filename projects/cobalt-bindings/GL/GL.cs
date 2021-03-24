@@ -41,6 +41,12 @@ namespace Cobalt.Bindings.GL
         [DllImport(LIBRARY, EntryPoint = "cobalt_glad_gl_clear", CallingConvention = CallingConvention.Cdecl)]
         public static extern void Clear(EClearBufferMask mask);
 
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_uniform_handle_ui64v_ARB", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void UniformHandleui64vARB(int index, ulong[] handles);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_texture_sub_image_2D", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void TextureSubImage2D(uint handle, int mipLevel, int x, int y, int width, int height, EPixelInternalFormat ePixelInternalFormat, EPixelType ePixelType, byte[] offsetBuffer);
+
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_create_textures", CallingConvention = CallingConvention.Cdecl)]
         public static extern void CreateTextures(ETextureTarget target, uint amount, uint[] textures);
 
@@ -52,6 +58,9 @@ namespace Cobalt.Bindings.GL
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_named_buffer_storage", CallingConvention = CallingConvention.Cdecl)]
         public static extern void NamedBufferStorage(uint buffer, long size, IntPtr data, EBufferAccessMask flags);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_make_texture_handle_resident_ARB", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void MakeTextureHandleResidentARB(ulong handle);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_delete_buffers", CallingConvention = CallingConvention.Cdecl)]
         public static extern void DeleteBuffers(uint amount, uint[] buffers);
@@ -73,6 +82,9 @@ namespace Cobalt.Bindings.GL
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_create_program", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint CreateProgram();
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_get_texture_sampler_handle_ARB", CallingConvention = CallingConvention.Cdecl)]
+        public static extern ulong GetTextureSamplerHandleARB(uint tex, uint sam);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_create_shader", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint CreateShader(EShaderType type);

@@ -1,5 +1,6 @@
 ﻿using Cobalt.Graphics.API;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Cobalt.Graphics.GL
 {
@@ -12,22 +13,27 @@ namespace Cobalt.Graphics.GL
 
         private class CombinedImageSamplerBinding : IBinding
         {
-            private int _index;
-            private Sampler[] _samplers;
-            private ImageView[] _images;
-            private long[] _handles;
+            public int Index { get; set; }
+            public Sampler[] Samplers { get; set; }
+            public ImageView[] Images { get; set; }
+            public ulong[] Handles { get; set; }
 
             public CombinedImageSamplerBinding(int index, int count)
             {
-                _index = index;
-                _samplers = new Sampler[count];
-                _images = new ImageView[count];
-                _handles = new long[count];
+                this.Index = index;
+                Samplers = new Sampler[count];
+                Images = new ImageView[count];
+                Handles = new ulong[count];
             }
 
             public void Bind()
             {
-
+                foreach(ulong handle in Handles)
+                {
+                    StateMachine.MakeTextureHandleResidentArb(handle);
+                }
+                
+                StateMachine.UniformHandleuivArb(Index, Handles);
             }
         }
 
@@ -37,12 +43,64 @@ namespace Cobalt.Graphics.GL
         public DescriptorSet(IDescriptorSetLayout layout)
         {
             this._layout = layout;
-            // TODO Bindings
+
+            DescriptorSetLayout lay = (DescriptorSetLayout)layout;
+            lay.Bindings.Sort((left, right) => left.BindingIndex - right.BindingIndex);
+            lay.Bindings.ForEach(binding =>
+            {
+                switch (binding.DescriptorType)
+                {
+                    case EDescriptorType.Sampler:
+                        break;
+                    case EDescriptorType.SampledImage:
+                        break;
+                    case EDescriptorType.CombinedImageSampler:
+                        _bindings.Add(new CombinedImageSamplerBinding(binding.BindingIndex, binding.Count));
+                        break;
+                    case EDescriptorType.TextureBuffer:
+                        break;
+                    case EDescriptorType.UniformBuffer:
+                        //return new UniformBufferBinding(binding.BindingIndex);
+                    case EDescriptorType.StorageBuffer:
+                        break;
+                }
+            });
         }
 
         public void Write(List<DescriptorWriteInfo> writeInfo)
         {
+            writeInfo.ForEach(info =>
+            {
+                int bindingIndex = info.BindingIndex;
+                DescriptorSetLayout lay = (DescriptorSetLayout)_layout;
 
+                IDescriptorSetLayout.DescriptorSetLayoutBinding binding = lay.Bindings.First(bind => bind.BindingIndex == bindingIndex);
+                switch (binding.DescriptorType)
+                {
+                    case EDescriptorType.Sampler:
+                        break;
+                    case EDescriptorType.SampledImage:
+                        break;
+                    case EDescriptorType.CombinedImageSampler:
+                        CombinedImageSamplerBinding cis = (CombinedImageSamplerBinding)_bindings[bindingIndex];
+                        for (int i = 0; i < info.ImageInfo.Count; i++)
+                        {
+                            DescriptorWriteInfo.DescriptorImageInfo imageInfo = info.ImageInfo[i];
+                            cis.Images[info.ArrayElement + i] = (ImageView)imageInfo.View;
+                            cis.Samplers[info.ArrayElement + i] = (Sampler)imageInfo.Sampler;
+                            ulong handle = StateMachine.GetTextureSamplerHandle(
+                                cis.Images[info.ArrayElement + i], cis.Samplers[info.ArrayElement + i]);
+                            cis.Handles[info.ArrayElement + i] = handle;
+                        }
+                        break;
+                    case EDescriptorType.TextureBuffer:
+                        break;
+                    case EDescriptorType.UniformBuffer:
+                        break;
+                    case EDescriptorType.StorageBuffer:
+                        break;
+                }
+            });
         }
 
         public void Bind()

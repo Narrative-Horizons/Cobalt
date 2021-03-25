@@ -175,20 +175,18 @@ namespace Cobalt.Sandbox
 
             IVertexAttributeArray vao = pipeline.CreateVertexAttributeArray(new List<IBuffer>() { buf });
 
-            Bindings.STB.ImageLoader.ImagePayload image = Bindings.STB.ImageLoader.LoadImage("CobaltLogo.png");
+            Core.AssetManager assetManager = new Core.AssetManager();
+            Core.ImageAsset image = assetManager.LoadImage("../../../../CobaltLogo.png");
             IImage logoImage = device.CreateImage(new IImage.CreateInfo.Builder()
-                    .Depth(1).Format(EDataFormat.R8G8B8A8).Height(image.height).Width(image.width)
+                    .Depth(1).Format(EDataFormat.R8G8B8A8).Height((int) image.Height).Width((int) image.Width)
                     .InitialLayout(EImageLayout.Undefined).LayerCount(1).MipCount(1).SampleCount(ESampleCount.Samples1)
                     .Type(EImageType.Image2D),
                 new IImage.MemoryInfo.Builder()
                     .AddRequiredProperty(EMemoryProperty.DeviceLocal).Usage(EMemoryUsage.GPUOnly));
 
-            byte[] pixels = new byte[image.width * image.height * 4];
-            Marshal.Copy(image.sdr_ub_image, pixels, 0, image.width * image.height * 4);
-
             ICommandBuffer transferCmdBuffer = transferPool.Allocate(new ICommandBuffer.AllocateInfo.Builder().Count(1).Level(ECommandBufferLevel.Primary))[0];
-            transferCmdBuffer.Copy(pixels, logoImage, new List<ICommandBuffer.BufferImageCopyRegion>(){new ICommandBuffer.BufferImageCopyRegion.Builder().ArrayLayer(0)
-                .BufferOffset(0).ColorAspect(true).Depth(1).Height(image.height).Width(image.width).MipLevel(0).Build() });
+            transferCmdBuffer.Copy(image.AsBytes, logoImage, new List<ICommandBuffer.BufferImageCopyRegion>(){new ICommandBuffer.BufferImageCopyRegion.Builder().ArrayLayer(0)
+                .BufferOffset(0).ColorAspect(true).Depth(1).Height((int) image.Height).Width((int) image.Width).MipLevel(0).Build() });
 
             IQueue.SubmitInfo transferSubmission = new IQueue.SubmitInfo(transferCmdBuffer);
             transferQueue.Execute(transferSubmission);

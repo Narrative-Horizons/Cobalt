@@ -14,6 +14,8 @@ namespace Cobalt.Graphics.GL
         private static HashSet<TextureSamplerHandleWrapper> _residentTextureSamplerHandles = new HashSet<TextureSamplerHandleWrapper>();
         private static HashSet<ulong> _residentTextureHandles = new HashSet<ulong>();
 
+        private static Dictionary<TextureSamplerHandleWrapper, ulong> _cachedHandles = new Dictionary<TextureSamplerHandleWrapper, ulong>();
+
         private struct TextureSamplerHandleWrapper : IEquatable<TextureSamplerHandleWrapper>
         {
             public ulong textureHandle;
@@ -110,7 +112,21 @@ namespace Cobalt.Graphics.GL
             uint tex = imageView.Handle;
             uint sam = sampler.Handle;
 
-            return OpenGL.GetTextureSamplerHandleARB(tex, sam);
+            TextureSamplerHandleWrapper wrapper = new TextureSamplerHandleWrapper
+            {
+                textureHandle = tex,
+                samplerHandle = sam
+            };
+
+            if(_cachedHandles.ContainsKey(wrapper))
+            {
+                return _cachedHandles[wrapper];
+            }
+
+            ulong handle = OpenGL.GetTextureSamplerHandleARB(tex, sam);
+            _cachedHandles.Add(wrapper, handle);
+
+            return handle;
         }
     }
 }

@@ -232,7 +232,7 @@ namespace Cobalt.Sandbox
 
                 buffer.Bind(pipeline);
                 buffer.Bind(vao);
-                buffer.Bind(layout, 0, descriptorSets);
+                buffer.Bind(layout, 0, new List<IDescriptorSet>() { descriptorSets[frame] });
                 buffer.Draw(0, 3, 0, 1);
 
                 buffer.End();

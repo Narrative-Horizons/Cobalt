@@ -229,10 +229,10 @@ namespace Cobalt.Sandbox
                     RenderPass = renderPass
                 });
 
-                buffer.Bind(layout, 0, descriptorSets);
 
                 buffer.Bind(pipeline);
                 buffer.Bind(vao);
+                buffer.Bind(layout, 0, descriptorSets);
                 buffer.Draw(0, 3, 0, 1);
 
                 buffer.End();

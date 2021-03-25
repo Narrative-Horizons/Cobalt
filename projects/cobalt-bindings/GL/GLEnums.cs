@@ -422,6 +422,8 @@ namespace Cobalt.Bindings.GL
 
     public enum EEnableCap : uint
     {
+        DebugOutputSynchronous = 0x8242,
+        DebugOutput = 0x92E0,
         //PointSmooth = 0x0B10,
         LineSmooth = 0x0B20,
         //LineStipple = 0x0B24,

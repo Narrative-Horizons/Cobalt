@@ -5,9 +5,22 @@
 
 #define GLAD_BINDING_EXPORT __declspec(dllexport)
 
+static void debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+{
+	printf("%s\n", message);
+}
+
 GLAD_BINDING_EXPORT int cobalt_glad_load_gl_proc_address(GLADloadproc loader_func)
 {
-	return gladLoadGLLoader(loader_func);
+	int r = gladLoadGLLoader(loader_func);
+
+	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+
+	glDebugMessageCallback(debugCallback, NULL);
+
+	glEnable(GL_DEBUG_OUTPUT);
+
+	return r;
 }
 
 GLAD_BINDING_EXPORT void cobalt_glad_gl_clear_color(float r, float g, float b, float a)
@@ -18,6 +31,21 @@ GLAD_BINDING_EXPORT void cobalt_glad_gl_clear_color(float r, float g, float b, f
 GLAD_BINDING_EXPORT void cobalt_glad_gl_clear(unsigned int mask)
 {
 	glClear(mask);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_enable(unsigned int mask)
+{
+	glEnable(mask);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_disable(unsigned int mask)
+{
+	glDisable(mask);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_debug_message_callback(GLDEBUGPROC callback, const void* userParam)
+{
+	glDebugMessageCallback(callback, userParam);
 }
 
 GLAD_BINDING_EXPORT const unsigned char* cobalt_glad_gl_get_string(int name)
@@ -262,8 +290,6 @@ GLAD_BINDING_EXPORT void cobalt_gl_uniform_handle_ui64v_ARB(int location, int co
 
 GLAD_BINDING_EXPORT unsigned long long cobalt_gl_get_texture_sampler_handle_ARB(unsigned int texture, unsigned int sampler)
 {
-	printf("%d, %d\n", texture, sampler);
-
 	return glGetTextureSamplerHandleARB(texture, sampler);
 }
 

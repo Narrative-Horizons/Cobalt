@@ -40,7 +40,7 @@ namespace Cobalt.Graphics.GL
 
         public static void UniformHandleuivArb(int index, ulong[] handles)
         {
-            OpenGL.UniformHandleui64vARB(index, handles);
+            OpenGL.UniformHandleui64vARB(index, handles.Length, handles);
         }
 
         public static void UseProgram(GraphicsPipeline pipeline)

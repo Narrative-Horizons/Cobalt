@@ -1,5 +1,9 @@
-﻿using Cobalt.Graphics.API;
+﻿using Cobalt.Bindings.Utils;
+using Cobalt.Graphics.API;
+using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using OpenGL = Cobalt.Bindings.GL.GL;
 
 namespace Cobalt.Graphics.GL
 {
@@ -30,6 +34,12 @@ namespace Cobalt.Graphics.GL
             });
 
             Debug = info.Debug;
+
+            //OpenGL.Enable(Bindings.GL.EEnableCap.DebugOutputSynchronous);
+            //OpenGL.DebugMessageCallback((uint type, uint id, uint severity, int length, IntPtr message, IntPtr userParam) =>
+            //{
+            //}, IntPtr.Zero);
+            //OpenGL.Enable(Bindings.GL.EEnableCap.DebugOutput);
         }
 
         public void Dispose()

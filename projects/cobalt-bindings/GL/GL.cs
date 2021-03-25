@@ -23,6 +23,9 @@ namespace Cobalt.Bindings.GL
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate IntPtr GLProcAddressLoader(IntPtr procname);
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void DebugCallback(uint type, uint id, uint severity, int length, IntPtr message, IntPtr userParam);
+
         #endregion
 
         #region Private Functions
@@ -41,8 +44,17 @@ namespace Cobalt.Bindings.GL
         [DllImport(LIBRARY, EntryPoint = "cobalt_glad_gl_clear", CallingConvention = CallingConvention.Cdecl)]
         public static extern void Clear(EClearBufferMask mask);
 
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_enable", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Enable(EEnableCap mask);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_disable", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Disable(EEnableCap mask);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_debug_message_callback", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void DebugMessageCallback(DebugCallback callback, IntPtr userParam);
+
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_uniform_handle_ui64v_ARB", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void UniformHandleui64vARB(int index, ulong[] handles);
+        public static extern void UniformHandleui64vARB(int index, int count, ulong[] handles);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_texture_sub_image_2D", CallingConvention = CallingConvention.Cdecl)]
         public static extern void TextureSubImage2D(uint handle, int mipLevel, int x, int y, int width, int height, EPixelInternalFormat ePixelInternalFormat, EPixelType ePixelType, byte[] offsetBuffer);

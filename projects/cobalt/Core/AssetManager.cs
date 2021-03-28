@@ -69,5 +69,10 @@ namespace Cobalt.Core
             _images[path] = asset;
             return asset;
         }
+
+        public ImageAsset GetImage(string path)
+        {
+            return _images[path];
+        }
     }
 }

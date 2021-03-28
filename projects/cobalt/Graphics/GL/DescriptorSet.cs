@@ -20,7 +20,7 @@ namespace Cobalt.Graphics.GL
 
             public CombinedImageSamplerBinding(int index, int count)
             {
-                this.Index = index;
+                Index = index;
                 Samplers = new Sampler[count];
                 Images = new ImageView[count];
                 Handles = new ulong[count];
@@ -34,6 +34,24 @@ namespace Cobalt.Graphics.GL
                 }
                 
                 StateMachine.UniformHandleuivArb(Index, Handles);
+            }
+        }
+
+        private class UniformBufferBinding : IBinding
+        {
+            public uint Index { get; set; }
+            public IBuffer Buffer { get; set; }
+            public int Offset { get; set; }
+            public int Range { get; set; }
+
+            public UniformBufferBinding(uint index)
+            {
+                Index = index;
+            }
+
+            public void Bind()
+            {
+                StateMachine.BindUniformBufferRange(Index, Buffer, Offset, Range);
             }
         }
 
@@ -60,7 +78,8 @@ namespace Cobalt.Graphics.GL
                     case EDescriptorType.TextureBuffer:
                         break;
                     case EDescriptorType.UniformBuffer:
-                        //return new UniformBufferBinding(binding.BindingIndex);
+                        _bindings.Add(new UniformBufferBinding((uint) binding.BindingIndex));
+                        break;
                     case EDescriptorType.StorageBuffer:
                         break;
                 }
@@ -96,6 +115,18 @@ namespace Cobalt.Graphics.GL
                     case EDescriptorType.TextureBuffer:
                         break;
                     case EDescriptorType.UniformBuffer:
+                        UniformBufferBinding ubb = (UniformBufferBinding)_bindings[bindingIndex];
+                        for (int i = 0; i < info.BufferInfo.Count; i++)
+                        {
+                            DescriptorWriteInfo.DescriptorBufferInfo bufferInfo = info.BufferInfo[i];
+                            IBuffer buf = bufferInfo.Buffer;
+                            int offset = bufferInfo.Offset;
+                            int range = bufferInfo.Range;
+
+                            ubb.Buffer = buf;
+                            ubb.Offset = offset;
+                            ubb.Range = range;
+                        }
                         break;
                     case EDescriptorType.StorageBuffer:
                         break;

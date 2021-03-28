@@ -1,3 +1,4 @@
+using Cobalt.Core;
 using Cobalt.Graphics;
 using Cobalt.Graphics.API;
 using Cobalt.Math;
@@ -175,7 +176,7 @@ namespace Cobalt.Sandbox
 
             IVertexAttributeArray vao = pipeline.CreateVertexAttributeArray(new List<IBuffer>() { buf });
 
-            Core.AssetManager assetManager = new Core.AssetManager();
+            AssetManager assetManager = new AssetManager();
             Core.ImageAsset image = assetManager.LoadImage("../../../../CobaltLogo.png");
             IImage logoImage = device.CreateImage(new IImage.CreateInfo.Builder()
                     .Depth(1).Format(EDataFormat.R8G8B8A8).Height((int) image.Height).Width((int) image.Width)

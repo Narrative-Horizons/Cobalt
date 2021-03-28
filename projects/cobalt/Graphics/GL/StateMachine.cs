@@ -1,6 +1,7 @@
-﻿using System;
+﻿using Cobalt.Bindings.GL;
+using Cobalt.Graphics.API;
+using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using OpenGL = Cobalt.Bindings.GL.GL;
 
@@ -38,6 +39,11 @@ namespace Cobalt.Graphics.GL
             {
                 return textureHandle == wrapper.textureHandle && samplerHandle == wrapper.samplerHandle;
             }
+        }
+
+        internal static void BindUniformBufferRange(uint index, IBuffer buffer, int offset, int range)
+        {
+            OpenGL.BindBufferRange(EBufferTarget.UniformBuffer, index, ((IHandledType)buffer).GetHandle(), offset, range);
         }
 
         public static void UniformHandleuivArb(int index, ulong[] handles)

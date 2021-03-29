@@ -15,6 +15,13 @@ namespace Cobalt.Sandbox
         public Vector3 position;
         public Vector2 uv;
     }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct UniformBufferData
+    {
+        public Matrix4 MVP;
+    }
+
     public class Program
     {
         public static void Main(string[] args)
@@ -77,16 +84,25 @@ namespace Cobalt.Sandbox
                     .AddRequiredProperty(EMemoryProperty.DeviceLocal)
                     .Usage(EMemoryUsage.GPUOnly));
 
+            VertexData[] mappedDataa = (VertexData[])buf.Map();
+
+            buf.Unmap();
+
             string vsSource = 
                 @"#version 460
                   layout (location=0) in vec3 position;
                   layout (location=1) in vec2 uv;
-                  layout (location = 0) out vec2 iUV;
+                  layout (location=0) out vec2 iUV;
+
+                  layout (std140, binding=0) uniform Matrices
+                  {
+                    mat4 MVP;
+                  };
 
                   void main()
                   {
                     iUV = uv;
-                    gl_Position = vec4(position, 1);
+                    gl_Position = MVP * vec4(position, 1);
                   }";
 
             MemoryStream stream = new MemoryStream();
@@ -101,7 +117,7 @@ namespace Cobalt.Sandbox
                 @"#version 460
                   #extension GL_ARB_bindless_texture : enable
                   layout (location = 0) in vec2 iUV;
-                  layout(location = 0, bindless_sampler) uniform sampler2D tex;
+                  layout(location = 1, bindless_sampler) uniform sampler2D tex;
         
                   void main()
                   {
@@ -203,6 +219,15 @@ namespace Cobalt.Sandbox
             ISampler logoImageSampler = device.CreateSampler(new ISampler.CreateInfo.Builder().AddressModeU(EAddressMode.Repeat)
                 .AddressModeV(EAddressMode.Repeat).AddressModeW(EAddressMode.Repeat).MagFilter(EFilter.Linear).MinFilter(EFilter.Linear)
                 .MipmapMode(EMipmapMode.Linear));
+
+            UniformBufferData[] uBufferData = new UniformBufferData[1];
+
+            IBuffer uniformBuffer = device.CreateBuffer(IBuffer.FromPayload(uBufferData).AddUsage(EBufferUsage.UniformBuffer),
+                new IBuffer.MemoryInfo.Builder().Usage(EMemoryUsage.CPUToGPU).AddRequiredProperty(EMemoryProperty.HostCoherent).AddRequiredProperty(EMemoryProperty.HostVisible));
+
+            UniformBufferData[] mappedData = (UniformBufferData[])uniformBuffer.Map();
+            //mappedData.MVP = Matrix4.Identity;
+            uniformBuffer.Unmap();
 
             IDescriptorPool descriptorPool = device.CreateDescriptorPool(new IDescriptorPool.CreateInfo.Builder().AddPoolSize(EDescriptorType.CombinedImageSampler, 2).MaxSetCount(2).Build());
 

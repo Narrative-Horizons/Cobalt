@@ -40,7 +40,7 @@ namespace Cobalt.Graphics.GL
 
             if(createInfo.InitialPayload == null)
             {
-                OpenGL.NamedBufferStorage(Handle, 0, IntPtr.Zero, flags);
+                OpenGL.NamedBufferStorage(Handle, size, IntPtr.Zero, flags);
             }
             else
             {
@@ -56,7 +56,7 @@ namespace Cobalt.Graphics.GL
 
         public object Map()
         {
-            IntPtr ptr = OpenGL.MapNamedBuffer(Handle, EBufferAccess.ReadOnly);
+            IntPtr ptr = OpenGL.MapNamedBuffer(Handle, EBufferAccess.ReadWrite);
             _mappedHandle = (GCHandle)ptr;
 
             return _mappedHandle.Target;
@@ -64,7 +64,7 @@ namespace Cobalt.Graphics.GL
 
         public object Map(int offset, int size)
         {
-            IntPtr ptr = OpenGL.MapNamedBufferRange(Handle, offset, size, EBufferAccess.ReadOnly);
+            IntPtr ptr = OpenGL.MapNamedBufferRange(Handle, offset, size, EBufferAccess.ReadWrite);
             _mappedHandle = (GCHandle)ptr;
 
             return _mappedHandle.Target;

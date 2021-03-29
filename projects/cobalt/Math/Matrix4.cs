@@ -6,67 +6,86 @@ namespace Cobalt.Math
 {
     [Serializable]
     [StructLayout(LayoutKind.Sequential)]
-    public class Matrix4 : IEquatable<Matrix4>
+    public struct Matrix4 : IEquatable<Matrix4>
     {
-        public float[] buffer = new float[16];
-
-        public Matrix4() : this(0.0f)
-        {
-
-        }
+        private unsafe fixed float buffer[16];
 
         public Matrix4(float scalar)
         {
-            buffer = Enumerable.Repeat(scalar, 16).ToArray();
+            unsafe
+            {
+                for(int i = 0; i < 16; i++)
+                {
+                    buffer[i] = scalar;
+                }
+            }
         }
 
         public Matrix4(Vector4 diagonal) : this(0.0f)
         {
-            buffer[0] = diagonal.x;
-            buffer[5] = diagonal.y;
-            buffer[10] = diagonal.z;
-            buffer[15] = diagonal.w;
+            unsafe
+            {
+                buffer[0] = diagonal.x;
+                buffer[5] = diagonal.y;
+                buffer[10] = diagonal.z;
+                buffer[15] = diagonal.w;
+            }
         }
 
         public Matrix4(Vector4 col0, Vector4 col1, Vector4 col2, Vector4 col3)
         {
-            buffer[0] = col0.x;
-            buffer[1] = col0.y;
-            buffer[2] = col0.z;
-            buffer[3] = col0.w;
+            unsafe
+            {
+                buffer[0] = col0.x;
+                buffer[1] = col0.y;
+                buffer[2] = col0.z;
+                buffer[3] = col0.w;
 
-            buffer[4] = col1.x;
-            buffer[5] = col1.y;
-            buffer[6] = col1.z;
-            buffer[7] = col1.w;
+                buffer[4] = col1.x;
+                buffer[5] = col1.y;
+                buffer[6] = col1.z;
+                buffer[7] = col1.w;
 
-            buffer[8] = col2.x;
-            buffer[9] = col2.y;
-            buffer[10] = col2.z;
-            buffer[11] = col2.w;
+                buffer[8] = col2.x;
+                buffer[9] = col2.y;
+                buffer[10] = col2.z;
+                buffer[11] = col2.w;
 
-            buffer[12] = col3.x;
-            buffer[13] = col3.y;
-            buffer[14] = col3.z;
-            buffer[15] = col3.w;
+                buffer[12] = col3.x;
+                buffer[13] = col3.y;
+                buffer[14] = col3.z;
+                buffer[15] = col3.w;
+            }
         }
 
         public float this[int row, int col]
         {
             get
             {
-                return buffer[row * 4 + col];
+                unsafe
+                {
+                    return buffer[row * 4 + col];
+                }
             }
 
             set
             {
-                buffer[row * 4 + col] = value;
+                unsafe
+                {
+                    buffer[row * 4 + col] = value;
+                }
             }
         }
 
         public Matrix4(Matrix4 matrix)
         {
-            Array.Copy(matrix.buffer, buffer, 16);
+            unsafe
+            {
+                for(int i = 0; i < 16; i++)
+                {
+                    buffer[i] = matrix.buffer[i];
+                }
+            }
         }
 
         public static readonly Matrix4 Identity = new Matrix4(Vector4.One);
@@ -82,19 +101,40 @@ namespace Cobalt.Math
 
         public bool Equals(Matrix4 other)
         {
-            return Enumerable.SequenceEqual(buffer, other.buffer);
+            unsafe
+            {
+                bool equal = true;
+                for (int i = 0; i < 16; i++)
+                {
+                    if (buffer[i] != other.buffer[i])
+                        equal = false;
+                }
+
+                return equal;
+            }
         }
 
         public override int GetHashCode()
         {
-            return buffer.GetHashCode();
+            unsafe
+            {
+                float hc = 17;
+                for (int i = 0; i < 16; i++)
+                {
+                   hc = unchecked(31 * hc + buffer[i]);
+                }
+                return (int)hc;
+            }
         }
 
         public static Matrix4 operator +(Matrix4 left, Matrix4 right)
         {
-            for (int i = 0; i < 16; i++)
+            unsafe
             {
-                left.buffer[i] += right.buffer[i];
+                for (int i = 0; i < 16; i++)
+                {
+                    left.buffer[i] += right.buffer[i];
+                }
             }
 
             return left;
@@ -102,9 +142,12 @@ namespace Cobalt.Math
 
         public static Matrix4 operator -(Matrix4 left, Matrix4 right)
         {
-            for (int i = 0; i < 16; i++)
+            unsafe
             {
-                left.buffer[i] -= right.buffer[i];
+                for (int i = 0; i < 16; i++)
+                {
+                    left.buffer[i] -= right.buffer[i];
+                }
             }
 
             return left;
@@ -189,12 +232,15 @@ namespace Cobalt.Math
 
         public Matrix4 Transpose()
         {
-            Swap(ref buffer[1], ref buffer[4]);
-            Swap(ref buffer[2], ref buffer[8]);
-            Swap(ref buffer[6], ref buffer[9]);
-            Swap(ref buffer[3], ref buffer[12]);
-            Swap(ref buffer[7], ref buffer[13]);
-            Swap(ref buffer[11], ref buffer[14]);
+            unsafe
+            {
+                Swap(ref buffer[1], ref buffer[4]);
+                Swap(ref buffer[2], ref buffer[8]);
+                Swap(ref buffer[6], ref buffer[9]);
+                Swap(ref buffer[3], ref buffer[12]);
+                Swap(ref buffer[7], ref buffer[13]);
+                Swap(ref buffer[11], ref buffer[14]);
+            }
 
             return this;
         }

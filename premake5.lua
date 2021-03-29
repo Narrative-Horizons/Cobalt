@@ -23,8 +23,9 @@ workspace "Cobalt"
     group ""
 
     include "projects/cobalt"
-    include "projects/cobalt-sandbox"
     include "projects/cobalt-bindings"
+    include "projects/cobalt-sandbox"
+    include "projects/cobalt-unit-tests"
 
     NativeIncludeDirs = {}
     NativeIncludeDirs["glad"] = "%{sln.location}/dependencies/GLAD@GL4.6/include"

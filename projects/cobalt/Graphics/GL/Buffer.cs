@@ -4,6 +4,7 @@ using Cobalt.Bindings.GL;
 using Cobalt.Graphics.API;
 using System;
 using System.Runtime.InteropServices;
+using Cobalt.Core;
 
 namespace Cobalt.Graphics.GL
 {
@@ -54,20 +55,16 @@ namespace Cobalt.Graphics.GL
             OpenGL.DeleteBuffers(Handle);
         }
 
-        public object Map()
+        public IntPtr Map()
         {
             IntPtr ptr = OpenGL.MapNamedBuffer(Handle, EBufferAccess.ReadWrite);
-            _mappedHandle = (GCHandle)ptr;
-
-            return _mappedHandle.Target;
+            return ptr;
         }
 
-        public object Map(int offset, int size)
+        public IntPtr Map(int offset, int size)
         {
             IntPtr ptr = OpenGL.MapNamedBufferRange(Handle, offset, size, EBufferAccess.ReadWrite);
-            _mappedHandle = (GCHandle)ptr;
-
-            return _mappedHandle.Target;
+            return ptr;
         }
 
         public void Unmap()

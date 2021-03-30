@@ -24,7 +24,7 @@ namespace Cobalt.Graphics.GL
             for(int i = 0; i < info.RenderPass.GetAttachments().Count; i++)
             {
                 IRenderPass.AttachmentDescription attachmentInfo = info.RenderPass.GetAttachments()[i];
-                if(attachmentInfo.LoadOp == EAttachmentLoad.Clear)
+                if(attachmentInfo.LoadOp != EAttachmentLoad.Clear)
                 {
                     clearValues[i] = null;
                 }

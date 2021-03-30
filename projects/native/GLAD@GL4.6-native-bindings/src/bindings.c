@@ -300,5 +300,5 @@ GLAD_BINDING_EXPORT void cobalt_gl_texture_sub_image_2D(unsigned int texture, in
 
 GLAD_BINDING_EXPORT void cobalt_gl_bind_buffer_range(unsigned int target, unsigned int index, unsigned int buffer, int offset, int size)
 {
-
+	glBindBufferRange(target, index, buffer, offset, size);
 }

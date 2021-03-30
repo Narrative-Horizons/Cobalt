@@ -30,12 +30,9 @@ namespace Cobalt.Graphics.GL.Commands
                 if (Equals(clear, null))
                     continue;
 
-                GCHandle handle = GCHandle.Alloc(clear);
-                IntPtr val = (IntPtr)handle;
+                Vector4 nonNullClear = clear ?? Vector4.Zero;
 
-                OpenGL.ClearNamedFramebufferfv(_fbo.Handle, Bindings.GL.EClearBuffer.Color, i, val);
-
-                handle.Free();
+                OpenGL.ClearNamedFramebufferfv(_fbo.Handle, Bindings.GL.EClearBuffer.Color, i, new float[] { nonNullClear.x, nonNullClear.y, nonNullClear.z, nonNullClear.w });
             }
         }
     }

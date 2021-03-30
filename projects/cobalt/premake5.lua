@@ -10,6 +10,10 @@ project "Cobalt"
 
     platformtarget "x86_64"
 
+    nuget {
+        "OpenTK:4.6.3"
+    }
+
     links {
         "Cobalt Bindings"
     }

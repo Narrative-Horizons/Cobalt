@@ -127,6 +127,20 @@ namespace Cobalt.Math
             }
         }
 
+        public override string ToString()
+        {
+            unsafe
+            {
+                string ret = "";
+
+                for(int i = 0; i < 16; i++)
+                {
+                    ret += buffer[i] + ", ";
+                }
+                return ret;
+            }
+        }
+
         public static Matrix4 operator +(Matrix4 left, Matrix4 right)
         {
             unsafe
@@ -213,6 +227,17 @@ namespace Cobalt.Math
             left[3, 3] = e33;
 
             return left;
+        }
+
+        public static Matrix4 Scale(Vector3 scale)
+        {
+            Matrix4 ret = Matrix4.Identity;
+
+            ret[0, 0] = scale.x;
+            ret[1, 1] = scale.y;
+            ret[2, 2] = scale.z;
+
+            return ret;
         }
 
         public static Vector4 operator *(Matrix4 left, Vector4 right)

@@ -86,8 +86,8 @@ namespace Cobalt.Graphics.API
             return new CreateInfo<T>.Builder().InitialPayload(payload);
         }
 
-        object Map();
-        object Map(int offset, int size);
+        IntPtr Map();
+        IntPtr Map(int offset, int size);
 
         void Unmap();
     }

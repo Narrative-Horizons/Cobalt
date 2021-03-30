@@ -3,6 +3,7 @@ using Cobalt.Entities;
 using Cobalt.Graphics;
 using Cobalt.Graphics.API;
 using Cobalt.Math;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -60,8 +61,11 @@ namespace Cobalt.Sandbox
                 .FinalLayout(EImageLayout.PresentSource).LoadOp(EAttachmentLoad.Clear).StoreOp(EAttachmentStore.Store).Format(EDataFormat.BGRA8_SRGB)));
 
             IPipelineLayout layout = device.CreatePipelineLayout(new IPipelineLayout.CreateInfo.Builder().AddDescriptorSetLayout(device.CreateDescriptorSetLayout(
-                new IDescriptorSetLayout.CreateInfo.Builder().AddBinding(new IDescriptorSetLayout.DescriptorSetLayoutBinding.Builder()
-                .AddAccessibleStage(EShaderType.Fragment).BindingIndex(0).DescriptorType(EDescriptorType.CombinedImageSampler).Count(1).Name("albedo").Build()).Build())).Build());
+                new IDescriptorSetLayout.CreateInfo.Builder().AddBinding(new IDescriptorSetLayout.DescriptorSetLayoutBinding.Builder().BindingIndex(0).Count(1)
+                .DescriptorType(EDescriptorType.UniformBuffer)
+                .AddAccessibleStage(EShaderType.Vertex).Build())
+                .AddBinding(new IDescriptorSetLayout.DescriptorSetLayoutBinding.Builder()
+                .AddAccessibleStage(EShaderType.Fragment).BindingIndex(1).DescriptorType(EDescriptorType.CombinedImageSampler).Count(1).Name("albedo").Build()).Build())).Build());
 
             ICommandPool commandPool = device.CreateCommandPool(new ICommandPool.CreateInfo.Builder().Queue(graphicsQueue).ResetAllocations(true).TransientAllocations(true));
             List<ICommandBuffer> commandBuffers = commandPool.Allocate(new ICommandBuffer.AllocateInfo.Builder().Count(swapchain.GetImageCount()).Level(ECommandBufferLevel.Primary).Build());
@@ -82,11 +86,8 @@ namespace Cobalt.Sandbox
                 IBuffer.FromPayload(objectData).AddUsage(EBufferUsage.ArrayBuffer),
                 new IBuffer.MemoryInfo.Builder()
                     .AddRequiredProperty(EMemoryProperty.DeviceLocal)
-                    .Usage(EMemoryUsage.GPUOnly));
-
-            VertexData[] mappedDataa = (VertexData[])buf.Map();
-
-            buf.Unmap();
+                    .AddRequiredProperty(EMemoryProperty.HostVisible)
+                    .Usage(EMemoryUsage.CPUToGPU));
 
             string vsSource = 
                 @"#version 460
@@ -225,8 +226,10 @@ namespace Cobalt.Sandbox
             IBuffer uniformBuffer = device.CreateBuffer(IBuffer.FromPayload(uBufferData).AddUsage(EBufferUsage.UniformBuffer),
                 new IBuffer.MemoryInfo.Builder().Usage(EMemoryUsage.CPUToGPU).AddRequiredProperty(EMemoryProperty.HostCoherent).AddRequiredProperty(EMemoryProperty.HostVisible));
 
-            UniformBufferData[] mappedData = (UniformBufferData[])uniformBuffer.Map();
-            //mappedData.MVP = Matrix4.Identity;
+            NativeBuffer<UniformBufferData> nativeData = new NativeBuffer<UniformBufferData>(uniformBuffer.Map());
+            UniformBufferData d = nativeData.Get();
+            d.MVP = Matrix4.Identity;
+            nativeData.Set(d, 0);
             uniformBuffer.Unmap();
 
             IDescriptorPool descriptorPool = device.CreateDescriptorPool(new IDescriptorPool.CreateInfo.Builder().AddPoolSize(EDescriptorType.CombinedImageSampler, 2).MaxSetCount(2).Build());
@@ -238,9 +241,14 @@ namespace Cobalt.Sandbox
             {
                 DescriptorWriteInfo writeInfo = new DescriptorWriteInfo.Builder()
                     .AddImageInfo(new DescriptorWriteInfo.DescriptorImageInfo.Builder().Layout(EImageLayout.ShaderReadOnly)
-                    .Sampler(logoImageSampler).View(logoImageView)).ArrayElement(0).BindingIndex(0).DescriptorSet(set).Build();
+                    .Sampler(logoImageSampler).View(logoImageView)).ArrayElement(0).BindingIndex(1).DescriptorSet(set).Build();
 
-                device.UpdateDescriptorSets(new List<DescriptorWriteInfo>() { writeInfo });
+                DescriptorWriteInfo writeInfo2 = new DescriptorWriteInfo.Builder()
+                    .AddBufferInfo(new DescriptorWriteInfo.DescriptorBufferInfo.Builder().Buffer(uniformBuffer).Offset(0).Range(64).Build())
+                    .ArrayElement(0).BindingIndex(0).DescriptorSet(set)
+                    .Build();
+
+                device.UpdateDescriptorSets(new List<DescriptorWriteInfo>() { writeInfo, writeInfo2 });
             });
 
             int frame = 0;
@@ -270,15 +278,23 @@ namespace Cobalt.Sandbox
             }
 
             frame = 0;
+            double time = 0.0;
 
             while (window.IsOpen())
             {
                 graphicsQueue.Execute(new IQueue.SubmitInfo(commandBuffers[frame]));
 
+                NativeBuffer<UniformBufferData> nativeData2 = new NativeBuffer<UniformBufferData>(uniformBuffer.Map());
+                UniformBufferData d2 = nativeData2.Get(0);
+                d2.MVP = Matrix4.Scale(new Vector3((float)System.Math.Sin(time), 1, 1));
+                nativeData2.Set(d2, 0);
+                uniformBuffer.Unmap();
+
                 window.Poll();
                 swapchain.Present(new ISwapchain.PresentInfo());
 
                 frame = (frame + 1) % 2;
+                time += 0.01;
             }
 
             gfxContext.Dispose();

@@ -240,6 +240,74 @@ namespace Cobalt.Math
             return ret;
         }
 
+        public static Matrix4 Rotate(Vector3 eulerAngles)
+        {
+            Matrix4 ret = Matrix4.Identity;
+            ret *= Rotate(new Vector3(1, 0, 0), eulerAngles.x);
+            ret *= Rotate(new Vector3(0, 1, 0), eulerAngles.y);
+            ret *= Rotate(new Vector3(0, 0, 1), eulerAngles.z);
+
+            return ret;
+        }
+
+        public static Matrix4 Rotate(Vector3 axis, float degrees)
+        {
+            float radians = Scalar.ToRadians(degrees);
+            float cosine = MathF.Cos(radians);
+            float sine = MathF.Sin(radians);
+            float oneMinusCosine = 1.0f - cosine;
+
+            float xy = axis.x * axis.y;
+            float yz = axis.y * axis.z;
+            float xz = axis.x * axis.z;
+
+            float xSine = axis.x * sine;
+            float ySine = axis.y * sine;
+            float zSine = axis.z * sine;
+
+            float f00 = axis.x * axis.x * oneMinusCosine + cosine;
+            float f01 = xy * oneMinusCosine + zSine;
+            float f02 = xz * oneMinusCosine - ySine;
+
+            float f10 = xy * oneMinusCosine - zSine;
+            float f11 = axis.y * axis.y * oneMinusCosine + cosine;
+            float f12 = yz * oneMinusCosine + xSine;
+
+            float f20 = xz * oneMinusCosine + ySine;
+            float f21 = yz * oneMinusCosine - xSine;
+            float f22 = axis.z * axis.z * oneMinusCosine + cosine;
+
+            Matrix4 ret = Matrix4.Identity;
+
+            float t00 = ret[0, 0] * f00 + ret[0, 1] * f01 + ret[0, 2] * f02;
+            float t01 = ret[1, 0] * f00 + ret[1, 1] * f01 + ret[1, 2] * f02;
+            float t02 = ret[2, 0] * f00 + ret[2, 1] * f01 + ret[2, 2] * f02;
+            float t03 = ret[3, 0] * f00 + ret[3, 1] * f01 + ret[3, 2] * f02;
+            float t10 = ret[0, 0] * f10 + ret[0, 1] * f11 + ret[0, 2] * f12;
+            float t11 = ret[1, 0] * f10 + ret[1, 1] * f11 + ret[1, 2] * f12;
+            float t12 = ret[2, 0] * f10 + ret[2, 1] * f11 + ret[2, 2] * f12;
+            float t13 = ret[3, 0] * f10 + ret[3, 1] * f11 + ret[3, 2] * f12;
+            float t20 = ret[0, 0] * f20 + ret[0, 1] * f21 + ret[0, 2] * f22;
+            float t21 = ret[1, 0] * f20 + ret[1, 1] * f21 + ret[1, 2] * f22;
+            float t22 = ret[2, 0] * f20 + ret[2, 1] * f21 + ret[2, 2] * f22;
+            float t23 = ret[3, 0] * f20 + ret[3, 1] * f21 + ret[3, 2] * f22;
+
+            ret[0, 0] = t00;
+            ret[1, 0] = t01;
+            ret[2, 0] = t02;
+            ret[3, 0] = t03;
+            ret[0, 1] = t10;
+            ret[1, 1] = t11;
+            ret[2, 1] = t12;
+            ret[3, 1] = t13;
+            ret[0, 2] = t20;
+            ret[1, 2] = t21;
+            ret[2, 2] = t22;
+            ret[3, 2] = t23;
+
+            return ret;
+        }
+
         public static Vector4 operator *(Matrix4 left, Vector4 right)
         {
             float x = left[0, 0] * right.x + left[0, 1] * right.y + left[0, 2] * right.z + left[0, 3] * right.w;

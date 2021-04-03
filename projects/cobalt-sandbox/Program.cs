@@ -72,7 +72,7 @@ namespace Cobalt.Sandbox
 
             ICommandPool transferPool = device.CreateCommandPool(new ICommandPool.CreateInfo.Builder().Queue(transferQueue).ResetAllocations(false).TransientAllocations(true));
 
-            VertexData[] objectData = new VertexData[3];
+            /*VertexData[] objectData = new VertexData[3];
             objectData[0].position = new Vector3(-.5f, -.5f, 0f);
             objectData[0].uv = new Vector2(0, 0);
 
@@ -80,10 +80,54 @@ namespace Cobalt.Sandbox
             objectData[1].uv = new Vector2(1, 0);
 
             objectData[2].position = new Vector3(0f, .5f, 0f);
-            objectData[2].uv = new Vector2(.5f, 1);
+            objectData[2].uv = new Vector2(.5f, 1);*/
+            float[] vertices = {
+                -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+                 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+                 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+                 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+                -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+                -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+                -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+                 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+                 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+                 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+                -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+                -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+                -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+                -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+                -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+                -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+                -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+                -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+                 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+                 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+                 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+                 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+                 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+                 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+                -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+                 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+                 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+                 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+                -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+                -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+                -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+                 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+                 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+                 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+                -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+                -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+            };
+
 
             IBuffer buf = device.CreateBuffer(
-                IBuffer.FromPayload(objectData).AddUsage(EBufferUsage.ArrayBuffer),
+                IBuffer.FromPayload(vertices).AddUsage(EBufferUsage.ArrayBuffer),
                 new IBuffer.MemoryInfo.Builder()
                     .AddRequiredProperty(EMemoryProperty.DeviceLocal)
                     .AddRequiredProperty(EMemoryProperty.HostVisible)
@@ -270,7 +314,7 @@ namespace Cobalt.Sandbox
                 buffer.Bind(pipeline);
                 buffer.Bind(vao);
                 buffer.Bind(layout, 0, new List<IDescriptorSet>() { descriptorSets[frame] });
-                buffer.Draw(0, 3, 0, 1);
+                buffer.Draw(0, 36, 0, 1);
 
                 buffer.End();
 
@@ -286,7 +330,7 @@ namespace Cobalt.Sandbox
 
                 NativeBuffer<UniformBufferData> nativeData2 = new NativeBuffer<UniformBufferData>(uniformBuffer.Map());
                 UniformBufferData d2 = nativeData2.Get(0);
-                d2.MVP = Matrix4.Scale(new Vector3((float)System.Math.Sin(time), 1, 1));
+                d2.MVP = Matrix4.Rotate(new Vector3(0, (float)time, 0));
                 nativeData2.Set(d2, 0);
                 uniformBuffer.Unmap();
 
@@ -294,7 +338,7 @@ namespace Cobalt.Sandbox
                 swapchain.Present(new ISwapchain.PresentInfo());
 
                 frame = (frame + 1) % 2;
-                time += 0.01;
+                time += 0.1;
             }
 
             gfxContext.Dispose();

@@ -20,7 +20,7 @@ namespace Cobalt.Graphics.GL
 
         public void BeginRenderPass(ICommandBuffer.RenderPassBeginInfo info)
         {
-            List<Vector4?> clearValues = new List<Vector4?>(info.ClearValues);
+            List<ClearValue> clearValues = new List<ClearValue>(info.ClearValues);
             for(int i = 0; i < info.RenderPass.GetAttachments().Count; i++)
             {
                 IRenderPass.AttachmentDescription attachmentInfo = info.RenderPass.GetAttachments()[i];
@@ -30,6 +30,7 @@ namespace Cobalt.Graphics.GL
                 }
             }
 
+            commands.Add(new BindFramebufferCommand((FrameBuffer)info.FrameBuffer));
             commands.Add(new ClearFrameBufferCommand((FrameBuffer)info.FrameBuffer, clearValues));
         }
 

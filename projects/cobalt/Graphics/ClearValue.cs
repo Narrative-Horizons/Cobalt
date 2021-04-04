@@ -12,8 +12,21 @@ namespace Cobalt.Graphics
             public float Green { get; set; } = 0;
             public float Blue { get; set; } = 0;
             public float Alpha { get; set; } = 0;
+
+            public ClearColor(float red, float green, float blue, float alpha)
+            {
+                Red = red;
+                Green = green;
+                Blue = blue;
+                Alpha = alpha;
+            }
         }
 
-        public ClearColor color { get; set; }
+        public ClearValue(ClearColor color)
+        {
+            Color = color;
+        }
+
+        public ClearColor Color { get; set; }
     }
 }

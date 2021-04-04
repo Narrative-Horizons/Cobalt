@@ -20,7 +20,9 @@ namespace Cobalt.Sandbox
     [StructLayout(LayoutKind.Sequential)]
     public struct UniformBufferData
     {
-        public Matrix4 MVP;
+        public Matrix4 projection;
+        public Matrix4 view;
+        public Matrix4 model;
     }
 
     public class Program
@@ -54,6 +56,22 @@ namespace Cobalt.Sandbox
             IQueue presentQueue = device.Queues().Find(queue => queue.GetProperties().Present);
             IQueue transferQueue = device.Queues().Find(queue => queue.GetProperties().Transfer);
 
+            IFrameBuffer[] FrameBuffer = new IFrameBuffer[2];
+            IImage[] colorAttachments = new IImage[2];
+            IImageView[] colorAttachmentViews = new IImageView[2];
+
+            for (int i = 0; i < 2; i++)
+            {
+                colorAttachments[i] = device.CreateImage(new IImage.CreateInfo.Builder().AddUsage(EImageUsage.ColorAttachment).Width(1280).Height(720).Type(EImageType.Image2D)
+                    .Format(EDataFormat.R8G8B8A8).MipCount(1).LayerCount(1),
+                    new IImage.MemoryInfo.Builder().Usage(EMemoryUsage.GPUOnly).AddRequiredProperty(EMemoryProperty.DeviceLocal));
+
+                colorAttachmentViews[i] = colorAttachments[i].CreateImageView(new IImageView.CreateInfo.Builder().ViewType(EImageViewType.ViewType2D).BaseArrayLayer(0)
+                    .BaseMipLevel(0).ArrayLayerCount(1).MipLevelCount(1).Format(EDataFormat.R8G8B8A8));
+
+                FrameBuffer[i] = device.CreateFrameBuffer(new IFrameBuffer.CreateInfo.Builder().AddAttachment(new IFrameBuffer.CreateInfo.Attachment.Builder().ImageView(colorAttachmentViews[i]).Usage(EImageUsage.ColorAttachment)));
+            }
+
             IRenderSurface surface = device.GetSurface(window);
             ISwapchain swapchain = surface.CreateSwapchain(new ISwapchain.CreateInfo.Builder().Width(1280).Height(720).ImageCount(2).Layers(1).Build());
 
@@ -72,15 +90,6 @@ namespace Cobalt.Sandbox
 
             ICommandPool transferPool = device.CreateCommandPool(new ICommandPool.CreateInfo.Builder().Queue(transferQueue).ResetAllocations(false).TransientAllocations(true));
 
-            /*VertexData[] objectData = new VertexData[3];
-            objectData[0].position = new Vector3(-.5f, -.5f, 0f);
-            objectData[0].uv = new Vector2(0, 0);
-
-            objectData[1].position = new Vector3(.5f, -.5f, 0f);
-            objectData[1].uv = new Vector2(1, 0);
-
-            objectData[2].position = new Vector3(0f, .5f, 0f);
-            objectData[2].uv = new Vector2(.5f, 1);*/
             float[] vertices = {
                 -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
                  0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
@@ -141,13 +150,15 @@ namespace Cobalt.Sandbox
 
                   layout (std140, binding=0) uniform Matrices
                   {
-                    mat4 MVP;
+                    mat4 projection;
+                    mat4 view;
+                    mat4 model;
                   };
 
                   void main()
                   {
                     iUV = uv;
-                    gl_Position = MVP * vec4(position, 1);
+                    gl_Position = projection * view * model * vec4(position, 1);
                   }";
 
             MemoryStream stream = new MemoryStream();
@@ -243,7 +254,7 @@ namespace Cobalt.Sandbox
             IVertexAttributeArray vao = pipeline.CreateVertexAttributeArray(new List<IBuffer>() { buf });
 
             AssetManager assetManager = new AssetManager();
-            Core.ImageAsset image = assetManager.LoadImage("../../../../CobaltLogo.png");
+            Core.ImageAsset image = assetManager.LoadImage("../../../../shawn.png");
             IImage logoImage = device.CreateImage(new IImage.CreateInfo.Builder()
                     .Depth(1).Format(EDataFormat.R8G8B8A8).Height((int) image.Height).Width((int) image.Width)
                     .InitialLayout(EImageLayout.Undefined).LayerCount(1).MipCount(1).SampleCount(ESampleCount.Samples1)
@@ -269,12 +280,6 @@ namespace Cobalt.Sandbox
 
             IBuffer uniformBuffer = device.CreateBuffer(IBuffer.FromPayload(uBufferData).AddUsage(EBufferUsage.UniformBuffer),
                 new IBuffer.MemoryInfo.Builder().Usage(EMemoryUsage.CPUToGPU).AddRequiredProperty(EMemoryProperty.HostCoherent).AddRequiredProperty(EMemoryProperty.HostVisible));
-
-            NativeBuffer<UniformBufferData> nativeData = new NativeBuffer<UniformBufferData>(uniformBuffer.Map());
-            UniformBufferData d = nativeData.Get();
-            d.MVP = Matrix4.Identity;
-            nativeData.Set(d, 0);
-            uniformBuffer.Unmap();
 
             IDescriptorPool descriptorPool = device.CreateDescriptorPool(new IDescriptorPool.CreateInfo.Builder().AddPoolSize(EDescriptorType.CombinedImageSampler, 2).MaxSetCount(2).Build());
 
@@ -303,13 +308,12 @@ namespace Cobalt.Sandbox
 
                 buffer.BeginRenderPass(new ICommandBuffer.RenderPassBeginInfo()
                 {
-                    ClearValues = new List<Vector4?>() { new Vector4(0, 0, 0, 1) },
+                    ClearValues = new List<ClearValue>() { new ClearValue(new ClearValue.ClearColor(0, 0, 0, 1)) },
                     Width = 1280,
                     Height = 720,
                     FrameBuffer = swapchain.GetFrameBuffer(frame),
                     RenderPass = renderPass
                 });
-
 
                 buffer.Bind(pipeline);
                 buffer.Bind(vao);
@@ -324,14 +328,21 @@ namespace Cobalt.Sandbox
             frame = 0;
             double time = 0.0;
 
+            Matrix4 perspective = Matrix4.Perspective(Scalar.ToRadians(60), 1280.0f / 720.0f, 0.01f, 1000.0f);
+            Matrix4 camera = Matrix4.LookAt(new Vector3(2, 2, 2), Vector3.Zero, Vector3.UnitY);
+
             while (window.IsOpen())
             {
                 graphicsQueue.Execute(new IQueue.SubmitInfo(commandBuffers[frame]));
 
-                NativeBuffer<UniformBufferData> nativeData2 = new NativeBuffer<UniformBufferData>(uniformBuffer.Map());
-                UniformBufferData d2 = nativeData2.Get(0);
-                d2.MVP = Matrix4.Rotate(new Vector3(0, (float)time, 0));
-                nativeData2.Set(d2, 0);
+                Matrix4 model = Matrix4.Rotate(new Vector3(0, (float)time, 0));
+
+                NativeBuffer<UniformBufferData> nativeData = new NativeBuffer<UniformBufferData>(uniformBuffer.Map());
+                UniformBufferData data = nativeData.Get(0);
+                data.projection = perspective;
+                data.view = camera;
+                data.model = model;
+                nativeData.Set(data, 0);
                 uniformBuffer.Unmap();
 
                 window.Poll();

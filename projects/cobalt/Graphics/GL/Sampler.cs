@@ -60,7 +60,7 @@ namespace Cobalt.Graphics.GL
                 default:
                     break;
             }
-            throw new System.ArgumentException("Invalid address mode.");
+            throw new System.InvalidOperationException("Invalid address mode.");
         }
 
         private static ETextureParameter ToFilter(EFilter filter)
@@ -74,7 +74,7 @@ namespace Cobalt.Graphics.GL
                 default:
                     break;
             }
-            throw new System.ArgumentException("Invalid texture filter.");
+            throw new System.InvalidOperationException("Invalid texture filter.");
         }
 
         private static ETextureParameter ToFilter(EFilter filter, EMipmapMode mip)
@@ -104,7 +104,7 @@ namespace Cobalt.Graphics.GL
                     }
                     break;
             }
-            throw new System.ArgumentException("Invalid texture filter and mipmap mode combination.");
+            throw new System.InvalidOperationException("Invalid texture filter and mipmap mode combination.");
         }
 
         private static EStencilFunction ToFunc(ECompareOp op)
@@ -128,7 +128,7 @@ namespace Cobalt.Graphics.GL
                 case ECompareOp.NotEqual:
                     return EStencilFunction.Notequal;
             }
-            throw new System.ArgumentException("Invalid stencil function.");
+            throw new System.InvalidOperationException("Invalid stencil function.");
         }
     }
 }

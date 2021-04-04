@@ -115,7 +115,7 @@ namespace Cobalt.Graphics.GL
 
         public IImageView CreateImageView(IImageView.CreateInfo info)
         {
-            ImageView view = new ImageView(info, Handle);
+            ImageView view = new ImageView(info, this);
             Views.Add(view);
 
             return view;

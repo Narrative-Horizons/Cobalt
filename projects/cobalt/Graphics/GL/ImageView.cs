@@ -9,15 +9,20 @@ namespace Cobalt.Graphics.GL
     internal class ImageView : IImageView
     {
         public uint Handle { get; private set; }
+        public Image Image{ get; private set; }
 
-        public ImageView(IImageView.CreateInfo createInfo, uint imageHandle)
+        public IImageView.CreateInfo Info { get; private set; }
+
+        public ImageView(IImageView.CreateInfo createInfo, Image image)
         {
             Handle = OpenGL.GenTextures();
+            Image = image;
+            Info = createInfo;
 
             int target = ToTarget(createInfo.ViewType);
             int format = ToSizedFormat(createInfo.Format);
 
-            OpenGL.TextureView(Handle, (uint)target, imageHandle, (EPixelInternalFormat)format, (uint)createInfo.BaseMipLevel,
+            OpenGL.TextureView(Handle, (uint)target, Image.Handle, (EPixelInternalFormat)format, (uint)createInfo.BaseMipLevel,
                 (uint)createInfo.MipLevelCount, (uint)createInfo.BaseArrayLayer, (uint)createInfo.ArrayLayerCount);
         }
 
@@ -44,6 +49,8 @@ namespace Cobalt.Graphics.GL
                     return (int)ETextureTarget.Texture2DArray;
                 case EImageViewType.ViewTypeCubeArray:
                     return (int)ETextureTarget.TextureCubeMapArray;
+                default:
+                    break;
             }
 
             return -1;

@@ -12,8 +12,6 @@ namespace Cobalt.Graphics.GL
     {
         public uint Handle { get; private set; }
 
-        private GCHandle _mappedHandle;
-
         public Buffer(IBuffer.MemoryInfo memoryInfo, IBuffer.CreateInfo<T> createInfo)
         {
             Handle = OpenGL.CreateBuffers();

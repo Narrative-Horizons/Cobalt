@@ -58,6 +58,7 @@ namespace Cobalt.Graphics.API
         public IGraphicsPipeline CreateGraphicsPipeline(IGraphicsPipeline.CreateInfo info);
         public ICommandPool CreateCommandPool(ICommandPool.CreateInfo info);
         public ISampler CreateSampler(ISampler.CreateInfo info);
+        public Shader CreateShader(Shader.CreateInfo info);
         public void UpdateDescriptorSets(List<DescriptorWriteInfo> writeInformation);
     }
 }

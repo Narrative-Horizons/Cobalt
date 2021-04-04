@@ -68,6 +68,18 @@ namespace Cobalt.Bindings.GL
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_create_buffers", CallingConvention = CallingConvention.Cdecl)]
         public static extern void CreateBuffers(uint amount, uint[] buffers);
 
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_create_frame_buffers", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void CreateFramebuffers(uint amount, uint[] buffers);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_bind_frame_buffer", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void BindFramebuffer(EFramebufferTarget target, uint buffer);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_check_named_frame_buffer_status", CallingConvention = CallingConvention.Cdecl)]
+        public static extern uint CheckNamedFramebufferStatus(uint buffer, EFramebufferTarget target);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_named_frame_buffer_texture", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void NamedFramebufferTexture(uint buffer, EFramebufferAttachment attachment, uint texture, int level);
+
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_named_buffer_storage", CallingConvention = CallingConvention.Cdecl)]
         public static extern void NamedBufferStorage(uint buffer, long size, IntPtr data, EBufferAccessMask flags);
 
@@ -76,6 +88,9 @@ namespace Cobalt.Bindings.GL
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_delete_buffers", CallingConvention = CallingConvention.Cdecl)]
         public static extern void DeleteBuffers(uint amount, uint[] buffers);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_delete_frame_buffers", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void DeleteFramebuffers(uint amount, uint[] buffers);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_delete_textures", CallingConvention = CallingConvention.Cdecl)]
         public static extern void DeleteTextures(uint amount, uint[] textures);
@@ -269,6 +284,14 @@ namespace Cobalt.Bindings.GL
             return buffers[0];
         }
 
+        public static uint CreateFramebuffers()
+        {
+            uint[] buffers = new uint[1];
+            CreateFramebuffers(1, buffers);
+
+            return buffers[0];
+        }
+
         public static uint CreateTextures(ETextureTarget target)
         {
             uint[] images = new uint[1];
@@ -297,6 +320,12 @@ namespace Cobalt.Bindings.GL
         {
             uint[] buffers = { buffer };
             DeleteBuffers(1, buffers);
+        }
+
+        public static void DeleteFramebuffers(uint buffer)
+        {
+            uint[] buffers = { buffer };
+            DeleteFramebuffers(1, buffers);
         }
 
         public static void DeleteTextures(uint texture)

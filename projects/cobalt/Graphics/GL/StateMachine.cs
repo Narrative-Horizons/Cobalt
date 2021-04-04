@@ -13,6 +13,7 @@ namespace Cobalt.Graphics.GL
         private static uint _currentVao = uint.MaxValue;
         private static Bindings.GL.EBeginMode _currentDrawMode = 0;
         private static HashSet<TextureSamplerHandleWrapper> _residentTextureSamplerHandles = new HashSet<TextureSamplerHandleWrapper>();
+
         private static HashSet<ulong> _residentTextureHandles = new HashSet<ulong>();
 
         private static Dictionary<TextureSamplerHandleWrapper, ulong> _cachedHandles = new Dictionary<TextureSamplerHandleWrapper, ulong>();
@@ -44,6 +45,11 @@ namespace Cobalt.Graphics.GL
         internal static void BindUniformBufferRange(uint index, IBuffer buffer, int offset, int range)
         {
             OpenGL.BindBufferRange(EBufferTarget.UniformBuffer, index, ((IHandledType)buffer).GetHandle(), offset, range);
+        }
+
+        public static void BindFramebuffer(FrameBuffer FBO)
+        {
+            OpenGL.BindFramebuffer(EFramebufferTarget.Framebuffer, FBO.Handle);
         }
 
         public static void UniformHandleuivArb(int index, ulong[] handles)

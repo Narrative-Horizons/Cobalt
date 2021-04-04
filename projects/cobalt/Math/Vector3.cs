@@ -133,7 +133,7 @@ namespace Cobalt.Math
 
         public static Vector3 Cross(Vector3 left, Vector3 right)
         {
-            float x = left.x * right.z - left.z * right.y;
+            float x = left.y * right.z - left.z * right.y;
             float y = left.z * right.x - left.x * right.z;
             float z = left.x * right.y - left.y * right.x;
 

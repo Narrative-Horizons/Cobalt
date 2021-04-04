@@ -1,14 +1,27 @@
 ﻿using System;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace Cobalt.Math
 {
     [Serializable]
     [StructLayout(LayoutKind.Sequential)]
+    [DebuggerDisplay("{DebugString}")]
     public struct Matrix4 : IEquatable<Matrix4>
     {
         private unsafe fixed float buffer[16];
+
+        public unsafe string DebugString
+        {
+            get
+            {
+                unsafe
+                {
+                    return "Aw " + this.ToString() + " motherfucker! Aw " + this.ToString2() + " g'damn!";
+                }
+            }
+        }
 
         public Matrix4(float scalar)
         {
@@ -133,7 +146,25 @@ namespace Cobalt.Math
             {
                 string ret = "";
 
-                for(int i = 0; i < 16; i++)
+                fixed (float* b = buffer)
+                {
+                    for (int i = 0; i < 16; i++)
+                    {
+                        ret += b[i] + ", ";
+                    }
+                }
+                
+                return ret;
+            }
+        }
+
+        public string ToString2()
+        {
+            unsafe
+            {
+                string ret = "";
+
+                for (int i = 0; i < 16; i++)
                 {
                     ret += buffer[i] + ", ";
                 }
@@ -205,28 +236,29 @@ namespace Cobalt.Math
             float e33 = left[3, 0] * right[0, 3] + left[3, 1] * right[1, 3]
                 + left[3, 2] * right[2, 3] + left[3, 3] * right[3, 3];
 
+            Matrix4 ret = Matrix4.Identity;
 
-            left[0, 0] = e00;
-            left[0, 1] = e01;
-            left[0, 2] = e02;
-            left[0, 3] = e03;
+            ret[0, 0] = e00;
+            ret[0, 1] = e01;
+            ret[0, 2] = e02;
+            ret[0, 3] = e03;
+            
+            ret[1, 0] = e10;
+            ret[1, 1] = e11;
+            ret[1, 2] = e12;
+            ret[1, 3] = e13;
+            
+            ret[2, 0] = e20;
+            ret[2, 1] = e21;
+            ret[2, 2] = e22;
+            ret[2, 3] = e23;
+            
+            ret[3, 0] = e30;
+            ret[3, 1] = e31;
+            ret[3, 2] = e32;
+            ret[3, 3] = e33;
 
-            left[1, 0] = e10;
-            left[1, 1] = e11;
-            left[1, 2] = e12;
-            left[1, 3] = e13;
-
-            left[2, 0] = e20;
-            left[2, 1] = e21;
-            left[2, 2] = e22;
-            left[2, 3] = e23;
-
-            left[3, 0] = e30;
-            left[3, 1] = e31;
-            left[3, 2] = e32;
-            left[3, 3] = e33;
-
-            return left;
+            return ret;
         }
 
         public static Matrix4 Scale(Vector3 scale)
@@ -304,6 +336,50 @@ namespace Cobalt.Math
             ret[1, 2] = t21;
             ret[2, 2] = t22;
             ret[3, 2] = t23;
+
+            return ret;
+        }
+
+        public static Matrix4 LookAt(Vector3 eye, Vector3 center, Vector3 up)
+        {
+            Vector3 f = (center - eye).Normalized();
+            Vector3 s = Vector3.Cross(up, f).Normalized();
+            Vector3 u = Vector3.Cross(f, s);
+
+            Matrix4 ret = Matrix4.Identity;
+
+            ret[0,0] = s.x;
+            ret[1,0] = s.y;
+            ret[2,0] = s.z;
+            ret[0,1] = u.x;
+            ret[1,1] = u.y;
+            ret[2,1] = u.z;
+            ret[0,2] = f.x;
+            ret[1,2] = f.y;
+            ret[2,2] = f.z;
+            ret[3,0] = -Vector3.Dot(s, eye);
+            ret[3,1] = -Vector3.Dot(u, eye);
+            ret[3,2] = -Vector3.Dot(f, eye);
+
+            return ret;
+        }
+
+        public static Matrix4 Perspective(float fov, float aspect, float zNear, float zFar)
+        {
+            float tanHalfFov = MathF.Tan(fov / 2.0f);
+
+            Matrix4 ret = Matrix4.Identity;
+
+            float m00 = 1.0f / (aspect * tanHalfFov);
+            float m11 = 1.0f / tanHalfFov;
+            float m22 = zFar / (zFar - zNear);
+            float m32 = -(zFar * zNear) / (zFar - zNear);
+
+            ret[0, 0] = m00;
+            ret[1, 1] = m11;
+            ret[2, 2] = m22;
+            ret[2, 3] = 1.0f;
+            ret[3, 2] = m32;
 
             return ret;
         }

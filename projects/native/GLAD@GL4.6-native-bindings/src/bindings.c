@@ -63,6 +63,16 @@ GLAD_BINDING_EXPORT void cobalt_gl_create_buffers(unsigned int amount, unsigned 
 	glCreateBuffers(amount, buffers);
 }
 
+GLAD_BINDING_EXPORT void cobalt_gl_create_frame_buffers(unsigned int amount, unsigned int* buffers)
+{
+	glCreateFramebuffers(amount, buffers);
+}
+
+GLAD_BINDING_EXPORT unsigned int cobalt_gl_check_named_frame_buffer_status(unsigned int buffer, unsigned int target)
+{
+	return glCheckNamedFramebufferStatus(buffer, target);
+}
+
 GLAD_BINDING_EXPORT void cobalt_gl_gen_textures(unsigned int amount, unsigned int* textures)
 {
 	glGenTextures(amount, textures);
@@ -73,9 +83,19 @@ GLAD_BINDING_EXPORT void cobalt_gl_named_buffer_storage(unsigned int buffer, lon
 	glNamedBufferStorage(buffer, size, data, flags);
 }
 
+GLAD_BINDING_EXPORT void cobalt_gl_named_frame_buffer_texture(unsigned int buffer, unsigned int attachment, unsigned int texture, int level)
+{
+	glNamedFramebufferTexture(buffer, attachment, texture, level);
+}
+
 GLAD_BINDING_EXPORT void cobalt_gl_delete_buffers(unsigned int amount, unsigned int* buffers)
 {
 	glDeleteBuffers(amount, buffers);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_delete_frame_buffers(unsigned int amount, unsigned int* buffers)
+{
+	glDeleteFramebuffers(amount, buffers);
 }
 
 GLAD_BINDING_EXPORT void cobalt_gl_delete_textures(unsigned int amount, unsigned int* textures)
@@ -86,6 +106,11 @@ GLAD_BINDING_EXPORT void cobalt_gl_delete_textures(unsigned int amount, unsigned
 GLAD_BINDING_EXPORT void* cobalt_gl_map_named_buffer(unsigned int buffer, unsigned int access)
 {
 	return glMapNamedBuffer(buffer, access);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_bind_frame_buffer(unsigned int target, unsigned int buffer)
+{
+	glBindFramebuffer(target, buffer);
 }
 
 GLAD_BINDING_EXPORT void* cobalt_gl_map_named_buffer_range(unsigned int buffer, long long int offset, long long int length, unsigned int access)

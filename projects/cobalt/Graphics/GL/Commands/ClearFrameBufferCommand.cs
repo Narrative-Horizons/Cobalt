@@ -10,9 +10,9 @@ namespace Cobalt.Graphics.GL.Commands
     internal class ClearFrameBufferCommand : ICommand
     {
         private FrameBuffer _fbo;
-        private List<Vector4?> _clearValues;
+        private List<ClearValue> _clearValues;
 
-        public ClearFrameBufferCommand(FrameBuffer fbo, List<Vector4?> clearValues)
+        public ClearFrameBufferCommand(FrameBuffer fbo, List<ClearValue> clearValues)
         {
             _fbo = fbo;
             _clearValues = clearValues;
@@ -26,13 +26,11 @@ namespace Cobalt.Graphics.GL.Commands
         {
             for (int i = 0; i < _clearValues.Count; i++)
             {
-                Vector4? clear = _clearValues[i];
-                if (Equals(clear, null))
+                ClearValue clear = _clearValues[i];
+                if (clear == null)
                     continue;
 
-                Vector4 nonNullClear = clear ?? Vector4.Zero;
-
-                OpenGL.ClearNamedFramebufferfv(_fbo.Handle, Bindings.GL.EClearBuffer.Color, i, new float[] { nonNullClear.x, nonNullClear.y, nonNullClear.z, nonNullClear.w });
+                OpenGL.ClearNamedFramebufferfv(_fbo.Handle, Bindings.GL.EClearBuffer.Color, i, new float[] { clear.Color.Red, clear.Color.Green, clear.Color.Blue, clear.Color.Alpha });
             }
         }
     }

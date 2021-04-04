@@ -113,8 +113,8 @@ namespace Cobalt.Graphics.API
             public int MipCount { get; private set; }
             public int LayerCount { get; private set; }
             public ESampleCount SampleCount { get; private set; }
-            public List<EImageUsage> Usage { get; private set; }
-            public List<IQueue> Queues { get; private set; }
+            public List<EImageUsage> Usage { get; private set; } = new List<EImageUsage>();
+            public List<IQueue> Queues { get; private set; } = new List<IQueue>();
             public EImageLayout InitialLayout { get; private set; }
         }
 

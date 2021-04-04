@@ -25,6 +25,7 @@ namespace Cobalt.Graphics.GL
         public List<GraphicsPipeline> GraphicsPipelines { get; private set; } = new List<GraphicsPipeline>();
         public List<CommandPool> CommandPools { get; private set; } = new List<CommandPool>();
         public List<Sampler> Samplers { get; private set; } = new List<Sampler>();
+        public List<Shader> Shaders { get; private set; } = new List<Shader>();
 
         public Device(IDevice.CreateInfo info)
         {
@@ -61,6 +62,7 @@ namespace Cobalt.Graphics.GL
             CommandPools.ForEach(cp => cp.Dispose());
             DescriptorPools.ForEach(dp => dp.Dispose());
             Samplers.ForEach(samp => samp.Dispose());
+            Shaders.ForEach(shader => shader.Dispose());
 
             _surfaces.Clear();
             Passes.Clear();
@@ -74,6 +76,7 @@ namespace Cobalt.Graphics.GL
             CommandPools.Clear();
             DescriptorPools.Clear();
             Samplers.Clear();
+            Shaders.Clear();
         }
 
         public List<IQueue> Queues()
@@ -176,6 +179,14 @@ namespace Cobalt.Graphics.GL
             Samplers.Add(sampler);
 
             return sampler;
+        }
+
+        public Shader CreateShader(Shader.CreateInfo info)
+        {
+            Shader shader = new Shader(info, this);
+            Shaders.Add(shader);
+
+            return shader;
         }
 
         public void UpdateDescriptorSets(List<DescriptorWriteInfo> writeInformation)

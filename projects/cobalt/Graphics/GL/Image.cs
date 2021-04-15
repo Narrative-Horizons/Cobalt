@@ -108,6 +108,8 @@ namespace Cobalt.Graphics.GL
                     return EPixelInternalFormat.Rgb32f;
                 case EDataFormat.R32G32B32A32_SFLOAT:
                     return EPixelInternalFormat.Rgba32f;
+                case EDataFormat.D24_SFLOAT_S8_UINT:
+                    return EPixelInternalFormat.Depth24Stencil8;
             }
 
             throw new InvalidOperationException("Unsupported data format");

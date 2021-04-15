@@ -181,9 +181,9 @@ namespace Cobalt.Graphics.GL
             return sampler;
         }
 
-        public Shader CreateShader(Shader.CreateInfo info)
+        public Shader CreateShader(Shader.CreateInfo info, IPipelineLayout layout, bool test)
         {
-            Shader shader = new Shader(info, this);
+            Shader shader = new Shader(info, this, layout, test);
             Shaders.Add(shader);
 
             return shader;

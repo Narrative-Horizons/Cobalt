@@ -9,6 +9,8 @@ namespace Cobalt.Graphics
 {
     public class Shader : IDisposable
     {
+        public IGraphicsPipeline Pipeline { get; private set; }
+
         public class CreateInfo
         {
             public sealed class Builder : CreateInfo
@@ -71,7 +73,7 @@ namespace Cobalt.Graphics
             public string ComputeSource { get; private set; } = null;
         }
 
-        public Shader(CreateInfo createInfo, IDevice device)
+        public Shader(CreateInfo createInfo, IDevice device, IPipelineLayout layout, bool test)
         {
             if(createInfo.ComputeSource != null)
             {
@@ -156,7 +158,7 @@ namespace Cobalt.Graphics
                         .EntryPoint("main").Build());
                 }
 
-                /*int sizeOfLayout = 64;
+                int sizeOfLayout = 5 * 4;
 
                 pipelineCreateInfo.VertexAttributeCreationInformation(
                     new IGraphicsPipeline.VertexAttributeCreateInfo.Builder()
@@ -205,21 +207,25 @@ namespace Cobalt.Graphics
                     .WindingOrder(EVertexWindingOrder.Clockwise)
                     .CullFaces(EPolgyonFace.Back)
                     .RasterizerDiscardEnabled(true).Build())
+                .DepthStencilCreationInformation(
+                    new IGraphicsPipeline.DepthStencilCreateInfo.Builder()
+                    .DepthTestEnabled(test)
+                    .DepthWriteEnabled(test)
+                    .DepthCompareOp(ECompareOp.Less).Build())
                 .MultisamplingCreationInformation(
                     new IGraphicsPipeline.MultisampleCreateInfo.Builder()
                     .AlphaToOneEnabled(false)
                     .AlphaToCoverageEnabled(false)
                     .Samples(ESampleCount.Samples1).Build())
-                .PipelineLayout(layout).Build());*/
+                .PipelineLayout(layout).Build();
 
-                IGraphicsPipeline pipeline = device.CreateGraphicsPipeline(pipelineCreateInfo);
-                
+                Pipeline = device.CreateGraphicsPipeline(pipelineCreateInfo);
             }
         }
 
         public void Dispose()
         {
-
+            Pipeline.Dispose();
         }
     }
 }

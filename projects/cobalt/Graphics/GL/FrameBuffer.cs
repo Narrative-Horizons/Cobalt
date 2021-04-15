@@ -19,8 +19,6 @@ namespace Cobalt.Graphics.GL
             Handle = OpenGL.CreateFramebuffers();
             Dictionary<Bindings.GL.EFramebufferAttachment, int> attachmentCount = new Dictionary<Bindings.GL.EFramebufferAttachment, int>();
 
-            uint status = OpenGL.CheckNamedFramebufferStatus(Handle, Bindings.GL.EFramebufferTarget.Framebuffer);
-
             foreach (IFrameBuffer.CreateInfo.Attachment attachment in info.Attachments)
             {
                 ImageView view = (ImageView)attachment.ImageView;
@@ -42,7 +40,7 @@ namespace Cobalt.Graphics.GL
                 OpenGL.NamedFramebufferTexture(Handle, x, image.Handle, 0);
             }
 
-            status = OpenGL.CheckNamedFramebufferStatus(Handle, Bindings.GL.EFramebufferTarget.Framebuffer);
+            uint status = OpenGL.CheckNamedFramebufferStatus(Handle, Bindings.GL.EFramebufferTarget.Framebuffer);
         }
 
         private static Cobalt.Bindings.GL.EFramebufferAttachment ToInternalType(EImageUsage usage)

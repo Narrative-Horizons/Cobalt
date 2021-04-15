@@ -729,6 +729,12 @@ namespace Cobalt.Graphics.API
                     return this;
                 }
 
+                public new Builder DepthStencilCreationInformation(DepthStencilCreateInfo info)
+                {
+                    base.DepthStencilCreationInformation = info;
+                    return this;
+                }
+
                 public CreateInfo Build()
                 {
                     return new CreateInfo()
@@ -741,6 +747,7 @@ namespace Cobalt.Graphics.API
                         RasterizerCreationInformation = base.RasterizerCreationInformation,
                         MultisamplingCreationInformation = base.MultisamplingCreationInformation,
                         DynamicStateCreationInformation = base.DynamicStateCreationInformation,
+                        DepthStencilCreationInformation = base.DepthStencilCreationInformation,
                         RenderPass = base.RenderPass,
                         PipelineLayout = base.PipelineLayout
                     };
@@ -755,6 +762,7 @@ namespace Cobalt.Graphics.API
             public RasterizerCreateInfo RasterizerCreationInformation { get; private set; }
             public MultisampleCreateInfo MultisamplingCreationInformation { get; private set; }
             public DynamicStateCreateInfo DynamicStateCreationInformation { get; private set; }
+            public DepthStencilCreateInfo DepthStencilCreationInformation { get; private set; }
             public IRenderPass RenderPass { get; private set; }
             public IPipelineLayout PipelineLayout { get; private set; }
         }

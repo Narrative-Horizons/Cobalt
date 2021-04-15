@@ -7,7 +7,7 @@
 
 static void debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
 {
-	//printf("%s\n", message);
+	printf("%s\n", message);
 }
 
 GLAD_BINDING_EXPORT int cobalt_glad_load_gl_proc_address(GLADloadproc loader_func)
@@ -36,6 +36,11 @@ GLAD_BINDING_EXPORT void cobalt_glad_gl_clear(unsigned int mask)
 GLAD_BINDING_EXPORT void cobalt_gl_enable(unsigned int mask)
 {
 	glEnable(mask);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_depth_mask(unsigned int flag)
+{
+	glDepthMask(flag);
 }
 
 GLAD_BINDING_EXPORT void cobalt_gl_disable(unsigned int mask)
@@ -266,6 +271,11 @@ GLAD_BINDING_EXPORT void cobalt_gl_draw_arrays_instanced_base_instance(unsigned 
 GLAD_BINDING_EXPORT void cobalt_gl_clear_named_framebuffer_fv(unsigned int framebuffer, unsigned int buffer, int drawbuffer, const float* value)
 {
 	glClearNamedFramebufferfv(framebuffer, buffer, drawbuffer, value);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_clear_named_framebuffer_fi(unsigned int framebuffer, unsigned int buffer, int drawbuffer, const float depth, const float stencil)
+{
+	glClearNamedFramebufferfi(framebuffer, buffer, drawbuffer, depth, stencil);
 }
 
 GLAD_BINDING_EXPORT void cobalt_gl_create_samplers(unsigned int count, unsigned int* samplers)

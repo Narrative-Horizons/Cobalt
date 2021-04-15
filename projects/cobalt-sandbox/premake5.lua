@@ -28,7 +28,8 @@ project "Cobalt Sandbox"
         }
 
         postbuildcommands {
-            "xcopy /E /C /I /Y \"%{sln.location}bin\\$(Configuration)\\%{cfg.system}\\%{cfg.platformtarget}\" \"%{sln.location}bin\\$(Configuration)\\%{cfg.system}\\%{cfg.dotnetframework}\\bin\""
+            "xcopy /E /C /I /Y \"%{sln.location}bin\\$(Configuration)\\%{cfg.system}\\%{cfg.platformtarget}\" \"%{sln.location}bin\\$(Configuration)\\%{cfg.system}\\%{cfg.dotnetframework}\\bin\"",
+            "xcopy /E /C /I /Y \"%{sln.location}data\" \"%{sln.location}bin\\$(Configuration)\\%{cfg.system}\\%{cfg.dotnetframework}\\data\""
         }
 
     filter {}

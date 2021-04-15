@@ -74,6 +74,8 @@ namespace Cobalt.Graphics.GL
                     break;
                 case EDataFormat.R32G32B32A32_SFLOAT:
                     return (int)EPixelInternalFormat.Rgba32f;
+                case EDataFormat.D24_SFLOAT_S8_UINT:
+                    return (int)EPixelInternalFormat.Depth24Stencil8;
             }
 
             throw new NotSupportedException("Unsupported format for image data.");

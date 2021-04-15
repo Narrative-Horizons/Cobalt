@@ -10,7 +10,8 @@ namespace Cobalt.Graphics.API
         R8G8B8A8,
         R32G32_SFLOAT,
         R32G32B32_SFLOAT,
-        R32G32B32A32_SFLOAT
+        R32G32B32A32_SFLOAT,
+        D24_SFLOAT_S8_UINT
     }
 
     public enum EImageType : uint

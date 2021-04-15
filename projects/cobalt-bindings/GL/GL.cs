@@ -47,6 +47,9 @@ namespace Cobalt.Bindings.GL
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_enable", CallingConvention = CallingConvention.Cdecl)]
         public static extern void Enable(EEnableCap mask);
 
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_depth_mask", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void DepthMask(bool flag);
+
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_disable", CallingConvention = CallingConvention.Cdecl)]
         public static extern void Disable(EEnableCap mask);
 
@@ -190,6 +193,9 @@ namespace Cobalt.Bindings.GL
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_clear_named_framebuffer_fv", CallingConvention = CallingConvention.Cdecl)]
         public static extern void ClearNamedFramebufferfv(uint framebuffer, EClearBuffer buffer, int drawbuffer, float[] value);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_clear_named_framebuffer_fi", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void ClearNamedFramebufferfi(uint framebuffer, EClearBuffer buffer, int drawbuffer, float depth, int stencil);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_create_samplers", CallingConvention = CallingConvention.Cdecl)]
         public static extern void CreateSamplers(uint count, uint[] samplers);

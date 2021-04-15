@@ -1,4 +1,6 @@
-﻿namespace Cobalt.Graphics.GL.Commands
+﻿using OpenGL = Cobalt.Bindings.GL.GL;
+
+namespace Cobalt.Graphics.GL.Commands
 {
     internal class BindGraphicsPipelineCommand : ICommand
     {
@@ -17,6 +19,23 @@
         public void Execute()
         {
             StateMachine.UseProgram(Pipeline);
+            if(Pipeline.Info.DepthStencilCreationInformation.DepthTestEnabled)
+            {
+                OpenGL.Enable(Bindings.GL.EEnableCap.DepthTest);
+            }
+            else
+            {
+                OpenGL.Disable(Bindings.GL.EEnableCap.DepthTest);
+            }
+
+            if(Pipeline.Info.DepthStencilCreationInformation.DepthWriteEnabled)
+            {
+                OpenGL.DepthMask(true);
+            }
+            else
+            {
+                OpenGL.DepthMask(false);
+            }
         }
     }
 }

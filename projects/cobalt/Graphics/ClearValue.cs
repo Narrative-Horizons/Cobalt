@@ -27,6 +27,13 @@ namespace Cobalt.Graphics
             Color = color;
         }
 
-        public ClearColor Color { get; set; }
+        public ClearValue(float depth)
+        {
+            Depth = depth;
+        }
+
+        public float? Depth { get; set; } = null;
+
+        public ClearColor Color { get; set; } = null;
     }
 }

@@ -30,7 +30,14 @@ namespace Cobalt.Graphics.GL.Commands
                 if (clear == null)
                     continue;
 
-                OpenGL.ClearNamedFramebufferfv(_fbo.Handle, Bindings.GL.EClearBuffer.Color, i, new float[] { clear.Color.Red, clear.Color.Green, clear.Color.Blue, clear.Color.Alpha });
+                if(clear.Color != null)
+                { 
+                    OpenGL.ClearNamedFramebufferfv(_fbo.Handle, Bindings.GL.EClearBuffer.Color, i, new float[] { clear.Color.Red, clear.Color.Green, clear.Color.Blue, clear.Color.Alpha });
+                }
+                if(clear.Depth != null)
+                { 
+                    OpenGL.ClearNamedFramebufferfi(_fbo.Handle, Bindings.GL.EClearBuffer.DepthStencil, 0, clear.Depth ?? 1, 0);
+                }
             }
         }
     }

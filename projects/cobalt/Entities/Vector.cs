@@ -15,7 +15,7 @@ namespace Cobalt.Entities
             public Enumerator(ref Type[] payload, ulong size)
             {
                 _payload = payload;
-                _index = 0;
+                _index = ulong.MaxValue;
                 _size = size;
             }
 
@@ -36,7 +36,7 @@ namespace Cobalt.Entities
 
             public void Reset()
             {
-                _index = 0;
+                _index = ulong.MaxValue;
             }
         }
 

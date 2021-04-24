@@ -9,11 +9,14 @@ namespace Cobalt.Entities
         private Vector<Entity> _entities = new Vector<Entity>();
         private Entity _next_available = Entity.Invalid;
 
+        public uint Capacity => _entities.Capacity;
+        public uint Count => _entities.Count;
+
         public uint Active()
         {
             uint inactive = 0;
 
-            for (Entity current = _next_available; current != Entity.Invalid; ++inactive)
+            for (Entity current = _next_available; !current.IsInvalid; ++inactive)
             {
                 uint idx = current.Identifier;
                 current = _entities[idx];
@@ -61,12 +64,6 @@ namespace Cobalt.Entities
             return pool.Contains(ent);
         }
 
-        public void Replace<Component>(Entity ent, ref Component value) where Component : unmanaged
-        {
-            MemoryPool<Component> pool = GetPool<Component>();
-            pool.Replace(ent, ref value);
-        }
-
         public void Release(Entity ent)
         {
             // Release components
@@ -83,6 +80,28 @@ namespace Cobalt.Entities
             uint generation = ent.Generation + 1;
             _entities[identifier] = new Entity { Identifier = _next_available.Identifier, Generation = generation };
             _next_available = new Entity { Identifier = identifier, Generation = 0 };
+        }
+
+        public void Replace<Component>(Entity ent, ref Component value) where Component : unmanaged
+        {
+            MemoryPool<Component> pool = GetPool<Component>();
+            pool.Replace(ent, ref value);
+        }
+
+        public void Reserve(uint newCapacity)
+        {
+            _entities.Reserve(newCapacity);
+        }
+
+        public void Reserve<Component>(uint newCapacity) where Component : unmanaged
+        {
+            GetPool<Component>().Reserve(newCapacity);
+        }
+
+        public ComponentView<Component> GetView<Component>() where Component : unmanaged
+        {
+            MemoryPool<Component> pool = GetPool<Component>();
+            return new ComponentView<Component>(ref pool);
         }
 
         private Entity CreateNewIdentifier()

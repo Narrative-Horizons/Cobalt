@@ -1,5 +1,4 @@
 using Cobalt.Core;
-using Cobalt.Entities;
 using Cobalt.Graphics;
 using Cobalt.Graphics.API;
 using Cobalt.Math;
@@ -31,10 +30,6 @@ namespace Cobalt.Sandbox
     {
         public static void Main(string[] args)
         {
-            Registry registry = new Registry();
-            Entity entity = registry.Create();
-            registry.Release(entity);
-
             GraphicsContext gfxContext = GraphicsContext.GetInstance(GraphicsContext.API.OpenGL_4);
 
             Window window = gfxContext.CreateWindow(new Window.CreateInfo.Builder()

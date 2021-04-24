@@ -9,7 +9,7 @@ namespace Cobalt.Entities
 
         public static Entity Invalid = new Entity { Generation = ~0U, Identifier = ~0U };
 
-        public bool IsInvalid => this != Invalid;
+        public bool IsInvalid => Identifier == ~0U;
 
         public override bool Equals(object obj)
         {

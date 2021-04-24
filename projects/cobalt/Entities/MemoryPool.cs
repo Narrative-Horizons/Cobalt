@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Cobalt.Entities
 {
@@ -21,9 +23,9 @@ namespace Cobalt.Entities
             public Entity[] Payload;
         }
 
-        private Vector<Entity> _packed = new Vector<Entity>();
-        private Vector<Page> _sparse = new Vector<Page>();
-        private Vector<Type> _payload = new Vector<Type>();
+        private readonly Vector<Entity> _packed = new Vector<Entity>();
+        private readonly Vector<Page> _sparse = new Vector<Page>();
+        private readonly Vector<Type> _payload = new Vector<Type>();
 
         public uint Capacity => _packed.Capacity;
         public uint Extent => _sparse.Count * PageSize;
@@ -57,6 +59,7 @@ namespace Cobalt.Entities
             ref Page pg = ref _Assure(page);
             pg.Payload[offset] = ent;
             _payload.Add(value);
+            _packed.Add(ent);
         }
 
         public bool Contains(Entity ent)
@@ -105,8 +108,15 @@ namespace Cobalt.Entities
             _sparse[backPage].Payload[backOffset] = r;
             r = Entity.Invalid;
             _packed.PopBack();
+        }
 
-            ref Type backValue = ref _payload.Back();
+        public IEnumerable<Type> GetPayloadEnumerable()
+        {
+            return _payload;
+        }
+        public IEnumerable<Entity> GetEntityEnumerable()
+        {
+            return _packed;
         }
 
         private uint _Page(Entity ent)

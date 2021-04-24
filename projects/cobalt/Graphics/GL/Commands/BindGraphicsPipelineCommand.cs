@@ -30,11 +30,11 @@ namespace Cobalt.Graphics.GL.Commands
 
             if(Pipeline.Info.DepthStencilCreationInformation.DepthWriteEnabled)
             {
-                OpenGL.DepthMask(true);
+                StateMachine.SetDepthMask(true);
             }
             else
             {
-                OpenGL.DepthMask(false);
+                StateMachine.SetDepthMask(false);
             }
         }
     }

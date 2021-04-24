@@ -110,11 +110,11 @@ namespace Cobalt.Entities
             _packed.PopBack();
         }
 
-        public IEnumerable<Type> GetPayloadEnumerable()
+        public Vector<Type> GetPayloadEnumerable()
         {
             return _payload;
         }
-        public IEnumerable<Entity> GetEntityEnumerable()
+        public Vector<Entity> GetEntityEnumerable()
         {
             return _packed;
         }

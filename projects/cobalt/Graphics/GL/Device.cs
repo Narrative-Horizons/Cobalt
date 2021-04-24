@@ -25,7 +25,6 @@ namespace Cobalt.Graphics.GL
         public List<GraphicsPipeline> GraphicsPipelines { get; private set; } = new List<GraphicsPipeline>();
         public List<CommandPool> CommandPools { get; private set; } = new List<CommandPool>();
         public List<Sampler> Samplers { get; private set; } = new List<Sampler>();
-        public List<Shader> Shaders { get; private set; } = new List<Shader>();
 
         public Device(IDevice.CreateInfo info)
         {
@@ -35,12 +34,6 @@ namespace Cobalt.Graphics.GL
             });
 
             Debug = info.Debug;
-
-            //OpenGL.Enable(Bindings.GL.EEnableCap.DebugOutputSynchronous);
-            //OpenGL.DebugMessageCallback((uint type, uint id, uint severity, int length, IntPtr message, IntPtr userParam) =>
-            //{
-            //}, IntPtr.Zero);
-            //OpenGL.Enable(Bindings.GL.EEnableCap.DebugOutput);
         }
 
         public void Dispose()
@@ -62,7 +55,6 @@ namespace Cobalt.Graphics.GL
             CommandPools.ForEach(cp => cp.Dispose());
             DescriptorPools.ForEach(dp => dp.Dispose());
             Samplers.ForEach(samp => samp.Dispose());
-            Shaders.ForEach(shader => shader.Dispose());
 
             _surfaces.Clear();
             Passes.Clear();
@@ -76,7 +68,6 @@ namespace Cobalt.Graphics.GL
             CommandPools.Clear();
             DescriptorPools.Clear();
             Samplers.Clear();
-            Shaders.Clear();
         }
 
         public List<IQueue> Queues()
@@ -184,7 +175,6 @@ namespace Cobalt.Graphics.GL
         public Shader CreateShader(Shader.CreateInfo info, IPipelineLayout layout, bool test)
         {
             Shader shader = new Shader(info, this, layout, test);
-            Shaders.Add(shader);
 
             return shader;
         }

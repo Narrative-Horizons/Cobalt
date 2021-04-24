@@ -4,9 +4,9 @@ using System.Collections.Generic;
 
 namespace Cobalt.Entities
 {
-    public class Vector<Type> : IEnumerable<Type>
+    public class Vector<Type>
     {
-        private class Enumerator : IEnumerator<Type>
+        public class Enumerator
         {
             private Type[] _payload;
             private ulong _index;
@@ -19,9 +19,7 @@ namespace Cobalt.Entities
                 _size = size;
             }
 
-            public Type Current => _payload[_index];
-
-            object IEnumerator.Current => _payload[_index];
+            public ref Type Current => ref _payload[_index];
 
             public void Dispose()
             {
@@ -159,12 +157,7 @@ namespace Cobalt.Entities
             --Count;
         }
 
-        public IEnumerator<Type> GetEnumerator()
-        {
-            return new Enumerator(ref _payload, Count);
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
+        public Enumerator GetEnumerator()
         {
             return new Enumerator(ref _payload, Count);
         }

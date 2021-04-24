@@ -90,7 +90,7 @@ namespace Cobalt.Tests.Unit.Entities
             Assert.AreEqual(0u, view.Count);
 
             uint count = 0;
-            view.ForEach(c => count += 1);
+            view.ForEach((ref int c) => count += 1);
 
             Assert.AreEqual(0u, count);
         }
@@ -113,7 +113,7 @@ namespace Cobalt.Tests.Unit.Entities
             Assert.AreEqual(count, view.Count);
 
             uint itCount = 0;
-            view.ForEach(c =>
+            view.ForEach((ref TestComponent c) =>
             {
                 itCount += 1;
                 Assert.AreEqual(1u, c.id);

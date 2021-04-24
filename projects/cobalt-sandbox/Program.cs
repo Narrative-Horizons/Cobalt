@@ -309,8 +309,6 @@ namespace Cobalt.Sandbox
 
             while (window.IsOpen())
             {
-                graphicsQueue.Execute(new IQueue.SubmitInfo(commandBuffers[frame]));
-
                 Matrix4 model = Matrix4.Rotate(new Vector3(0, (float)time, 0));
 
                 NativeBuffer<UniformBufferData> nativeData = new NativeBuffer<UniformBufferData>(uniformBuffer.Map());
@@ -320,6 +318,8 @@ namespace Cobalt.Sandbox
                 data.model = model;
                 nativeData.Set(data, 0);
                 uniformBuffer.Unmap();
+
+                graphicsQueue.Execute(new IQueue.SubmitInfo(commandBuffers[frame]));
 
                 window.Poll();
                 swapchain.Present(new ISwapchain.PresentInfo());

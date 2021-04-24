@@ -12,7 +12,7 @@ namespace Cobalt.Entities
 
         public uint Count => _pool.Count;
 
-        public delegate void ComponentOperation(Component c);
+        public delegate void ComponentOperation(ref Component c);
 
         public ComponentView(ref MemoryPool<Component> pool)
         {
@@ -21,9 +21,9 @@ namespace Cobalt.Entities
 
         public void ForEach(ComponentOperation op)
         {
-            foreach (Component c in _pool.GetPayloadEnumerable())
+            foreach (ref Component comp in _pool.GetPayloadEnumerable())
             {
-                op.Invoke(c);
+                op.Invoke(ref comp);
             }
         }
 

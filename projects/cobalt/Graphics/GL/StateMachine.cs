@@ -11,12 +11,14 @@ namespace Cobalt.Graphics.GL
     {
         private static uint _currentProgram = uint.MaxValue;
         private static uint _currentVao = uint.MaxValue;
-        private static Bindings.GL.EBeginMode _currentDrawMode = 0;
+        private static EBeginMode _currentDrawMode = 0;
         private static HashSet<TextureSamplerHandleWrapper> _residentTextureSamplerHandles = new HashSet<TextureSamplerHandleWrapper>();
 
         private static HashSet<ulong> _residentTextureHandles = new HashSet<ulong>();
 
         private static Dictionary<TextureSamplerHandleWrapper, ulong> _cachedHandles = new Dictionary<TextureSamplerHandleWrapper, ulong>();
+
+        private static bool DepthEnabled = false;
 
         private struct TextureSamplerHandleWrapper : IEquatable<TextureSamplerHandleWrapper>
         {
@@ -40,6 +42,15 @@ namespace Cobalt.Graphics.GL
             {
                 return textureHandle == wrapper.textureHandle && samplerHandle == wrapper.samplerHandle;
             }
+        }
+
+        internal static void SetDepthMask(bool v)
+        {
+            if (v != DepthEnabled)
+            {
+                OpenGL.DepthMask(v);
+            }
+            DepthEnabled = v;
         }
 
         internal static void BindUniformBufferRange(uint index, IBuffer buffer, int offset, int range)

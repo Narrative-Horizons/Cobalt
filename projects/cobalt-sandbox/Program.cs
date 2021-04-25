@@ -2,12 +2,8 @@ using Cobalt.Core;
 using Cobalt.Graphics;
 using Cobalt.Graphics.API;
 using Cobalt.Math;
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Runtime.InteropServices;
-
-using OpenGL = Cobalt.Bindings.GL.GL;
 
 namespace Cobalt.Sandbox
 {
@@ -99,11 +95,6 @@ namespace Cobalt.Sandbox
                 .AddAccessibleStage(EShaderType.Vertex).Build())
                 .AddBinding(new IDescriptorSetLayout.DescriptorSetLayoutBinding.Builder()
                 .AddAccessibleStage(EShaderType.Fragment).BindingIndex(1).DescriptorType(EDescriptorType.CombinedImageSampler).Count(1).Name("albedo").Build()).Build())).Build());
-
-            IPipelineLayout screenLayout = device.CreatePipelineLayout(new IPipelineLayout.CreateInfo.Builder().AddDescriptorSetLayout(device.CreateDescriptorSetLayout(
-                new IDescriptorSetLayout.CreateInfo.Builder()
-                .AddBinding(new IDescriptorSetLayout.DescriptorSetLayoutBinding.Builder()
-                .AddAccessibleStage(EShaderType.Fragment).BindingIndex(0).DescriptorType(EDescriptorType.CombinedImageSampler).Count(1).Name("albedo").Build()).Build())).Build());
 
             ICommandPool commandPool = device.CreateCommandPool(new ICommandPool.CreateInfo.Builder().Queue(graphicsQueue).ResetAllocations(true).TransientAllocations(true));
             List<ICommandBuffer> commandBuffers = commandPool.Allocate(new ICommandBuffer.AllocateInfo.Builder().Count(swapchain.GetImageCount()).Level(ECommandBufferLevel.Primary).Build());
@@ -204,12 +195,6 @@ namespace Cobalt.Sandbox
                     .AddRequiredProperty(EMemoryProperty.HostVisible)
                     .Usage(EMemoryUsage.CPUToGPU));
 
-            string vsScreenSource = FileSystem.LoadFileToString("data/screen_vertex.glsl");
-            string fsScreenSource = FileSystem.LoadFileToString("data/screen_fragment.glsl");
-
-            Shader screenShader = device.CreateShader(new Shader.CreateInfo.Builder().VertexSource(vsScreenSource).FragmentSource(fsScreenSource).Build(), screenLayout, false);
-
-            IVertexAttributeArray screenQuadVAO = screenShader.Pipeline.CreateVertexAttributeArray(new List<IBuffer>() { screenQuadBuf });
 
             IQueue.SubmitInfo transferSubmission = new IQueue.SubmitInfo(transferCmdBuffer);
             transferQueue.Execute(transferSubmission);
@@ -243,30 +228,15 @@ namespace Cobalt.Sandbox
                 device.UpdateDescriptorSets(new List<DescriptorWriteInfo>() { writeInfo, writeInfo2 });
             });
 
-            List<IDescriptorSet> screenDescSets = descriptorPool.Allocate(new IDescriptorSet.CreateInfo.Builder().AddLayout(screenLayout.GetDescriptorSetLayouts()[0])
-                .AddLayout(screenLayout.GetDescriptorSetLayouts()[0]).Build());
-
-
             int frame = 0;
-
-            screenDescSets.ForEach(set =>
-            {
-                DescriptorWriteInfo writeInfo = new DescriptorWriteInfo.Builder()
-                    .AddImageInfo(new DescriptorWriteInfo.DescriptorImageInfo.Builder().Layout(EImageLayout.ShaderReadOnly)
-                    .Sampler(logoImageSampler).View(colorAttachmentViews[frame++])).ArrayElement(0).BindingIndex(0).DescriptorSet(set).Build();
-
-                device.UpdateDescriptorSets(new List<DescriptorWriteInfo>() { writeInfo });
-            });
-
-            frame = 0;
-
-            OpenGL.Disable(Bindings.GL.EEnableCap.CullFace);
 
             frame = 0;
             double time = 0.0;
 
             Matrix4 perspective = Matrix4.Perspective(Scalar.ToRadians(60), 1280.0f / 720.0f, 0.01f, 1000.0f);
             Matrix4 camera = Matrix4.LookAt(new Vector3(2, 2, 2), Vector3.Zero, Vector3.UnitY);
+
+            ScreenResolvePass screenResolve = new ScreenResolvePass(swapchain, device, 1280, 720);
 
             while (window.IsOpen())
             {
@@ -287,21 +257,9 @@ namespace Cobalt.Sandbox
                 buffer.Bind(layout, 0, new List<IDescriptorSet>() { descriptorSets[frame] });
                 buffer.Draw(0, 36, 0, 1);
 
-                buffer.End();
-
-                buffer.BeginRenderPass(new ICommandBuffer.RenderPassBeginInfo()
-                {
-                    ClearValues = new List<ClearValue>() { new ClearValue(new ClearValue.ClearColor(0, 0, 0, 1)) },
-                    Width = 1280,
-                    Height = 720,
-                    FrameBuffer = swapchain.GetFrameBuffer(frame),
-                    RenderPass = screenPass
-                });
-
-                buffer.Bind(screenShader.Pipeline);
-                buffer.Bind(screenQuadVAO);
-                buffer.Bind(screenLayout, 0, new List<IDescriptorSet>() { screenDescSets[frame] });
-                buffer.Draw(0, 6, 0, 1);
+                var frameInfo = new RenderPass.FrameInfo { FrameInFlight = frame };
+                screenResolve.SetInputTexture(new Texture() { Image = colorAttachmentViews[frame], Sampler = logoImageSampler }, frameInfo);
+                screenResolve.Record(buffer, frameInfo);
 
                 buffer.End();
 

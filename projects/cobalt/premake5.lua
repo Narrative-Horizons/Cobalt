@@ -11,8 +11,8 @@ project "Cobalt"
     platformtarget "x86_64"
 
     nuget {
-        "OpenTK:4.6.3",
-        "log4net:2.0.12"
+        "log4net:2.0.12",
+        "Newtonsoft.Json:13.0.1"
     }
 
     links {

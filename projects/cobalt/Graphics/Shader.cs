@@ -1,15 +1,17 @@
 ﻿using Cobalt.Core;
 using Cobalt.Graphics.API;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
 namespace Cobalt.Graphics
 {
+
+    // TODO: Dynamic sizing of target
     public class Shader : IDisposable
     {
         public IGraphicsPipeline Pipeline { get; private set; }
+        public IPipelineLayout Layout { get; private set; }
 
         public class CreateInfo
         {
@@ -220,6 +222,7 @@ namespace Cobalt.Graphics
                 .PipelineLayout(layout).Build();
 
                 Pipeline = device.CreateGraphicsPipeline(pipelineCreateInfo);
+                Layout = layout;
             }
         }
 

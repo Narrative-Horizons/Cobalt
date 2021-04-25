@@ -10,3 +10,6 @@ find . -name "Makefile" -type f -delete
 find . -name "bin" -type d -exec rm -rf  {} +
 find . -name "bin-int" -type d -exec rm -rf  {} +
 find . -name "obj" -type d -exec rm -rf  {} +
+
+# Clean all testing files
+find . -name "TestResults" -type d -exec rm -rf {} +

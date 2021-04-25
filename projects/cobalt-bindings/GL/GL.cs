@@ -102,7 +102,7 @@ namespace Cobalt.Bindings.GL
         public static extern IntPtr MapNamedBuffer(uint buffer, EBufferAccess access);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_map_named_buffer_range", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr MapNamedBufferRange(uint buffer, long offset, long length, EBufferAccess access);
+        public static extern IntPtr MapNamedBufferRange(uint buffer, long offset, long length, EBufferAccessMask access);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_unmap_named_buffer", CallingConvention = CallingConvention.Cdecl)]
         public static extern void UnmapNamedBuffer(uint buffer);

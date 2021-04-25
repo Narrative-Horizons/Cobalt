@@ -262,8 +262,15 @@ namespace Cobalt.Sandbox
 
             OpenGL.Disable(Bindings.GL.EEnableCap.CullFace);
 
-            foreach (ICommandBuffer buffer in commandBuffers)
+            frame = 0;
+            double time = 0.0;
+
+            Matrix4 perspective = Matrix4.Perspective(Scalar.ToRadians(60), 1280.0f / 720.0f, 0.01f, 1000.0f);
+            Matrix4 camera = Matrix4.LookAt(new Vector3(2, 2, 2), Vector3.Zero, Vector3.UnitY);
+
+            while (window.IsOpen())
             {
+                ICommandBuffer buffer = commandBuffers[frame];
                 buffer.Record(new ICommandBuffer.RecordInfo());
 
                 buffer.BeginRenderPass(new ICommandBuffer.RenderPassBeginInfo()
@@ -298,17 +305,6 @@ namespace Cobalt.Sandbox
 
                 buffer.End();
 
-                frame++;
-            }
-
-            frame = 0;
-            double time = 0.0;
-
-            Matrix4 perspective = Matrix4.Perspective(Scalar.ToRadians(60), 1280.0f / 720.0f, 0.01f, 1000.0f);
-            Matrix4 camera = Matrix4.LookAt(new Vector3(2, 2, 2), Vector3.Zero, Vector3.UnitY);
-
-            while (window.IsOpen())
-            {
                 Matrix4 model = Matrix4.Rotate(new Vector3(0, (float)time, 0));
 
                 NativeBuffer<UniformBufferData> nativeData = new NativeBuffer<UniformBufferData>(uniformBuffer.Map());

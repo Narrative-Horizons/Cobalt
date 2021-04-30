@@ -238,6 +238,8 @@ namespace Cobalt.Sandbox
 
             ScreenResolvePass screenResolve = new ScreenResolvePass(swapchain, device, 1280, 720);
 
+            ModelAsset gltfModel = assetManager.LoadModel("Data/Box.gltf");
+
             while (window.IsOpen())
             {
                 ICommandBuffer buffer = commandBuffers[frame];

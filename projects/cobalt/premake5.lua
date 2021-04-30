@@ -12,7 +12,9 @@ project "Cobalt"
 
     nuget {
         "log4net:2.0.12",
-        "Newtonsoft.Json:13.0.1"
+        "Newtonsoft.Json:13.0.1",
+        "SharpGLTF.Core:1.0.0-alpha0022",
+        "SharpGLTF.Toolkit:1.0.0-alpha0022"
     }
 
     links {

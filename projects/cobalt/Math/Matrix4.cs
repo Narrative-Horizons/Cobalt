@@ -399,6 +399,33 @@ namespace Cobalt.Math
             return right;
         }
 
+        public static implicit operator Matrix4(System.Numerics.Matrix4x4 v)
+        {
+            Matrix4 res = new Matrix4();
+
+            res[0, 0] = v.M11;
+            res[0, 1] = v.M12;
+            res[0, 2] = v.M13;
+            res[0, 3] = v.M14;
+            
+            res[1, 0] = v.M21;
+            res[1, 1] = v.M22;
+            res[1, 2] = v.M23;
+            res[1, 3] = v.M24;
+            
+            res[2, 0] = v.M31;
+            res[2, 1] = v.M32;
+            res[2, 2] = v.M33;
+            res[2, 3] = v.M34;
+            
+            res[3, 0] = v.M41;
+            res[3, 1] = v.M42;
+            res[3, 2] = v.M43;
+            res[3, 3] = v.M44;
+
+            return res;
+        }
+
         public Matrix4 Transpose()
         {
             unsafe

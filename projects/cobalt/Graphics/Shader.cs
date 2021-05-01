@@ -1,4 +1,5 @@
-﻿using Cobalt.Core;
+﻿using Cobalt.Bindings.GLSL_Parser;
+using Cobalt.Core;
 using Cobalt.Graphics.API;
 using System;
 using System.IO;
@@ -92,6 +93,9 @@ namespace Cobalt.Graphics
 
                 IShaderModule vsShaderModule = device.CreateShaderModule(new IShaderModule.CreateInfo.Builder().Type(EShaderType.Vertex).ResourceStream(
                     new MemoryStream(Encoding.UTF8.GetBytes(createInfo.VertexSource))));
+
+                string name = "kek.glsl";
+                GLSLParser.ParseSource(createInfo.VertexSource, name, 1);
 
                 IShaderModule fsShaderModule = null;
                 IShaderModule gsShaderModule = null;

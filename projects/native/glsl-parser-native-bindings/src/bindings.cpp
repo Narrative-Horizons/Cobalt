@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <string>
 
 #define GLSL_PARSER_BINDING_EXPORT __declspec(dllexport)
 
@@ -20,13 +21,21 @@ extern "C"
                 kFragment
             };
         */
+
         glsl::parser parser(source, fileName);
         glsl::astTU* tu = parser.parse(shaderType);
 
-        for (size_t i = 0; i < tu->globals.size(); i++)
+        if (tu)
         {
-            glsl::astGlobalVariable* variable = tu->globals[i];
-            printf("%s\n", variable->name);
+            for (size_t i = 0; i < tu->globals.size(); i++)
+            {
+                glsl::astGlobalVariable* variable = tu->globals[i];
+                printf("%s\n", variable->name);
+            }
+        }
+        else
+        {
+            printf("%s\n", parser.error());
         }
     }
 }

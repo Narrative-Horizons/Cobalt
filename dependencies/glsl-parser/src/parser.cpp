@@ -617,6 +617,7 @@ CHECK_RETURN bool parser::parseTopLevelItem(topLevel &level, topLevel *continuat
             astStruct *unique = parseStruct();
             if (!unique)
                 return false;
+
             m_ast->structures.push_back(unique);
             if (isType(kType_semicolon))
             {
@@ -797,8 +798,10 @@ CHECK_RETURN bool parser::parseTopLevel(vector<topLevel> &items) {
     topLevel item;
     if (!parseTopLevelItem(item))
         return false;
+
     if (item.type)
         items.push_back(item);
+
     while (items.size() && isOperator(kOperator_comma)) {
         if (!next())
             return false; // skip ','

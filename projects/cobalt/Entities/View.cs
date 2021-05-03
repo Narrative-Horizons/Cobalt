@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Cobalt.Entities
 {
@@ -14,7 +15,7 @@ namespace Cobalt.Entities
 
         public delegate void ComponentOperation(ref Component c);
 
-        public ComponentView(ref MemoryPool<Component> pool)
+        internal ComponentView(ref MemoryPool<Component> pool)
         {
             _pool = pool;
         }
@@ -24,6 +25,28 @@ namespace Cobalt.Entities
             foreach (ref Component comp in _pool.GetPayloadEnumerable())
             {
                 op.Invoke(ref comp);
+            }
+        }
+
+        // TODO: Filtering
+    }
+
+    public class EntityView
+    {
+        private readonly Registry _reg;
+
+        public delegate void EntityOperation(ref Entity ent, Registry reg);
+
+        public EntityView(Registry reg)
+        {
+            _reg = reg;
+        }
+
+        public void ForEach(EntityOperation op)
+        {
+            foreach (ref Entity ent in _reg.GetEntities())
+            {
+                op.Invoke(ref ent, _reg);
             }
         }
 

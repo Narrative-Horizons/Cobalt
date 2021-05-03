@@ -121,5 +121,32 @@ namespace Cobalt.Tests.Unit.Entities
 
             Assert.AreEqual(count, itCount);
         }
+
+        [TestMethod]
+        public void EntityViewAllEntities()
+        {
+            uint count = 1024;
+            Registry registry = new Registry();
+            registry.Reserve(count);
+
+            for (uint i = 0; i < count; ++i)
+            {
+                Entity e = registry.Create();
+                TestComponent component = new TestComponent { id = 1 };
+                registry.Assign(e, ref component);
+            }
+
+            EntityView view = registry.GetView();
+
+            uint itCount = 0;
+            view.ForEach((ref Entity ent, Registry reg) =>
+            {
+                itCount += 1;
+                Assert.IsTrue(reg.Has<TestComponent>(ent));
+                Assert.AreEqual(1u, reg.Get<TestComponent>(ent).id);
+            });
+
+            Assert.AreEqual(count, itCount);
+        }
     }
 }

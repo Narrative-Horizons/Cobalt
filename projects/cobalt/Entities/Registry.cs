@@ -104,6 +104,11 @@ namespace Cobalt.Entities
             return new ComponentView<Component>(ref pool);
         }
 
+        public EntityView GetView()
+        {
+            return new EntityView(this);
+        }
+
         private Entity CreateNewIdentifier()
         {
             uint identifier = _entities.Count;
@@ -131,6 +136,26 @@ namespace Cobalt.Entities
 
             MemoryPool<Type> pool = new MemoryPool<Type>();
             return (MemoryPool<Type>)(_pools[typeId] = pool);
+        }
+
+        internal IMemoryPool GetPool(Type t)
+        {
+            Guid typeId = t.GUID;
+            if (_pools.ContainsKey(typeId))
+            {
+                return _pools[typeId];
+            }
+
+            Type generic = typeof(MemoryPool<>);
+            Type specialized = generic.MakeGenericType(t);
+            IMemoryPool pool = (IMemoryPool)Activator.CreateInstance(specialized);
+
+            return _pools[typeId] = pool;
+        }
+
+        internal Vector<Entity> GetEntities()
+        {
+            return _entities;
         }
     }
 }

@@ -95,7 +95,19 @@ namespace Cobalt.Graphics
                 IShaderModule vsShaderModule = device.CreateShaderModule(new IShaderModule.CreateInfo.Builder().Type(EShaderType.Vertex).ResourceStream(
                     new MemoryStream(Encoding.UTF8.GetBytes(createInfo.VertexSource))));
 
-                //GLSLParser.ParseSource(createInfo.VertexSource, "filename.glsl", 1);
+                string source = "";
+                string[] lines = createInfo.VertexSource.Split('\n');
+
+                foreach(string l in lines)
+                {
+                    string line = l.TrimStart();
+                    if (line.StartsWith("#") || line.Length == 0)
+                        continue;
+
+                    source += l + "\n";
+                }
+
+                GLSLParser.ParseSource(source, "filename.glsl", 1);
 
                 IShaderModule fsShaderModule = null;
                 IShaderModule gsShaderModule = null;

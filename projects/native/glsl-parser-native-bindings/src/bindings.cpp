@@ -32,6 +32,17 @@ extern "C"
                 glsl::astGlobalVariable* variable = tu->globals[i];
                 printf("%s\n", variable->name);
             }
+
+            for (size_t i = 0; i < tu->interfaceBlocks.size(); i++)
+            {
+                glsl::astInterfaceBlock* interfaceBlock = tu->interfaceBlocks[i];
+                printf("%s\n", interfaceBlock->name);
+
+                for (size_t j = 0; j < interfaceBlock->fields.size(); j++)
+                {
+                    printf("%s\n", interfaceBlock->fields[j]->name);
+                }
+            }
         }
         else
         {

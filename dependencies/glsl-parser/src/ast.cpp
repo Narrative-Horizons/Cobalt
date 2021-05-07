@@ -1,4 +1,4 @@
-#include <glsl-parser/ast.h>
+#include "glsl-parser/ast.h"
 
 namespace glsl {
 
@@ -34,6 +34,13 @@ astType::astType(bool builtin)
 astStruct::astStruct()
     : astType(false)
     , name(0)
+{
+}
+
+astInterfaceBlock::astInterfaceBlock()
+    : astType(false)
+    , name(0)
+    , storage(0)
 {
 }
 

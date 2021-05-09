@@ -1,4 +1,5 @@
-﻿using Cobalt.Entities;
+﻿using Cobalt.Core;
+using Cobalt.Entities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Cobalt.Tests.Unit.Entities

@@ -1,4 +1,5 @@
 ﻿using Cobalt.Math;
+using System;
 
 namespace Cobalt.Core
 {
@@ -9,7 +10,7 @@ namespace Cobalt.Core
         public Matrix4 transform;
     }
 
-    public class Mesh
+    public struct Mesh
     {
         public Vector3[] positions;
         public Vector2[] texcoords;
@@ -18,5 +19,7 @@ namespace Cobalt.Core
         public Vector3[] bitangents;
 
         public uint[] triangles;
+
+        public UInt64 UUID; 
     }
 }

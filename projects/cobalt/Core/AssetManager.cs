@@ -55,6 +55,7 @@ namespace Cobalt.Core
 
     public class ModelAsset
     {
+        private static UInt64 _uniqueCount = 0;
         public List<MeshNode> meshes = new List<MeshNode>();
 
         internal ModelAsset(string path)
@@ -146,6 +147,8 @@ namespace Cobalt.Core
                                     m.triangles[k] = indexArray[k];
                                 }
                             }
+
+                            m.UUID = _uniqueCount++;
 
                             MeshNode meshNode = new MeshNode
                             {

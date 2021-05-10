@@ -16,7 +16,7 @@ namespace Cobalt.Core
         public Vector2[] texcoords;
         public Vector3[] normals;
         public Vector3[] tangents;
-        public Vector3[] bitangents;
+        public Vector3[] binormals;
 
         public uint[] triangles;
 

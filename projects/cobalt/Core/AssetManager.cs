@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using Cobalt.Graphics.API;
 using Cobalt.Math;
 using SharpGLTF.Schema2;
 
@@ -199,6 +200,84 @@ namespace Cobalt.Core
         public ModelAsset GetModel(string path)
         {
             return _models[path];
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct RenderableMeshVertex
+    {
+        public Vector3 position;
+        public Vector2 uv;
+        public Vector3 normal;
+        public Vector3 tangent;
+        public Vector3 binormal;
+    }
+
+    public class RenderableMesh
+    {
+        public Mesh mesh;
+        public RenderableMeshVertex[] vertices;
+
+        public IBuffer vertexBuffer;
+        public IBuffer indexBuffer;
+    }
+
+    public class RenderableManager : IDisposable
+    {
+        private List<RenderableMesh> _renderableMeshes = new List<RenderableMesh>();
+        private IDevice _device;
+
+        public RenderableManager(IDevice device)
+        {
+            _device = device;
+        }
+
+        public void QueueRenderable(Mesh mesh)
+        {
+            RenderableMesh rMesh = new RenderableMesh
+            {
+                mesh = mesh
+            };
+
+            uint vertexCount = (uint)mesh.positions.Length;
+            rMesh.vertices = new RenderableMeshVertex[vertexCount];
+
+            for(int i = 0; i < vertexCount; i++)
+            {
+                RenderableMeshVertex vertex = new RenderableMeshVertex
+                {
+                    position = mesh.positions[i],
+                    uv = mesh.texcoords[i],
+                    normal = mesh.normals[i],
+                    tangent = mesh.tangents[i],
+                    binormal = mesh.binormals[i]
+                };
+
+                rMesh.vertices[i] = vertex;
+            }
+
+            rMesh.vertexBuffer = _device.CreateBuffer(
+                IBuffer.FromPayload(rMesh.vertices)
+                .AddUsage(EBufferUsage.ArrayBuffer),
+                new IBuffer.MemoryInfo.Builder()
+                    .AddRequiredProperty(EMemoryProperty.DeviceLocal)
+                    .AddRequiredProperty(EMemoryProperty.HostVisible)
+                    .Usage(EMemoryUsage.CPUToGPU));
+
+            rMesh.indexBuffer = _device.CreateBuffer(
+                IBuffer.FromPayload(mesh.triangles)
+                .AddUsage(EBufferUsage.IndexBuffer),
+                new IBuffer.MemoryInfo.Builder()
+                    .AddRequiredProperty(EMemoryProperty.DeviceLocal)
+                    .AddRequiredProperty(EMemoryProperty.HostVisible)
+                    .Usage(EMemoryUsage.CPUToGPU));
+
+            _renderableMeshes.Add(rMesh);
+        }
+
+        public void Dispose()
+        {
+
         }
     }
 }

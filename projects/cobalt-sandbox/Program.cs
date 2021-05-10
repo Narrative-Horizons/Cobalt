@@ -1,14 +1,9 @@
 using Cobalt.Core;
-using Cobalt.Entities;
-using Cobalt.Entities.Components;
 using Cobalt.Graphics;
 using Cobalt.Graphics.API;
 using Cobalt.Math;
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Timers;
 
 namespace Cobalt.Sandbox
 {

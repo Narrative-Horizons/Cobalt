@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Cobalt.Entities.Components;
+using System;
 using System.Collections.Generic;
 
 namespace Cobalt.Entities
@@ -7,24 +8,24 @@ namespace Cobalt.Entities
     /// Gets a view of a single component type.
     /// </summary>
     /// <typeparam name="Component">Type of the component</typeparam>
-    public class ComponentView<Component> where Component : unmanaged
+    public class ComponentView<Component> where Component : BaseComponent, new()
     {
         private readonly MemoryPool<Component> _pool;
 
         public uint Count => _pool.Count;
 
-        public delegate void ComponentOperation(ref Component c);
+        public delegate void ComponentOperation(Component c);
 
-        internal ComponentView(ref MemoryPool<Component> pool)
+        internal ComponentView(MemoryPool<Component> pool)
         {
             _pool = pool;
         }
 
         public void ForEach(ComponentOperation op)
         {
-            foreach (ref Component comp in _pool.GetPayloadEnumerable())
+            foreach (Component comp in _pool.GetPayloadEnumerable())
             {
-                op.Invoke(ref comp);
+                op.Invoke(comp);
             }
         }
 
@@ -35,7 +36,7 @@ namespace Cobalt.Entities
     {
         private readonly Registry _reg;
 
-        public delegate void EntityOperation(ref Entity ent, Registry reg);
+        public delegate void EntityOperation(Entity ent, Registry reg);
 
         public EntityView(Registry reg)
         {
@@ -44,9 +45,9 @@ namespace Cobalt.Entities
 
         public void ForEach(EntityOperation op)
         {
-            foreach (ref Entity ent in _reg.GetEntities())
+            foreach (Entity ent in _reg.GetEntities())
             {
-                op.Invoke(ref ent, _reg);
+                op.Invoke(ent, _reg);
             }
         }
 

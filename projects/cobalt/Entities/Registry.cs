@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Cobalt.Entities.Components;
+using System;
 using System.Collections.Generic;
 
 namespace Cobalt.Entities
@@ -6,11 +7,11 @@ namespace Cobalt.Entities
     public class Registry
     {
         private Dictionary<Guid, IMemoryPool> _pools = new Dictionary<Guid, IMemoryPool>();
-        private Vector<Entity> _entities = new Vector<Entity>();
+        private List<Entity> _entities = new List<Entity>();
         private Entity _next_available = Entity.Invalid;
 
-        public uint Capacity => _entities.Capacity;
-        public uint Count => _entities.Count;
+        public uint Capacity => (uint)_entities.Capacity;
+        public uint Count => (uint)_entities.Count;
 
         public uint Active()
         {
@@ -19,10 +20,10 @@ namespace Cobalt.Entities
             for (Entity current = _next_available; !current.IsInvalid; ++inactive)
             {
                 uint idx = current.Identifier;
-                current = _entities[idx];
+                current = _entities[(int)idx];
             }
 
-            return _entities.Count - inactive;
+            return (uint)_entities.Count - inactive;
         }
 
         public Entity Create()
@@ -34,31 +35,31 @@ namespace Cobalt.Entities
             return RecycleIdentifier();
         }
 
-        public void Assign<Component>(Entity ent, ref Component value) where Component : unmanaged
+        public void Assign<Component>(Entity ent, Component value) where Component : BaseComponent, new()
         {
             MemoryPool<Component> pool = GetPool<Component>();
             pool.Assign(ent, ref value);
         }
 
-        public void AssignOrReplace<Component>(Entity ent, ref Component value) where Component : unmanaged
+        public void AssignOrReplace<Component>(Entity ent, Component value) where Component : BaseComponent, new()
         {
             if (Has<Component>(ent))
             {
-                Replace(ent, ref value);
+                Replace(ent, value);
             }
             else
             {
-                Assign(ent, ref value);
+                Assign(ent, value);
             }
         }
 
-        public ref Component Get<Component>(Entity ent) where Component : unmanaged
+        public Component Get<Component>(Entity ent) where Component : BaseComponent, new()
         {
             MemoryPool<Component> pool = GetPool<Component>();
-            return ref pool.Get(ent);
+            return pool.Get(ent);
         }
 
-        public bool Has<Component>(Entity ent) where Component : unmanaged
+        public bool Has<Component>(Entity ent) where Component : BaseComponent, new()
         {
             MemoryPool<Component> pool = GetPool<Component>();
             return pool.Contains(ent);
@@ -78,30 +79,30 @@ namespace Cobalt.Entities
             // Recycle entity
             uint identifier = ent.Identifier;
             uint generation = ent.Generation + 1;
-            _entities[identifier] = new Entity { Identifier = _next_available.Identifier, Generation = generation };
+            _entities[(int)identifier] = new Entity { Identifier = _next_available.Identifier, Generation = generation };
             _next_available = new Entity { Identifier = identifier, Generation = 0 };
         }
 
-        public void Replace<Component>(Entity ent, ref Component value) where Component : unmanaged
+        public void Replace<Component>(Entity ent, Component value) where Component : BaseComponent, new()
         {
             MemoryPool<Component> pool = GetPool<Component>();
-            pool.Replace(ent, ref value);
+            pool.Replace(ent, value);
         }
 
         public void Reserve(uint newCapacity)
         {
-            _entities.Reserve(newCapacity);
+            _entities.Capacity = (int)newCapacity;
         }
 
-        public void Reserve<Component>(uint newCapacity) where Component : unmanaged
+        public void Reserve<Component>(uint newCapacity) where Component : BaseComponent, new()
         {
             GetPool<Component>().Reserve(newCapacity);
         }
 
-        public ComponentView<Component> GetView<Component>() where Component : unmanaged
+        public ComponentView<Component> GetView<Component>() where Component : BaseComponent, new()
         {
             MemoryPool<Component> pool = GetPool<Component>();
-            return new ComponentView<Component>(ref pool);
+            return new ComponentView<Component>(pool);
         }
 
         public EntityView GetView()
@@ -111,7 +112,7 @@ namespace Cobalt.Entities
 
         private Entity CreateNewIdentifier()
         {
-            uint identifier = _entities.Count;
+            uint identifier = (uint)_entities.Count;
             uint generation = 0;
             Entity e = new Entity { Generation = generation, Identifier = identifier };
             _entities.Add(e);
@@ -121,12 +122,12 @@ namespace Cobalt.Entities
         private Entity RecycleIdentifier()
         {
             uint identifier = _next_available.Identifier;
-            uint generation = _entities[identifier].Generation;
-            _next_available = _entities[identifier];
-            return _entities[identifier] = new Entity { Generation = generation, Identifier = identifier };
+            uint generation = _entities[(int)identifier].Generation;
+            _next_available = _entities[(int)identifier];
+            return _entities[(int)identifier] = new Entity { Generation = generation, Identifier = identifier };
         }
 
-        private MemoryPool<Type> GetPool<Type>() where Type : unmanaged
+        private MemoryPool<Type> GetPool<Type>()
         {
             Guid typeId = typeof(Type).GUID;
             if (_pools.ContainsKey(typeId))
@@ -153,7 +154,7 @@ namespace Cobalt.Entities
             return _pools[typeId] = pool;
         }
 
-        internal Vector<Entity> GetEntities()
+        internal List<Entity> GetEntities()
         {
             return _entities;
         }

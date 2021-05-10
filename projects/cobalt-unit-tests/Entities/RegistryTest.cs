@@ -1,10 +1,11 @@
 ﻿using Cobalt.Core;
 using Cobalt.Entities;
+using Cobalt.Entities.Components;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Cobalt.Tests.Unit.Entities
 {
-    public struct TestComponent
+    public class TestComponent : BaseComponent
     {
         public uint id;
     }
@@ -48,7 +49,7 @@ namespace Cobalt.Tests.Unit.Entities
             Registry registry = new Registry();
             Entity ent = registry.Create();
             TestComponent component = new TestComponent { id = 1 };
-            registry.Assign(ent, ref component);
+            registry.Assign(ent, component);
 
             Assert.IsTrue(registry.Has<TestComponent>(ent));
         }
@@ -86,12 +87,12 @@ namespace Cobalt.Tests.Unit.Entities
         public void ComponentViewEmpty()
         {
             Registry registry = new Registry();
-            ComponentView<int> view = registry.GetView<int>();
+            ComponentView<TestComponent> view = registry.GetView<TestComponent>();
 
             Assert.AreEqual(0u, view.Count);
 
             uint count = 0;
-            view.ForEach((ref int c) => count += 1);
+            view.ForEach(c => count += 1);
 
             Assert.AreEqual(0u, count);
         }
@@ -107,14 +108,14 @@ namespace Cobalt.Tests.Unit.Entities
             {
                 Entity e = registry.Create();
                 TestComponent component = new TestComponent { id = 1 };
-                registry.Assign(e, ref component);
+                registry.Assign(e, component);
             }
 
             ComponentView<TestComponent> view = registry.GetView<TestComponent>();
             Assert.AreEqual(count, view.Count);
 
             uint itCount = 0;
-            view.ForEach((ref TestComponent c) =>
+            view.ForEach((TestComponent c) =>
             {
                 itCount += 1;
                 Assert.AreEqual(1u, c.id);
@@ -134,13 +135,13 @@ namespace Cobalt.Tests.Unit.Entities
             {
                 Entity e = registry.Create();
                 TestComponent component = new TestComponent { id = 1 };
-                registry.Assign(e, ref component);
+                registry.Assign(e, component);
             }
 
             EntityView view = registry.GetView();
 
             uint itCount = 0;
-            view.ForEach((ref Entity ent, Registry reg) =>
+            view.ForEach((Entity ent, Registry reg) =>
             {
                 itCount += 1;
                 Assert.IsTrue(reg.Has<TestComponent>(ent));

@@ -58,9 +58,12 @@ namespace Cobalt.Core
     {
         private static UInt64 _uniqueCount = 0;
         public List<MeshNode> meshes = new List<MeshNode>();
+        public string Path { get; private set; }
 
         internal ModelAsset(string path)
         {
+            Path = path;
+
             if (path.Contains(".gltf") || path.Contains(".glb"))
             {
                 // GTLF model
@@ -149,8 +152,6 @@ namespace Cobalt.Core
                                 }
                             }
 
-                            m.UUID = _uniqueCount++;
-
                             MeshNode meshNode = new MeshNode
                             {
                                 mesh = m,
@@ -215,16 +216,22 @@ namespace Cobalt.Core
 
     public class RenderableMesh
     {
-        public Mesh mesh;
-        public RenderableMeshVertex[] vertices;
+        public Mesh localMesh;
+        public RenderableMeshVertex[] localVertices;
+        public uint baseVertex;
+        public uint baseIndex;
+        public uint indexCount;
+        public IVertexAttributeArray VAO;
 
-        public IBuffer vertexBuffer;
-        public IBuffer indexBuffer;
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(VAO.GetHashCode(), baseVertex.GetHashCode(), baseIndex.GetHashCode(), indexCount.GetHashCode());
+        }
     }
 
     public class RenderableManager : IDisposable
     {
-        private List<RenderableMesh> _renderableMeshes = new List<RenderableMesh>();
+        private Dictionary<ModelAsset, List<RenderableMesh>> _renderableMeshes = new Dictionary<ModelAsset, List<RenderableMesh>>();
         private IDevice _device;
 
         public RenderableManager(IDevice device)
@@ -232,47 +239,113 @@ namespace Cobalt.Core
             _device = device;
         }
 
-        public void QueueRenderable(Mesh mesh)
+        public List<RenderableMesh> GetRenderables(ModelAsset asset)
         {
-            RenderableMesh rMesh = new RenderableMesh
+            if(_renderableMeshes.ContainsKey(asset))
             {
-                mesh = mesh
-            };
-
-            uint vertexCount = (uint)mesh.positions.Length;
-            rMesh.vertices = new RenderableMeshVertex[vertexCount];
-
-            for(int i = 0; i < vertexCount; i++)
-            {
-                RenderableMeshVertex vertex = new RenderableMeshVertex
-                {
-                    position = mesh.positions[i],
-                    uv = mesh.texcoords[i],
-                    normal = mesh.normals[i],
-                    tangent = mesh.tangents[i],
-                    binormal = mesh.binormals[i]
-                };
-
-                rMesh.vertices[i] = vertex;
+                return _renderableMeshes[asset];
             }
 
-            rMesh.vertexBuffer = _device.CreateBuffer(
-                IBuffer.FromPayload(rMesh.vertices)
-                .AddUsage(EBufferUsage.ArrayBuffer),
-                new IBuffer.MemoryInfo.Builder()
-                    .AddRequiredProperty(EMemoryProperty.DeviceLocal)
-                    .AddRequiredProperty(EMemoryProperty.HostVisible)
-                    .Usage(EMemoryUsage.CPUToGPU));
+            Logger.Log.Error("Asset " + asset.Path + " not loaded yet!");
 
-            rMesh.indexBuffer = _device.CreateBuffer(
-                IBuffer.FromPayload(mesh.triangles)
+            return null;
+        }
+
+        public void QueueRenderable(ModelAsset asset)
+        {
+            List<RenderableMesh> processingMeshes = new List<RenderableMesh>();
+
+            var meshes = asset.meshes;
+
+            List<RenderableMeshVertex> combinedVertices = new List<RenderableMeshVertex>();
+            List<uint> combinedIndices = new List<uint>();
+
+            foreach (MeshNode meshNode in meshes)
+            {
+                Mesh mesh = meshNode.mesh;
+
+                RenderableMesh rMesh = new RenderableMesh
+                {
+                    localMesh = mesh
+                };
+
+                uint vertexCount = (uint)mesh.positions.Length;
+
+                rMesh.baseVertex = (uint)combinedVertices.Count;
+                rMesh.baseIndex = (uint)combinedIndices.Count;
+                rMesh.indexCount = (uint)mesh.triangles.Length;
+
+                rMesh.localVertices = new RenderableMeshVertex[vertexCount];
+
+                for (int i = 0; i < vertexCount; i++)
+                {
+                    RenderableMeshVertex vertex = new RenderableMeshVertex();
+                    vertex.position = mesh.positions[i];
+                    if (mesh.texcoords != null)
+                        vertex.uv = mesh.texcoords[i];
+                    else
+                        vertex.uv = Vector2.Zero;
+
+                    if (mesh.normals != null)
+                        vertex.normal = mesh.normals[i];
+                    else
+                        vertex.normal = Vector3.UnitY;
+
+                    if (mesh.tangents != null)
+                        vertex.tangent = mesh.tangents[i];
+                    else
+                        vertex.tangent = Vector3.UnitX;
+
+                    if (mesh.binormals != null)
+                        vertex.binormal = mesh.binormals[i];
+                    else
+                        vertex.binormal = Vector3.UnitZ;
+
+                    rMesh.localVertices[i] = vertex;
+
+                    combinedVertices.Add(vertex);
+                }
+
+                combinedIndices.AddRange(mesh.triangles);
+
+                processingMeshes.Add(rMesh);
+            }
+
+            IBuffer vertexBuffer = _device.CreateBuffer(
+                    IBuffer.FromPayload(combinedVertices.ToArray())
+                    .AddUsage(EBufferUsage.ArrayBuffer),
+                    new IBuffer.MemoryInfo.Builder()
+                        .AddRequiredProperty(EMemoryProperty.DeviceLocal)
+                        .AddRequiredProperty(EMemoryProperty.HostVisible)
+                        .Usage(EMemoryUsage.CPUToGPU));
+
+            IBuffer indexBuffer = _device.CreateBuffer(
+                IBuffer.FromPayload(combinedIndices.ToArray())
                 .AddUsage(EBufferUsage.IndexBuffer),
                 new IBuffer.MemoryInfo.Builder()
                     .AddRequiredProperty(EMemoryProperty.DeviceLocal)
                     .AddRequiredProperty(EMemoryProperty.HostVisible)
                     .Usage(EMemoryUsage.CPUToGPU));
 
-            _renderableMeshes.Add(rMesh);
+            const int stride = 56;
+
+            List<VertexAttribute> layout = new List<VertexAttribute>
+            {
+                new VertexAttribute.Builder().Location(0).Offset(0).Rate(EVertexInputRate.PerVertex).Format(EDataFormat.R32G32B32_SFLOAT).Stride(stride).Binding(0),  // 3 floats
+                new VertexAttribute.Builder().Location(1).Offset(12).Rate(EVertexInputRate.PerVertex).Format(EDataFormat.R32G32_SFLOAT).Stride(stride).Binding(0),    // 2 floats
+                new VertexAttribute.Builder().Location(2).Offset(20).Rate(EVertexInputRate.PerVertex).Format(EDataFormat.R32G32B32_SFLOAT).Stride(stride).Binding(0), // 3 floats
+                new VertexAttribute.Builder().Location(3).Offset(32).Rate(EVertexInputRate.PerVertex).Format(EDataFormat.R32G32B32_SFLOAT).Stride(stride).Binding(0), // 3 floats
+                new VertexAttribute.Builder().Location(4).Offset(44).Rate(EVertexInputRate.PerVertex).Format(EDataFormat.R32G32B32_SFLOAT).Stride(stride).Binding(0)  // 3 floats
+            };
+
+            IVertexAttributeArray vao = _device.CreateVertexAttributeArray(new List<IBuffer>() { vertexBuffer }, indexBuffer, layout);
+
+            foreach(RenderableMesh rM in processingMeshes)
+            {
+                rM.VAO = vao;
+            }
+
+            _renderableMeshes.Add(asset, processingMeshes);
         }
 
         public void Dispose()

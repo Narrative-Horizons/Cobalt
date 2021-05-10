@@ -49,6 +49,11 @@ namespace Cobalt.Graphics.GL
             OpenGL.DeleteVertexArrays(Handle);
         }
 
+        public override int GetHashCode()
+        {
+            return Handle.GetHashCode();
+        }
+
         private static int GetCount(EDataFormat format)
         {
             switch (format)

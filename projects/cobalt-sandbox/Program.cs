@@ -102,6 +102,14 @@ namespace Cobalt.Sandbox
             ICommandPool transferPool = device.CreateCommandPool(new ICommandPool.CreateInfo.Builder().Queue(transferQueue).ResetAllocations(false).TransientAllocations(true));
             ICommandBuffer transferCmdBuffer = transferPool.Allocate(new ICommandBuffer.AllocateInfo.Builder().Count(1).Level(ECommandBufferLevel.Primary))[0];
 
+            RenderableManager renderableManager = new RenderableManager(device);
+            AssetManager assetManager = new AssetManager();
+
+            ModelAsset asset = assetManager.LoadModel("data/Box.gltf");
+            renderableManager.QueueRenderable(asset);
+
+            List<RenderableMesh> meshes = renderableManager.GetRenderables(asset);
+
             #region Shawn Cube
 
             float[] vertices = {
@@ -163,7 +171,6 @@ namespace Cobalt.Sandbox
 
             IVertexAttributeArray vao = shader.Pipeline.CreateVertexAttributeArray(new List<IBuffer>() { buf });
 
-            AssetManager assetManager = new AssetManager();
             Core.ImageAsset shawnImage = assetManager.LoadImage("data/shawn.png");
             IImage logoImage = device.CreateImage(new IImage.CreateInfo.Builder()
                     .Depth(1).Format(EDataFormat.R8G8B8A8).Height((int) shawnImage.Height).Width((int) shawnImage.Width)
@@ -237,8 +244,6 @@ namespace Cobalt.Sandbox
             Matrix4 camera = Matrix4.LookAt(new Vector3(2, 2, 2), Vector3.Zero, Vector3.UnitY);
 
             ScreenResolvePass screenResolve = new ScreenResolvePass(swapchain, device, 1280, 720);
-
-            ModelAsset gltfModel = assetManager.LoadModel("Data/Box.gltf");
 
             while (window.IsOpen())
             {

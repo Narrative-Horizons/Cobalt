@@ -4,8 +4,8 @@ namespace Cobalt.Entities.Components
 {
     public struct MeshComponent
     {
-        public Mesh Mesh { get; private set; }
-        public MeshComponent(Mesh mesh)
+        public RenderableMesh Mesh { get; private set; }
+        public MeshComponent(RenderableMesh mesh)
         {
             Mesh = mesh;
         }

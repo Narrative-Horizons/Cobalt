@@ -189,5 +189,13 @@ namespace Cobalt.Graphics.GL
                 s.Write(writeInformation);
             });
         }
+
+        public IVertexAttributeArray CreateVertexAttributeArray(List<IBuffer> vertexBuffers, IBuffer indexBuffer, List<VertexAttribute> layout)
+        {
+            VertexAttributeArray vao = new VertexAttributeArray(new IGraphicsPipeline.VertexAttributeCreateInfo.Builder()
+                .Attributes(layout).Build(), vertexBuffers, indexBuffer);
+
+            return vao;
+        }
     }
 }

@@ -19,7 +19,5 @@ namespace Cobalt.Core
         public Vector3[] binormals;
 
         public uint[] triangles;
-
-        public UInt64 UUID; 
     }
 }

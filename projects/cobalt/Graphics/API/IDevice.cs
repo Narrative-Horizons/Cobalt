@@ -52,6 +52,7 @@ namespace Cobalt.Graphics.API
         public IBuffer CreateBuffer<T>(IBuffer.CreateInfo<T> info, IBuffer.MemoryInfo memory) where T : unmanaged;
         public IImage CreateImage(IImage.CreateInfo info, IImage.MemoryInfo memory);
         public IShaderModule CreateShaderModule(IShaderModule.CreateInfo info);
+        public IVertexAttributeArray CreateVertexAttributeArray(List<IBuffer> vertexBuffers, IBuffer indexBuffer, List<VertexAttribute> layout);
         public IDescriptorPool CreateDescriptorPool(IDescriptorPool.CreateInfo info);
         public IDescriptorSetLayout CreateDescriptorSetLayout(IDescriptorSetLayout.CreateInfo info);
         public IPipelineLayout CreatePipelineLayout(IPipelineLayout.CreateInfo info);

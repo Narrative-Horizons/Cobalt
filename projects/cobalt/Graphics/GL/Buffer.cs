@@ -72,7 +72,8 @@ namespace Cobalt.Graphics.GL
             else if (read)
             {
                 ReadWriteFlag = EBufferAccess.ReadOnly;
-            } else if (write)
+            } 
+            else if (write)
             {
                 ReadWriteFlag = EBufferAccess.WriteOnly;
             }

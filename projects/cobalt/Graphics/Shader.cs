@@ -107,7 +107,7 @@ namespace Cobalt.Graphics
                     source += l + "\n";
                 }
 
-                GLSLParser.ParseSource(source, "filename.glsl", 1);
+                // GLSLParser.ParseSource(source, "filename.glsl", 1);
 
                 IShaderModule fsShaderModule = null;
                 IShaderModule gsShaderModule = null;

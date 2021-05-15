@@ -204,13 +204,22 @@ namespace Cobalt.Core
         }
     }
 
-    [StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Explicit)]
     public struct RenderableMeshVertex
     {
+        [FieldOffset(0)]
         public Vector3 position;
+
+        [FieldOffset(12)]
         public Vector2 uv;
+
+        [FieldOffset(20)]
         public Vector3 normal;
+
+        [FieldOffset(32)]
         public Vector3 tangent;
+
+        [FieldOffset(44)]
         public Vector3 binormal;
     }
 

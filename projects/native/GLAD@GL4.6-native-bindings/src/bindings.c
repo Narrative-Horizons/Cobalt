@@ -337,3 +337,8 @@ GLAD_BINDING_EXPORT void cobalt_gl_bind_buffer_range(unsigned int target, unsign
 {
 	glBindBufferRange(target, index, buffer, offset, size);
 }
+
+GLAD_BINDING_EXPORT unsigned int cobalt_gl_get_error()
+{
+	return glGetError();
+}

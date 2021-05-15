@@ -1,4 +1,6 @@
 using Cobalt.Core;
+using Cobalt.Entities;
+using Cobalt.Entities.Components;
 using Cobalt.Graphics;
 using Cobalt.Graphics.API;
 using Cobalt.Math;
@@ -109,6 +111,12 @@ namespace Cobalt.Sandbox
             renderableManager.QueueRenderable(asset);
 
             List<RenderableMesh> meshes = renderableManager.GetRenderables(asset);
+            RenderableMesh box = meshes[0];
+
+            Registry reg = new Registry();
+            Entity e = reg.Create();
+            reg.Assign(e, new MeshComponent(box));
+            reg.Assign(e, new TransformComponent());
 
             #region Shawn Cube
 
@@ -259,10 +267,17 @@ namespace Cobalt.Sandbox
                     RenderPass = renderPass
                 });
 
+                MeshComponent meshC = reg.Get<MeshComponent>(e);
+                RenderableMesh mesh = meshC.Mesh;
+
                 buffer.Bind(shader.Pipeline);
+                // buffer.Bind(meshC.Mesh.VAO);
                 buffer.Bind(vao);
                 buffer.Bind(layout, 0, new List<IDescriptorSet>() { descriptorSets[frame] });
                 buffer.Draw(0, 36, 0, 1);
+                // buffer.DrawElements((int) mesh.indexCount, (int) mesh.baseVertex, 0, 1, (int) mesh.baseIndex);
+
+                // Screen Resolve
 
                 var frameInfo = new RenderPass.FrameInfo { FrameInFlight = frame };
                 screenResolve.SetInputTexture(new Texture() { Image = colorAttachmentViews[frame], Sampler = logoImageSampler }, frameInfo);
@@ -281,6 +296,7 @@ namespace Cobalt.Sandbox
                 uniformBuffer.Unmap();
 
                 graphicsQueue.Execute(new IQueue.SubmitInfo(commandBuffers[frame]));
+                System.Console.WriteLine(Bindings.GL.GL.GetError());
 
                 window.Poll();
                 swapchain.Present(new ISwapchain.PresentInfo());

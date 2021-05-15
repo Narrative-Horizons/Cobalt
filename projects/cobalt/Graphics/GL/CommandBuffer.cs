@@ -46,7 +46,7 @@ namespace Cobalt.Graphics.GL
 
         public void Bind(IPipelineLayout layout, int firstSet, List<IDescriptorSet> sets)
         {
-            commands.Add(new GL.Commands.BindDescriptorSetsCommand(sets));
+            commands.Add(new BindDescriptorSetsCommand(sets));
         }
 
         public void Copy(IBuffer source, IBuffer destination, List<ICommandBuffer.BufferCopyRegion> regions)
@@ -61,15 +61,17 @@ namespace Cobalt.Graphics.GL
 
         public void Draw(int baseVertex, int vertexCount, int baseInstance, int instanceCount)
         {
-            commands.Add(new GL.Commands.DrawArraysCommand(baseVertex, vertexCount, baseInstance, instanceCount));
+            commands.Add(new DrawArraysCommand(baseVertex, vertexCount, baseInstance, instanceCount));
         }
 
         public void DrawElements(int elementCount, int baseVertex, int baseInstance, int instanceCount)
         {
+            DrawElements(elementCount, baseVertex, baseInstance, instanceCount, 0);
         }
 
         public void DrawElements(int elementCount, int baseVertex, int baseInstance, int instanceCount, long indexOffset)
         {
+            commands.Add(new DrawElementsCommand(baseVertex, elementCount, baseInstance, instanceCount, indexOffset));
         }
 
         public void End()

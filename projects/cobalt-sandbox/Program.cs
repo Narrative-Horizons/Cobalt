@@ -107,7 +107,7 @@ namespace Cobalt.Sandbox
             RenderableManager renderableManager = new RenderableManager(device);
             AssetManager assetManager = new AssetManager();
 
-            ModelAsset asset = assetManager.LoadModel("data/Box.gltf");
+            ModelAsset asset = assetManager.LoadModel("data/SciFiHelmet/SciFiHelmet.gltf");
             renderableManager.QueueRenderable(asset);
 
             List<RenderableMesh> meshes = renderableManager.GetRenderables(asset);
@@ -179,7 +179,7 @@ namespace Cobalt.Sandbox
 
             IVertexAttributeArray vao = shader.Pipeline.CreateVertexAttributeArray(new List<IBuffer>() { buf });
 
-            Core.ImageAsset shawnImage = assetManager.LoadImage("data/shawn.png");
+            Core.ImageAsset shawnImage = assetManager.LoadImage("data/SciFiHelmet/SciFiHelmet_BaseColor.png");
             IImage logoImage = device.CreateImage(new IImage.CreateInfo.Builder()
                     .Depth(1).Format(EDataFormat.R8G8B8A8).Height((int) shawnImage.Height).Width((int) shawnImage.Width)
                     .InitialLayout(EImageLayout.Undefined).LayerCount(1).MipCount(1).SampleCount(ESampleCount.Samples1)
@@ -249,7 +249,7 @@ namespace Cobalt.Sandbox
             double time = 0.0;
 
             Matrix4 perspective = Matrix4.Perspective(Scalar.ToRadians(60), 1280.0f / 720.0f, 0.01f, 1000.0f);
-            Matrix4 camera = Matrix4.LookAt(new Vector3(2, 2, 2), Vector3.Zero, Vector3.UnitY);
+            Matrix4 camera = Matrix4.LookAt(new Vector3(2, 0, 2), Vector3.Zero, Vector3.UnitY);
 
             ScreenResolvePass screenResolve = new ScreenResolvePass(swapchain, device, 1280, 720);
 
@@ -271,11 +271,11 @@ namespace Cobalt.Sandbox
                 RenderableMesh mesh = meshC.Mesh;
 
                 buffer.Bind(shader.Pipeline);
-                // buffer.Bind(meshC.Mesh.VAO);
-                buffer.Bind(vao);
+                buffer.Bind(meshC.Mesh.VAO);
+                //buffer.Bind(vao);
                 buffer.Bind(layout, 0, new List<IDescriptorSet>() { descriptorSets[frame] });
-                buffer.Draw(0, 36, 0, 1);
-                // buffer.DrawElements((int) mesh.indexCount, (int) mesh.baseVertex, 0, 1, (int) mesh.baseIndex);
+                //buffer.Draw(0, 36, 0, 1);
+                buffer.DrawElements((int) mesh.indexCount, (int) mesh.baseVertex, 0, 1, (int) mesh.baseIndex);
 
                 // Screen Resolve
 
@@ -296,13 +296,12 @@ namespace Cobalt.Sandbox
                 uniformBuffer.Unmap();
 
                 graphicsQueue.Execute(new IQueue.SubmitInfo(commandBuffers[frame]));
-                System.Console.WriteLine(Bindings.GL.GL.GetError());
 
                 window.Poll();
                 swapchain.Present(new ISwapchain.PresentInfo());
 
                 frame = (frame + 1) % 2;
-                time += 0.1;
+                time += 0.4;
             }
 
             gfxContext.Dispose();

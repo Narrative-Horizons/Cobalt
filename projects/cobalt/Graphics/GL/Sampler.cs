@@ -56,7 +56,7 @@ namespace Cobalt.Graphics.GL
                 case EAddressMode.MirroredClampToEdge:
                     return ETextureParameter.MirrorClampToEdge;
                 case EAddressMode.Repeat:
-                    return ETextureParameter.ClampToEdge;
+                    return ETextureParameter.Repeat;
                 default:
                     break;
             }

@@ -98,21 +98,6 @@ namespace Cobalt.Graphics.GL
             }
         }
 
-        /*public static void MakeTextureSamplerHandleResidentArb(long textureHandle, long samplerHandle)
-        {
-            TextureSamplerHandleWrapper wrapper = new TextureSamplerHandleWrapper
-            {
-                textureHandle = textureHandle,
-                samplerHandle = samplerHandle
-            };
-
-            if (_residentTextureSamplerHandles.Contains(wrapper) == false)
-            {
-                OpenGL.MakeTextureSamplerHandleResidentArb(textureHandle, samplerHandle);
-                _residentTextureSamplerHandles.Add(wrapper);
-            }
-        }*/
-
         public static void DrawArraysInstancedBaseInstance(int baseVertex, int vertexCount, int baseInstance, int instanceCount)
         {
             OpenGL.DrawArraysInstancedBaseInstance(_currentDrawMode, baseVertex, vertexCount, instanceCount, (uint)baseInstance);
@@ -121,13 +106,10 @@ namespace Cobalt.Graphics.GL
         public static void DrawElementsInstancedBaseVertexBaseInstance(int elementCount, int baseVertex,
             int baseInstance, int instanceCount, long indexOffset)
         {
-            IntPtr offsetPtr = Marshal.AllocHGlobal(sizeof(long));
-            Marshal.WriteInt64(offsetPtr, 0, indexOffset << 2);
+            IntPtr offsetPtr = new IntPtr(indexOffset);
 
             OpenGL.DrawElementsInstancedBaseVertexBaseInstance(_currentDrawMode, elementCount, Bindings.GL.EDrawElementsType.UnsignedInt, 
                 offsetPtr, instanceCount, baseVertex, (uint)baseInstance);
-
-            Marshal.FreeHGlobal(offsetPtr);
         }
 
         internal static ulong GetTextureSamplerHandle(ImageView imageView, Sampler sampler)

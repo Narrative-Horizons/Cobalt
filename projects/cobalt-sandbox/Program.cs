@@ -252,8 +252,8 @@ namespace Cobalt.Sandbox
             Matrix4 perspective = Matrix4.Perspective(Scalar.ToRadians(60), 1280.0f / 720.0f, 0.01f, 1000.0f);
             Matrix4 camera = Matrix4.LookAt(new Vector3(4, 0, 4), Vector3.Zero, Vector3.UnitY);
 
-            DebugCamera cam = new DebugCamera(new Vector3(4, 0, 4), new Vector3(0, 1, 0));
-
+            DebugCamera cam = new DebugCamera(new Vector3(2, 0, 2), new Vector3(0, 1, 0), 0);
+             
             ScreenResolvePass screenResolve = new ScreenResolvePass(swapchain, device, 1280, 720);
 
             while (window.IsOpen())
@@ -294,7 +294,7 @@ namespace Cobalt.Sandbox
 
                 buffer.End();
 
-                Matrix4 model = Matrix4.Identity;
+                Matrix4 model = Matrix4.Rotate(new Vector3(0, (float)time, 0));
 
                 NativeBuffer<UniformBufferData> nativeData = new NativeBuffer<UniformBufferData>(uniformBuffer.Map());
                 UniformBufferData data = nativeData.Get(0);
@@ -310,7 +310,7 @@ namespace Cobalt.Sandbox
                 swapchain.Present(new ISwapchain.PresentInfo());
 
                 frame = (frame + 1) % 2;
-                time += 0.4;
+                time += 5;
             }
 
             gfxContext.Dispose();

@@ -4,6 +4,7 @@ using Cobalt.Entities.Components;
 using Cobalt.Graphics;
 using Cobalt.Graphics.API;
 using Cobalt.Math;
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
@@ -249,7 +250,7 @@ namespace Cobalt.Sandbox
             double time = 0.0;
 
             Matrix4 perspective = Matrix4.Perspective(Scalar.ToRadians(60), 1280.0f / 720.0f, 0.01f, 1000.0f);
-            Matrix4 camera = Matrix4.LookAt(new Vector3(2, 0, 2), Vector3.Zero, Vector3.UnitY);
+            Matrix4 camera = Matrix4.LookAt(new Vector3(4, 0, 4), Vector3.Zero, Vector3.UnitY);
 
             ScreenResolvePass screenResolve = new ScreenResolvePass(swapchain, device, 1280, 720);
 
@@ -257,6 +258,13 @@ namespace Cobalt.Sandbox
             {
                 ICommandBuffer buffer = commandBuffers[frame];
                 buffer.Record(new ICommandBuffer.RecordInfo());
+
+                if(Input.IsKeyPressed(Bindings.GLFW.Keys.Escape))
+                {
+                    window.Close();
+                }
+
+                Console.WriteLine("X: " + Input.MousePosition.x + " Y: " + Input.MousePosition.y);
 
                 buffer.BeginRenderPass(new ICommandBuffer.RenderPassBeginInfo()
                 {
@@ -280,7 +288,7 @@ namespace Cobalt.Sandbox
                 // Screen Resolve
 
                 var frameInfo = new RenderPass.FrameInfo { FrameInFlight = frame };
-                screenResolve.SetInputTexture(new Texture() { Image = colorAttachmentViews[frame], Sampler = logoImageSampler }, frameInfo);
+                screenResolve.SetInputTexture(new Cobalt.Graphics.Texture() { Image = colorAttachmentViews[frame], Sampler = logoImageSampler }, frameInfo);
                 screenResolve.Record(buffer, frameInfo);
 
                 buffer.End();

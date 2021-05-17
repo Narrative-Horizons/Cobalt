@@ -34,7 +34,7 @@ STB_BINDING_EXPORT bool cobalt_load_image(const char* filename, ImagePayload* pa
     desired_channels = 4;
     is_hdr = stbi_is_hdr(filename);
     is_16_bit = stbi_is_16_bit(filename);
-    //stbi_set_flip_vertically_on_load(true);
+    stbi_set_flip_vertically_on_load(true);
 
     payload->channels = desired_channels;
 

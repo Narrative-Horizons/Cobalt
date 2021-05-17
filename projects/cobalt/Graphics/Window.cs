@@ -1,5 +1,7 @@
 using Cobalt.Bindings.GLFW;
 using Cobalt.Bindings.Utils;
+using Cobalt.Core;
+using Cobalt.Math;
 using System;
 
 namespace Cobalt.Graphics
@@ -62,6 +64,32 @@ namespace Cobalt.Graphics
 
             GLFW.SetWindowSizeCallback(_window, Resize);
             GLFW.SwapInterval(1);
+
+            GLFW.SetKeyCallback(_window, (GLFWWindow window, Keys key, int scanCode, InputState state, ModifierKeys mods) =>
+            {
+                switch (state)
+                {
+                    case InputState.Release:
+                        Input.SetKeyReleased(key);
+                        break;
+                    case InputState.Press:
+                        Input.SetKeyPressed(key);
+                        break;
+                    case InputState.Repeat:
+                        Input.SetKeyPressed(key);
+                        break;
+                }
+            });
+
+            GLFW.SetCursorPositionCallback(_window, (GLFWWindow window, double x, double y) =>
+            {
+                Vector2 pos = Input.MousePosition;
+
+                pos.x = (float)x;
+                pos.y = (float)y;
+
+                Input.MousePosition = pos;
+            });
         }
 
         public bool IsOpen()
@@ -81,6 +109,7 @@ namespace Cobalt.Graphics
 
         public void Poll()
         {
+            Input.Update();
             GLFW.PollEvents();
         }
 

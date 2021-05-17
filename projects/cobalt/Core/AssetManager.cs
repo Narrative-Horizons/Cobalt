@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Cobalt.Graphics.API;
 using Cobalt.Math;
-using SharpGLTF.Schema2;
-
+using Silk.NET.Assimp;
 using static Cobalt.Bindings.STB.ImageLoader;
 using static Cobalt.Bindings.Utils.Util;
 
@@ -60,107 +59,102 @@ namespace Cobalt.Core
         public List<MeshNode> meshes = new List<MeshNode>();
         public string Path { get; private set; }
 
+        internal unsafe void ProcessNode(Node* node, Scene* scene, Matrix4 parentMatrix)
+        {
+            for(int i = 0; i < node->MNumMeshes; i++)
+            {
+                Silk.NET.Assimp.Mesh* assMesh = scene->MMeshes[node->MMeshes[i]];
+                MeshNode meshNode = new MeshNode();
+
+                ProcessMesh(assMesh, scene, meshNode, parentMatrix);
+
+                meshes.Add(meshNode);
+            }
+
+            for(int i = 0; i < node->MNumChildren; i++)
+            {
+                ProcessNode(node->MChildren[i], scene, parentMatrix);
+            }
+        }
+
+        internal unsafe void ProcessMesh(Silk.NET.Assimp.Mesh* assMesh, Scene* scene, MeshNode meshNode, Matrix4 parentMatrix)
+        {
+            Mesh mesh = new Mesh
+            {
+                positions = new Vector3[assMesh->MNumVertices],
+                normals = new Vector3[assMesh->MNumVertices],
+                tangents = new Vector3[assMesh->MNumVertices],
+                binormals = new Vector3[assMesh->MNumVertices],
+                texcoords = new Vector2[assMesh->MNumVertices]
+            };
+
+            for (int i = 0; i < assMesh->MNumVertices; i++)
+            {
+                mesh.positions[i] = new Vector3(assMesh->MVertices[i].X, assMesh->MVertices[i].Y, assMesh->MVertices[i].Z);
+
+                if(assMesh->MNormals != null)
+                {
+                    mesh.normals[i] = new Vector3(assMesh->MNormals[i].X, assMesh->MNormals[i].Y, assMesh->MNormals[i].Z);
+                }
+                else
+                {
+                    mesh.normals[i] = Vector3.UnitY;
+                }
+
+                if(assMesh->MTextureCoords.Element0 != null)
+                {
+                    mesh.texcoords[i] = new Vector2(assMesh->MTextureCoords.Element0[i].X, assMesh->MTextureCoords.Element0[i].Y);
+                }
+                else
+                {
+                    mesh.texcoords[i] = Vector2.Zero;
+                }
+
+                if(assMesh->MTangents != null)
+                {
+                    mesh.tangents[i] = new Vector3(assMesh->MTangents[i].X, assMesh->MTangents[i].Y, assMesh->MTangents[i].Z);
+                }
+                else
+                {
+                    mesh.tangents[i] = Vector3.UnitX;
+                }
+
+                if (assMesh->MBitangents != null)
+                {
+                    mesh.binormals[i] = new Vector3(assMesh->MBitangents[i].X, assMesh->MBitangents[i].Y, assMesh->MBitangents[i].Z);
+                }
+                else
+                {
+                    mesh.binormals[i] = Vector3.UnitZ;
+                }
+            }
+
+            mesh.triangles = new uint[assMesh->MNumFaces * 3];
+            int iIdx = 0;
+            for(int i = 0; i < assMesh->MNumFaces; i++)
+            {
+                Face face = assMesh->MFaces[i];
+                for(int j = 0; j < face.MNumIndices; j++)
+                {
+                    mesh.triangles[iIdx++] = face.MIndices[j];
+                }
+            }
+
+            meshNode.mesh = mesh;
+        }
+
         internal ModelAsset(string path)
         {
             Path = path;
 
-            if (path.Contains(".gltf") || path.Contains(".glb"))
+            unsafe
             {
-                // GTLF model
-                ModelRoot model = ModelRoot.Load(path);
-                bool isAnimated = model.LogicalAnimations.Count > 0;
+                Assimp assimp = Assimp.GetApi();
+                Scene* assScene = assimp.ImportFile(path, (uint)PostProcessPreset.TargetRealTimeMaximumQuality);
 
-                uint nodeCount = (uint)model.LogicalNodes.Count;
-                for (int i = 0; i < nodeCount; i++)
+                if(assScene != null)
                 {
-                    var node = model.LogicalNodes[i];
-                    var mesh = node.Mesh;
-
-                    var worldMatrix = isAnimated ? node.GetWorldMatrix(null, 0) : node.WorldMatrix;
-
-                    if (mesh != null)
-                    {
-                        // Process the mesh
-                        uint primitiveCount = (uint)mesh.Primitives.Count;
-
-                        for (int j = 0; j < primitiveCount; j++)
-                        {
-                            Mesh m = new Mesh();
-                            Accessor accPosition = mesh.Primitives[j].GetVertexAccessor("POSITION");
-                            var posArray = accPosition.AsVector3Array();
-
-                            m.positions = new Vector3[posArray.Count];
-                            for (int k = 0; k < posArray.Count; k++)
-                            {
-                                m.positions[k] = new Vector3(posArray[k].X, posArray[k].Y, posArray[k].Z);
-                            }
-
-                            Accessor accNormal = mesh.Primitives[j].GetVertexAccessor("NORMAL");
-                            if (accNormal != null)
-                            {
-                                var normalArray = accNormal.AsVector3Array();
-
-                                m.normals = new Vector3[normalArray.Count];
-                                for (int k = 0; k < normalArray.Count; k++)
-                                {
-                                    m.normals[k] = new Vector3(normalArray[k].X, normalArray[k].Y, normalArray[k].Z);
-                                }
-                            }
-
-                            Accessor accUVs = mesh.Primitives[j].GetVertexAccessor("TEXCOORD_0");
-                            if (accUVs != null)
-                            {
-                                var uvArray = accUVs.AsVector2Array();
-
-                                m.texcoords = new Vector2[uvArray.Count];
-                                for (int k = 0; k < uvArray.Count; k++)
-                                {
-                                    m.texcoords[k] = new Vector2(uvArray[k].X, uvArray[k].Y);
-                                }
-                            }
-
-                            Accessor accTangent = mesh.Primitives[j].GetVertexAccessor("TANGENT");
-                            if (accTangent != null)
-                            {
-                                var tangentArray = accTangent.AsVector4Array();
-
-                                m.tangents = new Vector3[tangentArray.Count];
-                                for (int k = 0; k < tangentArray.Count; k++)
-                                {
-                                    m.tangents[k] = new Vector3(tangentArray[k].X, tangentArray[k].Y, tangentArray[k].Z);
-
-                                    // TODO: Use dir to calculate binormal
-                                    float dir = tangentArray[k].W;
-                                }
-                            }
-
-                            if (isAnimated)
-                            {
-                                Accessor accJoints = mesh.Primitives[j].GetVertexAccessor("JOINTS_0");
-                                Accessor accWeights = mesh.Primitives[j].GetVertexAccessor("WEIGHTS_0");
-                            }
-
-                            var accTriangles = mesh.Primitives[j].GetIndexAccessor();
-                            if(accTriangles != null)
-                            { 
-                                var indexArray = accTriangles.AsIndicesArray();
-
-                                m.triangles = new uint[indexArray.Count];
-                                for(int k = 0; k < indexArray.Count; k++)
-                                {
-                                    m.triangles[k] = indexArray[k];
-                                }
-                            }
-
-                            MeshNode meshNode = new MeshNode
-                            {
-                                mesh = m,
-                                transform = worldMatrix
-                            };
-
-                            meshes.Add(meshNode);
-                        }
-                    }
+                    ProcessNode(assScene->MRootNode, assScene, assScene->MRootNode->MTransformation);
                 }
             }
         }

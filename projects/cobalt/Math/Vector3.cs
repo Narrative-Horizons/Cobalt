@@ -99,6 +99,11 @@ namespace Cobalt.Math
             z *= scale;
         }
 
+        public static Vector3 Normalize(Vector3 v)
+        {
+            return v.Normalized();
+        }
+
         public float Dot(Vector3 right) => (x * right.x) + (y * right.y) + (z * right.z);
 
         public static float Dot(Vector3 left, Vector3 right) => left.Dot(right);

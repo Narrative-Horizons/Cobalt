@@ -53,6 +53,9 @@ namespace Cobalt.Bindings.GL
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_disable", CallingConvention = CallingConvention.Cdecl)]
         public static extern void Disable(EEnableCap mask);
 
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_polygon_mode", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void PolygonMode(ECullFaceMode face, EPolygonMode mode);
+
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_debug_message_callback", CallingConvention = CallingConvention.Cdecl)]
         public static extern void DebugMessageCallback(DebugCallback callback, IntPtr userParam);
 

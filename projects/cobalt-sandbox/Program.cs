@@ -252,10 +252,13 @@ namespace Cobalt.Sandbox
             Matrix4 perspective = Matrix4.Perspective(Scalar.ToRadians(60), 1280.0f / 720.0f, 0.01f, 1000.0f);
             Matrix4 camera = Matrix4.LookAt(new Vector3(4, 0, 4), Vector3.Zero, Vector3.UnitY);
 
+            DebugCamera cam = new DebugCamera(new Vector3(4, 0, 4), new Vector3(0, 1, 0));
+
             ScreenResolvePass screenResolve = new ScreenResolvePass(swapchain, device, 1280, 720);
 
             while (window.IsOpen())
             {
+                cam.Update();
                 ICommandBuffer buffer = commandBuffers[frame];
                 buffer.Record(new ICommandBuffer.RecordInfo());
 
@@ -263,8 +266,6 @@ namespace Cobalt.Sandbox
                 {
                     window.Close();
                 }
-
-                Console.WriteLine("X: " + Input.MousePosition.x + " Y: " + Input.MousePosition.y);
 
                 buffer.BeginRenderPass(new ICommandBuffer.RenderPassBeginInfo()
                 {
@@ -293,12 +294,12 @@ namespace Cobalt.Sandbox
 
                 buffer.End();
 
-                Matrix4 model = Matrix4.Rotate(new Vector3(0, (float)time, 0));
+                Matrix4 model = Matrix4.Identity;
 
                 NativeBuffer<UniformBufferData> nativeData = new NativeBuffer<UniformBufferData>(uniformBuffer.Map());
                 UniformBufferData data = nativeData.Get(0);
-                data.projection = perspective;
-                data.view = camera;
+                data.projection = cam.projection;
+                data.view = cam.view;
                 data.model = model;
                 nativeData.Set(data, 0);
                 uniformBuffer.Unmap();

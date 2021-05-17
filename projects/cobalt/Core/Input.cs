@@ -19,12 +19,27 @@ namespace Cobalt.Core
         private static KeyState[] KeyStates;
         private static KeyState[] LastKeyStates;
 
+        internal static Vector2 LastMousePosition = new Vector2();
+        internal static GLFWWindow window;
+
         public static Vector2 MousePosition { get; internal set; } = new Vector2();
+        public static Vector2 MouseDelta 
+        { 
+            get 
+            {
+                return MousePosition - LastMousePosition;    
+            } 
+        }
 
         static Input()
         {
             KeyStates = new KeyState[(int)Keys.END_ENUM];
             LastKeyStates = new KeyState[(int)Keys.END_ENUM];
+        }
+
+        internal static void Init(GLFWWindow win)
+        {
+            window = win;
         }
 
         internal static void Update()
@@ -43,6 +58,8 @@ namespace Cobalt.Core
 
                 LastKeyStates[i] = KeyStates[i];
             }
+
+            LastMousePosition = MousePosition;
         }
 
         public static bool IsKeyDown(Keys key)
@@ -53,6 +70,12 @@ namespace Cobalt.Core
         public static bool IsKeyPressed(Keys key)
         {
             return KeyStates[(int)key] == KeyState.Pressed;
+        }
+
+        public static void SetMousePosition(Vector2 position)
+        {
+            GLFW.SetCursorPosition(window, position.x, position.y);
+            MousePosition = position;
         }
 
         public static bool IsKeyUp(Keys key)

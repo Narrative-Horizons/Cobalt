@@ -6,5 +6,6 @@ layout(location = 1, bindless_sampler) uniform sampler2D tex;
 
 void main()
 {
-    gl_FragColor = texture(tex, iUV);
+    //gl_FragColor = texture(tex, iUV);
+    gl_FragColor = vec4(0, 0, 1, 1);
 }

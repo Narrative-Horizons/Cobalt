@@ -36,6 +36,22 @@ namespace Cobalt.Graphics.GL.Commands
             {
                 StateMachine.SetDepthMask(false);
             }
+
+            if(Pipeline.Info.RasterizerCreationInformation != null)
+            {
+                switch (Pipeline.Info.RasterizerCreationInformation.PolygonMode)
+                {
+                    case API.EPolygonMode.Fill:
+                        Bindings.GL.GL.PolygonMode(Bindings.GL.ECullFaceMode.FrontAndBack, Bindings.GL.EPolygonMode.Fill);
+                        break;
+                    case API.EPolygonMode.Point:
+                        Bindings.GL.GL.PolygonMode(Bindings.GL.ECullFaceMode.FrontAndBack, Bindings.GL.EPolygonMode.Point);
+                        break;
+                    case API.EPolygonMode.Wireframe:
+                        Bindings.GL.GL.PolygonMode(Bindings.GL.ECullFaceMode.FrontAndBack, Bindings.GL.EPolygonMode.Line);
+                        break;
+                }
+            }
         }
     }
 }

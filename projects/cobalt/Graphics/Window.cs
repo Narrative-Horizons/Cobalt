@@ -90,6 +90,8 @@ namespace Cobalt.Graphics
 
                 Input.MousePosition = pos;
             });
+
+            Input.Init(_window);
         }
 
         public bool IsOpen()

@@ -77,6 +77,7 @@ namespace Cobalt.Graphics
             public string ComputeSource { get; private set; } = null;
         }
 
+        static bool first = true;
         public Shader(CreateInfo createInfo, IDevice device, IPipelineLayout layout, bool test)
         {
             if(createInfo.ComputeSource != null)
@@ -221,7 +222,7 @@ namespace Cobalt.Graphics
                 .RasterizerCreationInformation(
                     new IGraphicsPipeline.RasterizerCreateInfo.Builder()
                     .DepthClampEnabled(false)
-                    .PolygonMode(EPolygonMode.Fill)
+                    .PolygonMode(first ? EPolygonMode.Fill : EPolygonMode.Fill)
                     .WindingOrder(EVertexWindingOrder.Clockwise)
                     .CullFaces(EPolgyonFace.Back)
                     .RasterizerDiscardEnabled(true).Build())
@@ -239,6 +240,8 @@ namespace Cobalt.Graphics
 
                 Pipeline = device.CreateGraphicsPipeline(pipelineCreateInfo);
                 Layout = layout;
+
+                first = !first;
             }
         }
 

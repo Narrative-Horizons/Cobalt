@@ -48,6 +48,11 @@ GLAD_BINDING_EXPORT void cobalt_gl_disable(unsigned int mask)
 	glDisable(mask);
 }
 
+GLAD_BINDING_EXPORT void cobalt_gl_polygon_mode(unsigned int face, unsigned int mode)
+{
+	glPolygonMode(face, mode);
+}
+
 GLAD_BINDING_EXPORT void cobalt_gl_debug_message_callback(GLDEBUGPROC callback, const void* userParam)
 {
 	glDebugMessageCallback(callback, userParam);

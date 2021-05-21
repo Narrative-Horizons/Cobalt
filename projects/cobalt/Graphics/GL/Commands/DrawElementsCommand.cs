@@ -1,4 +1,5 @@
-﻿using OpenGL = Cobalt.Bindings.GL.GL;
+﻿using System;
+using OpenGL = Cobalt.Bindings.GL.GL;
 
 namespace Cobalt.Graphics.GL.Commands
 {

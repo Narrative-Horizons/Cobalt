@@ -245,16 +245,18 @@ namespace Cobalt.Sandbox
             });
 
             int frame = 0;
-
-            frame = 0;
             double time = 0.0;
-
-            Matrix4 perspective = Matrix4.Perspective(Scalar.ToRadians(60), 1280.0f / 720.0f, 0.01f, 1000.0f);
-            Matrix4 camera = Matrix4.LookAt(new Vector3(4, 0, 4), Vector3.Zero, Vector3.UnitY);
+            double rotSpeed = 5.0;
 
             DebugCamera cam = new DebugCamera(new Vector3(2, 0, 2), new Vector3(0, 1, 0), 0);
-             
             ScreenResolvePass screenResolve = new ScreenResolvePass(swapchain, device, 1280, 720);
+
+            EventManager.Default.AddHandler("testEvent", (EventData e) =>
+            {
+                Console.WriteLine("test");
+            });
+
+            EventManager.Default.Dispatch("testEvent", new EventData());
 
             while (window.IsOpen())
             {
@@ -265,6 +267,16 @@ namespace Cobalt.Sandbox
                 if(Input.IsKeyPressed(Bindings.GLFW.Keys.Escape))
                 {
                     window.Close();
+                }
+
+                if(Input.IsKeyDown(Bindings.GLFW.Keys.NumpadAdd))
+                {
+                    rotSpeed += 0.1;
+                }
+
+                if(Input.IsKeyDown(Bindings.GLFW.Keys.NumpadSubtract))
+                {
+                    rotSpeed -= 0.1;
                 }
 
                 buffer.BeginRenderPass(new ICommandBuffer.RenderPassBeginInfo()
@@ -287,7 +299,6 @@ namespace Cobalt.Sandbox
                 buffer.DrawElements((int) mesh.indexCount, (int) mesh.baseVertex, 0, 1, (int) mesh.baseIndex);
 
                 // Screen Resolve
-
                 var frameInfo = new RenderPass.FrameInfo { FrameInFlight = frame };
                 screenResolve.SetInputTexture(new Cobalt.Graphics.Texture() { Image = colorAttachmentViews[frame], Sampler = logoImageSampler }, frameInfo);
                 screenResolve.Record(buffer, frameInfo);
@@ -310,7 +321,7 @@ namespace Cobalt.Sandbox
                 swapchain.Present(new ISwapchain.PresentInfo());
 
                 frame = (frame + 1) % 2;
-                time += 5;
+                time += rotSpeed;
             }
 
             gfxContext.Dispose();

@@ -4,6 +4,8 @@ using Cobalt.Core;
 using Cobalt.Math;
 using System;
 
+using OpenGL = Cobalt.Bindings.GL.GL;
+
 namespace Cobalt.Graphics
 {
     public class Window
@@ -122,6 +124,7 @@ namespace Cobalt.Graphics
 
         public void Refresh()
         {
+            OpenGL.Finish();
             GLFW.SwapBuffers(_window);
         }
     }

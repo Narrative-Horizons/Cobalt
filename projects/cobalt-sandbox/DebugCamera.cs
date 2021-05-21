@@ -25,7 +25,7 @@ namespace Cobalt.Sandbox
         {
             get
             {
-                return Matrix4.Perspective(Math.Scalar.ToRadians(60.0f), 16.0f / 9.0f, 0.01f, 1000.0f);
+                return Matrix4.Perspective(Math.Scalar.ToRadians(60.0f), 16.0f / 9.0f, 1f, 500.0f);
             }
         }
 

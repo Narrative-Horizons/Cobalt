@@ -53,6 +53,21 @@ GLAD_BINDING_EXPORT void cobalt_gl_polygon_mode(unsigned int face, unsigned int 
 	glPolygonMode(face, mode);
 }
 
+GLAD_BINDING_EXPORT void cobalt_gl_cull_face(unsigned int mode)
+{
+	glCullFace(mode);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_front_face(unsigned int mode)
+{
+	glFrontFace(mode);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_draw_elements(unsigned int mode, unsigned int count, unsigned int type, const void* indices)
+{
+	glDrawElements(mode, count, type, indices);
+}
+
 GLAD_BINDING_EXPORT void cobalt_gl_debug_message_callback(GLDEBUGPROC callback, const void* userParam)
 {
 	glDebugMessageCallback(callback, userParam);
@@ -61,6 +76,11 @@ GLAD_BINDING_EXPORT void cobalt_gl_debug_message_callback(GLDEBUGPROC callback, 
 GLAD_BINDING_EXPORT const unsigned char* cobalt_glad_gl_get_string(int name)
 {
 	return glGetString(name);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_finish()
+{
+	glFinish();
 }
 
 GLAD_BINDING_EXPORT void cobalt_gl_create_textures(unsigned int target, unsigned int amount, unsigned int* textures)

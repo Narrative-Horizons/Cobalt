@@ -37,8 +37,47 @@ namespace Cobalt.Graphics.GL.Commands
                 StateMachine.SetDepthMask(false);
             }
 
+
             if(Pipeline.Info.RasterizerCreationInformation != null)
             {
+                if(Pipeline.Info.RasterizerCreationInformation.DepthClampEnabled)
+                {
+                    OpenGL.Enable(Bindings.GL.EEnableCap.DepthClamp);
+                }
+                else
+                {
+                    OpenGL.Disable(Bindings.GL.EEnableCap.DepthClamp);
+                }
+
+                switch (Pipeline.Info.RasterizerCreationInformation.CullFaces)
+                {
+                    case API.EPolgyonFace.None:
+                        OpenGL.Disable(Bindings.GL.EEnableCap.CullFace);
+                        break;
+                    case API.EPolgyonFace.Back:
+                        OpenGL.Enable(Bindings.GL.EEnableCap.CullFace);
+                        OpenGL.CullFace(Bindings.GL.ECullFaceMode.Back);
+                        break;
+                    case API.EPolgyonFace.Front:
+                        OpenGL.Enable(Bindings.GL.EEnableCap.CullFace);
+                        OpenGL.CullFace(Bindings.GL.ECullFaceMode.Front);
+                        break;
+                    case API.EPolgyonFace.FrontAndBack:
+                        OpenGL.Enable(Bindings.GL.EEnableCap.CullFace);
+                        OpenGL.CullFace(Bindings.GL.ECullFaceMode.FrontAndBack);
+                        break;
+                }
+
+                switch (Pipeline.Info.RasterizerCreationInformation.WindingOrder)
+                {
+                    case API.EVertexWindingOrder.Clockwise:
+                        OpenGL.FrontFace(Bindings.GL.EFrontFaceDirection.Cw);
+                        break;
+                    case API.EVertexWindingOrder.CounterClockwise:
+                        OpenGL.FrontFace(Bindings.GL.EFrontFaceDirection.Ccw);
+                        break;
+                }
+
                 switch (Pipeline.Info.RasterizerCreationInformation.PolygonMode)
                 {
                     case API.EPolygonMode.Fill:

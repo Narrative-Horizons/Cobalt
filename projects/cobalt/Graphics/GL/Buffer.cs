@@ -3,6 +3,7 @@
 using Cobalt.Bindings.GL;
 using Cobalt.Graphics.API;
 using System;
+using System.Runtime.InteropServices;
 
 namespace Cobalt.Graphics.GL
 {
@@ -51,8 +52,8 @@ namespace Cobalt.Graphics.GL
             }
             else
             {
-                T[] payload = createInfo.InitialPayload;
-                OpenGL.NamedBufferStorageTyped(Handle, (uint)size, payload, Flags);
+                GCHandle h = GCHandle.Alloc(createInfo.InitialPayload, GCHandleType.Pinned);
+                OpenGL.NamedBufferStorage(Handle, size, h.AddrOfPinnedObject(), Flags);
             }
 
             bool read = (Flags & EBufferAccessMask.MapReadBit) == EBufferAccessMask.MapReadBit;

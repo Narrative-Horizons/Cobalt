@@ -23,11 +23,6 @@ namespace Cobalt.Graphics.GL
 
             info.Attributes.ForEach(attribute =>
             {
-                OpenGL.EnableVertexArrayAttrib(Handle, (uint)attribute.Location);
-            });
-
-            info.Attributes.ForEach(attribute =>
-            {
                 int count = GetCount(attribute.Format);
                 Bindings.GL.EVertexAttribFormat format = GetFormat(attribute.Format);
                 OpenGL.VertexArrayAttribFormat(Handle, (uint)attribute.Location, count, format, false, (uint)attribute.Offset);
@@ -36,6 +31,11 @@ namespace Cobalt.Graphics.GL
             info.Attributes.ForEach(attribute =>
             {
                 OpenGL.VertexArrayAttribBinding(Handle, (uint)attribute.Location, (uint)attribute.Binding);
+            });
+
+            info.Attributes.ForEach(attribute =>
+            {
+                OpenGL.EnableVertexArrayAttrib(Handle, (uint)attribute.Location);
             });
         }
 

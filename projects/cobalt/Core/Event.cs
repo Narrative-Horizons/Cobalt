@@ -3,27 +3,29 @@ using System.Collections.Generic;
 
 namespace Cobalt.Core
 {
-    public class EventData { }
+    public class EventData 
+    {
+    }
 
     public class EventManager
     {
         public static EventManager Default = new EventManager();
 
-        private readonly Dictionary<string, List<Action<EventData>>> _handlers = new Dictionary<string, List<Action<EventData>>>();
+        private readonly Dictionary<string, List<Func<EventData, bool>>> _handlers = new Dictionary<string, List<Func<EventData, bool>>>();
 
-        public void AddHandler(string name, Action<EventData> handler)
+        public void AddHandler<T>(Func<T, bool> handler) where T : EventData
         {
-            if (!_handlers.TryGetValue(name, out List<Action<EventData>> eventHandlers))
-                eventHandlers = new List<Action<EventData>>();
+            if (!_handlers.TryGetValue(typeof(T).Name, out List<Func<EventData, bool>> eventHandlers))
+                eventHandlers = new List<Func<EventData, bool>>();
 
-            eventHandlers.Add(handler);
+            eventHandlers.Add((Func<EventData, bool>)handler);
 
-            _handlers.Add(name, eventHandlers);
+            _handlers.Add(typeof(T).Name, eventHandlers);
         }
 
-        public void RemoveHandler(string name, Action<EventData> handler)
+        public void RemoveHandler<T>(Func<T, bool> handler) where T : EventData
         {
-            if (!_handlers.TryGetValue(name, out List<Action<EventData>> eventHandlers))
+            if (!_handlers.TryGetValue(typeof(T).Name, out List<Func<EventData, bool>> eventHandlers))
                 return;
 
             for(int i = 0; i < eventHandlers.Count; i++)
@@ -36,14 +38,17 @@ namespace Cobalt.Core
             }
         }
 
-        public void Dispatch(string name, EventData data = null)
+        public void Dispatch<T>(T data = null) where T : EventData
         {
-            if (!_handlers.TryGetValue(name, out List<Action<EventData>> eventHandlers))
+            if (!_handlers.TryGetValue(typeof(T).Name, out List<Func<EventData, bool>> eventHandlers))
                 return;
 
             for(int i = 0; i < eventHandlers.Count; i++)
             {
-                eventHandlers[i](data);
+                if(eventHandlers[i](data))
+                {
+                    break;
+                }
             }
         }
     }

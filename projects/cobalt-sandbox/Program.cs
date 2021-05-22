@@ -251,12 +251,13 @@ namespace Cobalt.Sandbox
             DebugCamera cam = new DebugCamera(new Vector3(2, 0, 2), new Vector3(0, 1, 0), 0);
             ScreenResolvePass screenResolve = new ScreenResolvePass(swapchain, device, 1280, 720);
 
-            EventManager.Default.AddHandler("testEvent", (EventData e) =>
+            EventManager.Default.AddHandler((EventData e) =>
             {
                 Console.WriteLine("test");
+                return false;
             });
 
-            EventManager.Default.Dispatch("testEvent", new EventData());
+            EventManager.Default.Dispatch(new EventData());
 
             while (window.IsOpen())
             {

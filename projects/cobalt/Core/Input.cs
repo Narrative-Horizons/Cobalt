@@ -1,8 +1,5 @@
 ﻿using Cobalt.Bindings.GLFW;
 using Cobalt.Math;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Cobalt.Core
 {
@@ -19,6 +16,9 @@ namespace Cobalt.Core
         private static KeyState[] KeyStates;
         private static KeyState[] LastKeyStates;
 
+        private static KeyState[] MouseStates;
+        private static KeyState[] LastMouseStates;
+
         internal static Vector2 LastMousePosition = new Vector2();
         internal static GLFWWindow window;
 
@@ -34,7 +34,9 @@ namespace Cobalt.Core
         static Input()
         {
             KeyStates = new KeyState[(int)Keys.END_ENUM];
+            MouseStates = new KeyState[(int)MouseButton.END_ENUM];
             LastKeyStates = new KeyState[(int)Keys.END_ENUM];
+            LastMouseStates = new KeyState[(int)MouseButton.END_ENUM];
         }
 
         internal static void Init(GLFWWindow win)
@@ -59,6 +61,21 @@ namespace Cobalt.Core
                 LastKeyStates[i] = KeyStates[i];
             }
 
+            for (int i = 0; i < (int)MouseButton.END_ENUM; i++)
+            {
+                if (MouseStates[i] == KeyState.Pressed && LastMouseStates[i] == KeyState.Pressed)
+                {
+                    MouseStates[i] = KeyState.Down;
+                }
+
+                if (MouseStates[i] == KeyState.Up && LastMouseStates[i] == KeyState.Up)
+                {
+                    MouseStates[i] = KeyState.None;
+                }
+
+                LastMouseStates[i] = MouseStates[i];
+            }
+
             LastMousePosition = MousePosition;
         }
 
@@ -72,15 +89,30 @@ namespace Cobalt.Core
             return KeyStates[(int)key] == KeyState.Pressed;
         }
 
+        public static bool IsKeyUp(Keys key)
+        {
+            return KeyStates[(int)key] == KeyState.Up;
+        }
+
+        public static bool IsMouseButtonDown(MouseButton button)
+        {
+            return MouseStates[(int)button] == KeyState.Down || MouseStates[(int)button] == KeyState.Pressed;
+        }
+
+        public static bool IsMouseButtonPressed(MouseButton button)
+        {
+            return MouseStates[(int)button] == KeyState.Pressed;
+        }
+
+        public static bool IsMouseButtonUp(MouseButton button)
+        {
+            return MouseStates[(int)button] == KeyState.Up;
+        }
+
         public static void SetMousePosition(Vector2 position)
         {
             GLFW.SetCursorPosition(window, position.x, position.y);
             MousePosition = position;
-        }
-
-        public static bool IsKeyUp(Keys key)
-        {
-            return KeyStates[(int)key] == KeyState.Up;
         }
 
         internal static void SetKeyPressed(Keys key)
@@ -94,6 +126,19 @@ namespace Cobalt.Core
         internal static void SetKeyReleased(Keys key)
         {
             KeyStates[(int)key] = KeyState.Up;
+        }
+
+        internal static void SetMouseButtonPressed(MouseButton button)
+        {
+            if (MouseStates[(int)button] == KeyState.Pressed || MouseStates[(int)button] == KeyState.Down)
+                return;
+
+            MouseStates[(int)button] = KeyState.Pressed;
+        }
+
+        internal static void SetMouseButtonReleased(MouseButton button)
+        {
+            MouseStates[(int)button] = KeyState.Up;
         }
     }
 }

@@ -25,6 +25,17 @@ namespace Cobalt.Sandbox
         public Matrix4 model;
     }
 
+    public class WindowResizeEvent : EventData
+    {
+        public uint width, height;
+
+        public WindowResizeEvent(uint width, uint height)
+        {
+            this.width = width;
+            this.height = height;
+        }
+    }
+
     public class Program
     {
         public static void Main(string[] args)
@@ -251,13 +262,13 @@ namespace Cobalt.Sandbox
             DebugCamera cam = new DebugCamera(new Vector3(2, 0, 2), new Vector3(0, 1, 0), 0);
             ScreenResolvePass screenResolve = new ScreenResolvePass(swapchain, device, 1280, 720);
 
-            EventManager.Default.AddHandler((EventData e) =>
+            EventManager.Default.AddHandler((WindowResizeEvent e) =>
             {
-                Console.WriteLine("test");
+                Console.WriteLine(e.width + ", " + e.height);
                 return false;
             });
 
-            EventManager.Default.Dispatch(new EventData());
+            EventManager.Default.Dispatch(new WindowResizeEvent(200, 200));
 
             while (window.IsOpen())
             {

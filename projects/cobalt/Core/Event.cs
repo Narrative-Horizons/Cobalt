@@ -3,8 +3,9 @@ using System.Collections.Generic;
 
 namespace Cobalt.Core
 {
-    public class EventData 
+    public class EventData
     {
+
     }
 
     public class EventManager
@@ -18,7 +19,10 @@ namespace Cobalt.Core
             if (!_handlers.TryGetValue(typeof(T).Name, out List<Func<EventData, bool>> eventHandlers))
                 eventHandlers = new List<Func<EventData, bool>>();
 
-            eventHandlers.Add((Func<EventData, bool>)handler);
+            eventHandlers.Add((EventData e) =>
+            {
+                return handler.Invoke((T)e);
+            });
 
             _handlers.Add(typeof(T).Name, eventHandlers);
         }

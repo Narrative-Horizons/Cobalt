@@ -24,7 +24,13 @@ workspace "Cobalt"
     include "projects/native/glsl-parser-native-bindings"
     group ""
 
+    group "Asset Management"
+    include "projects/asset-management/asset-converter"
+    include "projects/asset-management/asset-converter-cli"
+    group ""
+
     include "projects/cobalt"
+    include "projects/cobalt-math"
     include "projects/cobalt-bindings"
     include "projects/cobalt-sandbox"
     include "projects/cobalt-unit-tests"

@@ -15,7 +15,8 @@ project "Cobalt Sandbox"
     }
 
     links {
-        "Cobalt"
+        "Cobalt",
+        "Cobalt Math"
     }
 
     files {

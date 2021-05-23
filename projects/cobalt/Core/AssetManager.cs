@@ -55,7 +55,7 @@ namespace Cobalt.Core
 
     public class ModelAsset
     {
-        private static UInt64 _uniqueCount = 0;
+        private static ulong _uniqueCount = 0;
         public List<MeshNode> meshes = new List<MeshNode>();
         public string Path { get; private set; }
 
@@ -145,6 +145,27 @@ namespace Cobalt.Core
             meshNode.mesh = mesh;
         }
 
+        internal unsafe void ProcessMaterials(Node* node, Scene* scene)
+        {
+            uint numMaterials = scene->MNumMaterials;
+
+            if (numMaterials == 0)
+                return;
+
+            Assimp assimp = Assimp.GetApi();
+
+            for (int i = 0; i < numMaterials; i++)
+            {
+                Material* material = scene->MMaterials[i];
+
+                uint albedoTexCount = assimp.GetMaterialTextureCount(material, TextureType.TextureTypeDiffuse);
+                uint baseColorTexCount = assimp.GetMaterialTextureCount(material, TextureType.TextureTypeBaseColor);
+                uint normalTexCount = assimp.GetMaterialTextureCount(material, TextureType.TextureTypeNormals);
+                uint emissiveTexCount = assimp.GetMaterialTextureCount(material, TextureType.TextureTypeEmissive);
+                uint ORMTexCount = assimp.GetMaterialTextureCount(material, TextureType.TextureTypeUnknown);
+            }
+        }
+
         internal ModelAsset(string path)
         {
             Path = path;
@@ -156,6 +177,7 @@ namespace Cobalt.Core
 
                 if(assScene != null)
                 {
+                    ProcessMaterials(assScene->MRootNode, assScene);
                     ProcessNode(assScene->MRootNode, assScene, assScene->MRootNode->MTransformation);
                 }
             }
@@ -227,7 +249,7 @@ namespace Cobalt.Core
 
     public class RenderableManager : IDisposable
     {
-        private Dictionary<ModelAsset, List<RenderableMesh>> _renderableMeshes = new Dictionary<ModelAsset, List<RenderableMesh>>();
+        private readonly Dictionary<ModelAsset, List<RenderableMesh>> _renderableMeshes = new Dictionary<ModelAsset, List<RenderableMesh>>();
         private IDevice _device;
 
         public RenderableManager(IDevice device)
@@ -251,7 +273,7 @@ namespace Cobalt.Core
         {
             List<RenderableMesh> processingMeshes = new List<RenderableMesh>();
 
-            var meshes = asset.meshes;
+            List<MeshNode> meshes = asset.meshes;
 
             List<RenderableMeshVertex> combinedVertices = new List<RenderableMeshVertex>();
             List<uint> combinedIndices = new List<uint>();
@@ -275,8 +297,11 @@ namespace Cobalt.Core
 
                 for (int i = 0; i < vertexCount; i++)
                 {
-                    RenderableMeshVertex vertex = new RenderableMeshVertex();
-                    vertex.position = mesh.positions[i];
+                    RenderableMeshVertex vertex = new RenderableMeshVertex
+                    {
+                        position = mesh.positions[i]
+                    };
+
                     if (mesh.texcoords != null)
                         vertex.uv = mesh.texcoords[i];
                     else

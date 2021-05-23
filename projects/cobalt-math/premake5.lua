@@ -1,4 +1,4 @@
-project "Cobalt"
+project "Cobalt Math"
     kind "SharedLib"
     dotnetframework "netcoreapp3.1"
     language "C#"
@@ -12,13 +12,6 @@ project "Cobalt"
 
     nuget {
         "log4net:2.0.12",
-        "Newtonsoft.Json:13.0.1",
-        "Silk.NET.Assimp:2.4.0"
-    }
-
-    links {
-        "Cobalt Bindings",
-        "Cobalt Math"
     }
 
     files {

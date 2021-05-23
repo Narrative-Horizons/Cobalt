@@ -1,28 +1,13 @@
 ﻿using System;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Diagnostics;
 
 namespace Cobalt.Math
 {
     [Serializable]
     [StructLayout(LayoutKind.Sequential)]
-    [DebuggerDisplay("{DebugString}")]
     public struct Matrix4 : IEquatable<Matrix4>
     {
         private unsafe fixed float buffer[16];
-
-        public unsafe string DebugString
-        {
-            get
-            {
-                unsafe
-                {
-                    return "Aw " + this.ToString() + " motherfucker! Aw " + this.ToString2() + " g'damn!";
-                }
-            }
-        }
-
         public Matrix4(float scalar)
         {
             unsafe

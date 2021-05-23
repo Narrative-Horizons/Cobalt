@@ -1,4 +1,4 @@
-project "Cobalt"
+project "Asset Converter"
     kind "SharedLib"
     dotnetframework "netcoreapp3.1"
     language "C#"
@@ -6,7 +6,7 @@ project "Cobalt"
     targetdir (binaries)
     objdir (intermediate)
 
-    namespace "Cobalt"
+    namespace "CobaltConverter"
 
     platformtarget "x86_64"
 
@@ -17,7 +17,6 @@ project "Cobalt"
     }
 
     links {
-        "Cobalt Bindings",
         "Cobalt Math"
     }
 

@@ -4,9 +4,12 @@ using Cobalt.Entities.Components;
 using Cobalt.Graphics;
 using Cobalt.Graphics.API;
 using Cobalt.Math;
+using CobaltConverter.Core;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Cobalt.Sandbox
 {
@@ -269,6 +272,17 @@ namespace Cobalt.Sandbox
             });
 
             EventManager.Default.Dispatch(new WindowResizeEvent(200, 200));
+
+            //CobaltModel m = MeshConverter.ConvertModel("data/Box.gltf");
+
+            //MemoryStream s = new MemoryStream();
+            //MeshConverter.Export(s, m);
+
+            //System.IO.File.WriteAllBytes("data/SciFiHelmet/SciFiHelmet.bcaf", s.ToArray());
+
+            //System.IO.File.WriteAllText("data/Box.caf", Encoding.ASCII.GetString(s.ToArray()));
+
+            CobaltModel m = MeshConverter.Import("data/Box.caf");
 
             while (window.IsOpen())
             {

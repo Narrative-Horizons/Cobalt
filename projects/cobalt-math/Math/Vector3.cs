@@ -3,6 +3,7 @@ using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text.Json.Serialization;
 using System.Xml.Serialization;
 
 namespace Cobalt.Math
@@ -158,6 +159,7 @@ namespace Cobalt.Math
         public static readonly int SizeInBytes = Unsafe.SizeOf<Vector3>();
 
         [XmlIgnore]
+        [JsonIgnore]
         public Vector3 Yxz
         {
             get => new Vector3(y, x, z);
@@ -170,6 +172,7 @@ namespace Cobalt.Math
         }
 
         [XmlIgnore]
+        [JsonIgnore]
         public Vector3 Zyx
         {
             get => new Vector3(z, y, x);
@@ -182,6 +185,7 @@ namespace Cobalt.Math
         }
 
         [XmlIgnore]
+        [JsonIgnore]
         public Vector3 Zxy
         {
             get => new Vector3(z, x, y);

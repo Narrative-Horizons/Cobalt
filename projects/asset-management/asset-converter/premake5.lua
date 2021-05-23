@@ -13,6 +13,7 @@ project "Asset Converter"
     nuget {
         "log4net:2.0.12",
         "Newtonsoft.Json:13.0.1",
+        "Newtonsoft.Json.Bson:1.0.2",
         "Silk.NET.Assimp:2.4.0"
     }
 

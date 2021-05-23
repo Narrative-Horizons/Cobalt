@@ -18,7 +18,8 @@ project "Cobalt"
 
     links {
         "Cobalt Bindings",
-        "Cobalt Math"
+        "Cobalt Math",
+        "Asset Converter"
     }
 
     files {

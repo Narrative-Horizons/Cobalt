@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Cobalt.Graphics.API;
 using Cobalt.Math;
+using CobaltConverter.Core;
 using Silk.NET.Assimp;
 using static Cobalt.Bindings.STB.ImageLoader;
 using static Cobalt.Bindings.Utils.Util;
@@ -169,6 +170,9 @@ namespace Cobalt.Core
         internal ModelAsset(string path)
         {
             Path = path;
+
+            var x = MeshConverter.ConvertModel(path);
+            int jonathan = 0;
 
             unsafe
             {

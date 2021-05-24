@@ -97,6 +97,8 @@ namespace Cobalt.Graphics
         {
             public IDescriptorPool descriptorPool;
             public IDescriptorSet descriptorSet;
+            public IBuffer entityData;
+            public IBuffer materialData;
         }
 
         private readonly Dictionary<PbrMaterialComponent, uint> MaterialIndices = new Dictionary<PbrMaterialComponent, uint>();
@@ -146,6 +148,14 @@ namespace Cobalt.Graphics
                     .Build());
                 frames[info.FrameInFlight].descriptorSet = frames[info.FrameInFlight].descriptorPool.Allocate(new IDescriptorSet.CreateInfo.Builder()
                     .Build())[0];
+
+
+                /// TODO: Make this actual sizeof
+                frames[info.FrameInFlight].entityData = Device.CreateBuffer(new IBuffer.CreateInfo<EntityData>.Builder().AddUsage(EBufferUsage.StorageBuffer).Size(1000000 * 68),
+                    new IBuffer.MemoryInfo.Builder().Usage(EMemoryUsage.CPUToGPU).AddRequiredProperty(EMemoryProperty.HostCoherent).AddRequiredProperty(EMemoryProperty.HostVisible));
+
+                frames[info.FrameInFlight].materialData = Device.CreateBuffer(new IBuffer.CreateInfo<MaterialPayload>.Builder().AddUsage(EBufferUsage.StorageBuffer).Size(1000000 * 16),
+                    new IBuffer.MemoryInfo.Builder().Usage(EMemoryUsage.CPUToGPU).AddRequiredProperty(EMemoryProperty.HostCoherent).AddRequiredProperty(EMemoryProperty.HostVisible));
             }
 
             List<DescriptorWriteInfo> writeInfos = new List<DescriptorWriteInfo>();
@@ -165,9 +175,31 @@ namespace Cobalt.Graphics
                 .Build());
 
             // Build material array
+            NativeBuffer<MaterialPayload> nativeMaterialData = new NativeBuffer<MaterialPayload>(frames[info.FrameInFlight].materialData.Map());
+            foreach (MaterialPayload payload in materials)
+            {
+                nativeMaterialData.Set(payload);
+            }
+            frames[info.FrameInFlight].materialData.Unmap();
 
             // Build uniform/shader storage buffers
+            NativeBuffer<EntityData> nativeEntityData = new NativeBuffer<EntityData>(frames[info.FrameInFlight].entityData.Map());
+            foreach (var obj in framePayload)
+            {
+                List<EntityData> instances = obj.Value;
+
+                foreach (EntityData instance in instances)
+                {
+                    nativeEntityData.Set(instance);
+                }
+            }
+            frames[info.FrameInFlight].entityData.Unmap();
+            
+            new DrawElementsIndirectCommand()
+
             // Build the multidraw indirect buffers
+
+
             // Submit draw to command buffer
         }
 

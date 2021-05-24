@@ -89,4 +89,16 @@ namespace Cobalt.Events
             OldY = oldY;
         }
     }
+
+    public class MouseScrollEvent : EventData
+    {
+        public double X { get; internal set; }
+        public double Y { get; internal set; }
+
+        public MouseScrollEvent(double x, double y)
+        {
+            X = x;
+            Y = y;
+        }
+    }
 }

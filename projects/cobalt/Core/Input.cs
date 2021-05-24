@@ -31,6 +31,8 @@ namespace Cobalt.Core
             } 
         }
 
+        public static Vector2 ScrollDelta { get; internal set; } = new Vector2();
+
         static Input()
         {
             KeyStates = new KeyState[(int)Keys.END_ENUM];

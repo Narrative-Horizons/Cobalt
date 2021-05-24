@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Bson;
 using Silk.NET.Assimp;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -117,7 +116,6 @@ namespace CobaltConverter.Core
     {
         public string Name { get; set; }
         public MeshMatrix4 Transformation { get; set; }
-        //public CobaltModelNode Parent { get; internal set; } = null;
         public List<CobaltModelNode> Children { get; set; }
         public List<uint> Meshes { get; set; }
     }
@@ -175,7 +173,6 @@ namespace CobaltConverter.Core
                 CobaltModelNode childNode = new CobaltModelNode();
                 ProcessNode(rootModel, childNode, assNode->MChildren[i], assScene, parentMatrix);
 
-                //childNode.Parent = node;
                 node.Children[i] = childNode;
             }
         }
@@ -197,31 +194,21 @@ namespace CobaltConverter.Core
 
                 if (assMesh->MNormals != null)
                     mesh.Vertices[i].normal = new MeshVector3(assMesh->MNormals[i].X, assMesh->MNormals[i].Y, assMesh->MNormals[i].Z);
-                else
-                    mesh.Vertices[i].normal = new MeshVector3(0, 1, 0);
 
                 mesh.Vertices[i].texcoords = new List<MeshVector2>(new MeshVector2[1]);
 
                 if (assMesh->MTextureCoords.Element0 != null)
                     mesh.Vertices[i].texcoords[0] = new MeshVector2(assMesh->MTextureCoords.Element0[i].X, assMesh->MTextureCoords.Element0[i].Y);
-                else
-                    mesh.Vertices[i].texcoords[0] = new MeshVector2(0, 0);
 
                 if (assMesh->MTangents != null)
                     mesh.Vertices[i].tangent = new MeshVector3(assMesh->MTangents[i].X, assMesh->MTangents[i].Y, assMesh->MTangents[i].Z);
-                else
-                    mesh.Vertices[i].tangent = new MeshVector3(1, 0, 0);
 
                 if (assMesh->MBitangents != null)
                     mesh.Vertices[i].binormal = new MeshVector3(assMesh->MBitangents[i].X, assMesh->MBitangents[i].Y, assMesh->MBitangents[i].Z);
-                else
-                    mesh.Vertices[i].binormal = new MeshVector3(0, 0, 1);
 
                 mesh.Vertices[i].colors = new List<MeshVector4>(new MeshVector4[1]);
                 if (assMesh->MColors.Element0 != null)
                     mesh.Vertices[i].colors[0] = new MeshVector4(assMesh->MColors.Element0[i].X, assMesh->MColors.Element0[i].Y, assMesh->MColors.Element0[i].Z, assMesh->MColors.Element0[i].W);
-                else
-                    mesh.Vertices[i].colors[0] = new MeshVector4(0, 0, 0, 0);
             }
 
             for(int i = 0; i < assMesh->MNumFaces; i++)
@@ -253,7 +240,7 @@ namespace CobaltConverter.Core
                 model.Flags = scene->MFlags;
                 model.RootNode = new CobaltModelNode();
 
-                /// TODO: User assimp matrices
+                /// TODO: Use assimp matrices
                 ProcessNode(model, model.RootNode, scene->MRootNode, scene, MeshMatrix4.Identity());
             }
 
@@ -265,7 +252,7 @@ namespace CobaltConverter.Core
             using(BsonDataWriter writer = new BsonDataWriter(exportStream))
             {
                 JsonSerializer serializer = new JsonSerializer();
-                serializer.Formatting = Formatting.Indented;
+                //serializer.Formatting = Formatting.Indented;
                 serializer.Serialize(writer, model);
             }
         }

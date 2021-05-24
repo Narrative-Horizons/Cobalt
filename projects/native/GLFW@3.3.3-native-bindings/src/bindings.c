@@ -207,6 +207,11 @@ GLFW_BINDING_EXPORT GLFWmousebuttonfun cobalt_glfw_set_mouse_button_callback(GLF
 	return glfwSetMouseButtonCallback(window, fun);
 }
 
+GLFW_BINDING_EXPORT GLFWmousebuttonfun cobalt_glfw_set_mouse_scroll_callback(GLFWwindow* window, GLFWscrollfun fun)
+{
+	return glfwSetScrollCallback(window, fun);
+}
+
 GLFW_BINDING_EXPORT GLFWcharfun cobalt_glfw_set_char_callback(GLFWwindow* window, GLFWcharfun fun)
 {
 	return glfwSetCharCallback(window, fun);

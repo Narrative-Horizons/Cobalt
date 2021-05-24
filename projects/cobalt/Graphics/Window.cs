@@ -4,7 +4,6 @@ using Cobalt.Core;
 using Cobalt.Events;
 using Cobalt.Math;
 using System;
-using System.Runtime.InteropServices;
 using OpenGL = Cobalt.Bindings.GL.GL;
 
 namespace Cobalt.Graphics
@@ -123,6 +122,13 @@ namespace Cobalt.Graphics
                 pos.y = (float)y;
 
                 Input.MousePosition = pos;
+            });
+
+            GLFW.SetMouseScrollCallback(_window, (GLFWWindow window, double x, double y) =>
+            {
+                EventManager.Default.Dispatch(new MouseScrollEvent(x, y));
+
+                Input.ScrollDelta = new Vector2((float)x, (float)y);
             });
 
             Input.Init(_window);

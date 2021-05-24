@@ -34,6 +34,9 @@ namespace Cobalt.Bindings.GLFW
         public delegate void MouseButtonCallback(GLFWWindow window, MouseButton button, InputState state, ModifierKeys modifiers);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void MouseScrollCallback(GLFWWindow window, double x, double y);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void CharCallback(GLFWWindow window, uint codePoint);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -163,6 +166,10 @@ namespace Cobalt.Bindings.GLFW
         [DllImport(LIBRARY, EntryPoint = "cobalt_glfw_set_cursor_pos_callback", CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.FunctionPtr, MarshalTypeRef = typeof(MouseCallback))]
         public static extern MouseCallback SetCursorPositionCallback(GLFWWindow window, MouseCallback mouseCallback);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_glfw_set_mouse_scroll_callback", CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.FunctionPtr, MarshalTypeRef = typeof(MouseScrollCallback))]
+        public static extern MouseScrollCallback SetMouseScrollCallback(GLFWWindow window, MouseScrollCallback mouseScrollCallback);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_glfw_set_mouse_button_callback", CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.FunctionPtr, MarshalTypeRef = typeof(MouseButtonCallback))]

@@ -133,79 +133,21 @@ namespace Cobalt.Sandbox
             reg.Assign(e, new MeshComponent(box));
             reg.Assign(e, new TransformComponent());
 
-            #region Shawn Cube
-
-            float[] vertices = {
-                -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-                 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-                 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-                 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-                -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-                -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-                -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-                 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-                 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-                 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-                -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-                -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-                -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-                -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-                -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-                -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-                -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-                -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-                 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-                 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-                 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-                 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-                 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-                 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-                -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-                 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-                 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-                 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-                -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-                -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-                -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-                 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-                 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-                 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-                -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-                -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-            };
-
-
-            IBuffer buf = device.CreateBuffer(
-                IBuffer.FromPayload(vertices).AddUsage(EBufferUsage.ArrayBuffer),
-                new IBuffer.MemoryInfo.Builder()
-                    .AddRequiredProperty(EMemoryProperty.DeviceLocal)
-                    .AddRequiredProperty(EMemoryProperty.HostVisible)
-                    .Usage(EMemoryUsage.CPUToGPU));
-
             string vsSource = FileSystem.LoadFileToString("data/standard_vertex.glsl");
             string fsSource = FileSystem.LoadFileToString("data/standard_fragment.glsl");
 
             Shader shader = device.CreateShader(new Shader.CreateInfo.Builder().VertexSource(vsSource).FragmentSource(fsSource).Build(), layout, true);
 
-            IVertexAttributeArray vao = shader.Pipeline.CreateVertexAttributeArray(new List<IBuffer>() { buf });
-
-            Core.ImageAsset shawnImage = assetManager.LoadImage("data/SciFiHelmet/SciFiHelmet_BaseColor.png");
-            IImage logoImage = device.CreateImage(new IImage.CreateInfo.Builder()
-                    .Depth(1).Format(EDataFormat.R8G8B8A8).Height((int) shawnImage.Height).Width((int) shawnImage.Width)
+            Core.ImageAsset assetAlbedo = assetManager.LoadImage("data/SciFiHelmet/SciFiHelmet_BaseColor.png");
+            IImage albedoImage = device.CreateImage(new IImage.CreateInfo.Builder()
+                    .Depth(1).Format(EDataFormat.R8G8B8A8).Height((int) assetAlbedo.Height).Width((int) assetAlbedo.Width)
                     .InitialLayout(EImageLayout.Undefined).LayerCount(1).MipCount(1).SampleCount(ESampleCount.Samples1)
                     .Type(EImageType.Image2D),
                 new IImage.MemoryInfo.Builder()
                     .AddRequiredProperty(EMemoryProperty.DeviceLocal).Usage(EMemoryUsage.GPUOnly));
 
-
-            transferCmdBuffer.Copy(shawnImage.AsBytes, logoImage, new List<ICommandBuffer.BufferImageCopyRegion>(){new ICommandBuffer.BufferImageCopyRegion.Builder().ArrayLayer(0)
-                .BufferOffset(0).ColorAspect(true).Depth(1).Height((int) shawnImage.Height).Width((int) shawnImage.Width).MipLevel(0).Build() });
-            #endregion
+            transferCmdBuffer.Copy(assetAlbedo.AsBytes, albedoImage, new List<ICommandBuffer.BufferImageCopyRegion>(){new ICommandBuffer.BufferImageCopyRegion.Builder().ArrayLayer(0)
+                .BufferOffset(0).ColorAspect(true).Depth(1).Height((int) assetAlbedo.Height).Width((int) assetAlbedo.Width).MipLevel(0).Build() });
 
             float[] screenVerts =
             {
@@ -225,14 +167,13 @@ namespace Cobalt.Sandbox
                     .AddRequiredProperty(EMemoryProperty.HostVisible)
                     .Usage(EMemoryUsage.CPUToGPU));
 
-
             IQueue.SubmitInfo transferSubmission = new IQueue.SubmitInfo(transferCmdBuffer);
             transferQueue.Execute(transferSubmission);
 
-            IImageView logoImageView = logoImage.CreateImageView(new IImageView.CreateInfo.Builder().ArrayLayerCount(1).BaseArrayLayer(0).BaseMipLevel(0).Format(EDataFormat.R8G8B8A8)
+            IImageView albedoImageView = albedoImage.CreateImageView(new IImageView.CreateInfo.Builder().ArrayLayerCount(1).BaseArrayLayer(0).BaseMipLevel(0).Format(EDataFormat.R8G8B8A8)
                 .MipLevelCount(1).ViewType(EImageViewType.ViewType2D));
 
-            ISampler logoImageSampler = device.CreateSampler(new ISampler.CreateInfo.Builder().AddressModeU(EAddressMode.Repeat)
+            ISampler albedoImageSampler = device.CreateSampler(new ISampler.CreateInfo.Builder().AddressModeU(EAddressMode.Repeat)
                 .AddressModeV(EAddressMode.Repeat).AddressModeW(EAddressMode.Repeat).MagFilter(EFilter.Linear).MinFilter(EFilter.Linear)
                 .MipmapMode(EMipmapMode.Linear));
 
@@ -248,7 +189,7 @@ namespace Cobalt.Sandbox
             {
                 DescriptorWriteInfo writeInfo = new DescriptorWriteInfo.Builder()
                     .AddImageInfo(new DescriptorWriteInfo.DescriptorImageInfo.Builder().Layout(EImageLayout.ShaderReadOnly)
-                    .Sampler(logoImageSampler).View(logoImageView)).ArrayElement(0).BindingIndex(1).DescriptorSet(set).Build();
+                    .Sampler(albedoImageSampler).View(albedoImageView)).ArrayElement(0).BindingIndex(1).DescriptorSet(set).Build();
 
                 DescriptorWriteInfo writeInfo2 = new DescriptorWriteInfo.Builder()
                     .AddBufferInfo(new DescriptorWriteInfo.DescriptorBufferInfo.Builder().Buffer(uniformBuffer).Offset(0).Range(64).Build())
@@ -260,27 +201,19 @@ namespace Cobalt.Sandbox
 
             int frame = 0;
             double time = 0.0;
-            double rotSpeed = 5.0;
+            double rotSpeed = 1.0;
 
             DebugCamera cam = new DebugCamera(new Vector3(2, 0, 2), new Vector3(0, 1, 0), 0);
             ScreenResolvePass screenResolve = new ScreenResolvePass(swapchain, device, 1280, 720);
 
-            EventManager.Default.AddHandler((WindowResizeEvent e) =>
-            {
-                Console.WriteLine(e.width + ", " + e.height);
-                return false;
-            });
-
-            EventManager.Default.Dispatch(new WindowResizeEvent(200, 200));
-
             /*CobaltModel me = MeshConverter.ConvertModel("data/SciFiHelmet/SciFiHelmet.gltf");
 
             MemoryStream s = new MemoryStream();
-            MeshConverter.ExportBinary(s, me);
+            MeshConverter.Export(s, me);
 
-            System.IO.File.WriteAllBytes("data/SciFiHelmet/SciFiHelmet.bcaf", s.ToArray());*/
+            System.IO.File.WriteAllText("data/SciFiHelmet/SciFiHelmet.caf", Encoding.ASCII.GetString(s.ToArray()));
 
-            CobaltModel m = MeshConverter.Import("data/SciFiHelmet/SciFiHelmet.bcaf");
+            CobaltModel m = MeshConverter.Import("data/SciFiHelmet/SciFiHelmet.caf");*/
 
             while (window.IsOpen())
             {
@@ -317,14 +250,12 @@ namespace Cobalt.Sandbox
 
                 buffer.Bind(shader.Pipeline);
                 buffer.Bind(meshC.Mesh.VAO);
-                //buffer.Bind(vao);
                 buffer.Bind(layout, 0, new List<IDescriptorSet>() { descriptorSets[frame] });
-                //buffer.Draw(0, 36, 0, 1);
                 buffer.DrawElements((int) mesh.indexCount, (int) mesh.baseVertex, 0, 1, (int) mesh.baseIndex);
 
                 // Screen Resolve
                 var frameInfo = new RenderPass.FrameInfo { FrameInFlight = frame };
-                screenResolve.SetInputTexture(new Cobalt.Graphics.Texture() { Image = colorAttachmentViews[frame], Sampler = logoImageSampler }, frameInfo);
+                screenResolve.SetInputTexture(new Cobalt.Graphics.Texture() { Image = colorAttachmentViews[frame], Sampler = albedoImageSampler }, frameInfo);
                 screenResolve.Record(buffer, frameInfo);
 
                 buffer.End();
@@ -333,9 +264,9 @@ namespace Cobalt.Sandbox
 
                 NativeBuffer<UniformBufferData> nativeData = new NativeBuffer<UniformBufferData>(uniformBuffer.Map());
                 UniformBufferData data = nativeData.Get(0);
-                data.projection = cam.projection;
-                data.view = cam.view;
-                data.model = model;
+                    data.projection = cam.projection;
+                    data.view = cam.view;
+                    data.model = model;
                 nativeData.Set(data, 0);
                 uniformBuffer.Unmap();
 

@@ -81,6 +81,18 @@ namespace Cobalt.Entities
             return _payload[(int)index];
         }
 
+        public Type TryGet(Entity ent)
+        {
+            uint page = _Page(ent);
+            uint offset = _PageOffset(ent);
+            Entity sparse = _sparse[(int)page].Payload[offset];
+            if (sparse.IsInvalid)
+            {
+                return default(Type);
+            }
+            return _payload[(int)sparse.Identifier];
+        }
+
         public void Replace(Entity ent, Type value)
         {
             uint page = _Page(ent);

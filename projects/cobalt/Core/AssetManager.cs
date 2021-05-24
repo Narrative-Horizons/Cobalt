@@ -235,6 +235,7 @@ namespace Cobalt.Core
 
     public class RenderableMesh
     {
+        public uint uuid;
         public Mesh localMesh;
         public RenderableMeshVertex[] localVertices;
         public uint baseVertex;
@@ -244,7 +245,17 @@ namespace Cobalt.Core
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(VAO.GetHashCode(), baseVertex.GetHashCode(), baseIndex.GetHashCode(), indexCount.GetHashCode());
+            return HashCode.Combine(uuid);
+        }
+
+        public override bool Equals(object obj)
+        {
+            RenderableMesh other = obj as RenderableMesh;
+            if (other != null)
+            {
+                return other.uuid == uuid;
+            }
+            return false;
         }
     }
 
@@ -252,6 +263,7 @@ namespace Cobalt.Core
     {
         private readonly Dictionary<ModelAsset, List<RenderableMesh>> _renderableMeshes = new Dictionary<ModelAsset, List<RenderableMesh>>();
         private IDevice _device;
+        private uint _meshCount = 0;
 
         public RenderableManager(IDevice device)
         {
@@ -281,11 +293,13 @@ namespace Cobalt.Core
 
             foreach (MeshNode meshNode in meshes)
             {
+                ++ _meshCount;
                 Mesh mesh = meshNode.mesh;
 
                 RenderableMesh rMesh = new RenderableMesh
                 {
-                    localMesh = mesh
+                    localMesh = mesh,
+                    uuid = _meshCount
                 };
 
                 uint vertexCount = (uint)mesh.positions.Length;

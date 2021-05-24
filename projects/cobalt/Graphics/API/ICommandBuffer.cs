@@ -209,6 +209,8 @@ namespace Cobalt.Graphics.API
 
         void Bind(IPipelineLayout layout, int firstSet, List<IDescriptorSet> sets);
 
+        void Bind(IPipelineLayout layout, int firstSet, List<IDescriptorSet> sets, List<uint> offsets);
+
         void Draw(int baseVertex, int vertexCount, int baseInstance, int instanceCount);
 
         void DrawElements(int elementCount, int baseVertex, int baseInstance, int instanceCount);

@@ -49,6 +49,11 @@ namespace Cobalt.Graphics.GL
             commands.Add(new BindDescriptorSetsCommand(sets));
         }
 
+        public void Bind(IPipelineLayout layout, int firstSet, List<IDescriptorSet> sets, List<uint> offsets)
+        {
+            commands.Add(new BindDynamicDescriptorSetsCommand(sets, offsets));
+        }
+
         public void Copy(IBuffer source, IBuffer destination, List<ICommandBuffer.BufferCopyRegion> regions)
         {
 

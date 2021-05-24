@@ -28,4 +28,31 @@ namespace Cobalt.Graphics.GL.Commands
             });
         }
     }
+
+    internal class BindDynamicDescriptorSetsCommand : ICommand
+    {
+        public List<IDescriptorSet> Sets { get; private set; } = new List<IDescriptorSet>();
+        public List<uint> Offsets { get; private set; } = new List<uint>();
+
+
+        public BindDynamicDescriptorSetsCommand(List<IDescriptorSet> sets, List<uint> offsets)
+        {
+            Sets = sets;
+            Offsets = offsets;
+        }
+
+        public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Execute()
+        {
+            Sets.ForEach(iset =>
+            {
+                DescriptorSet set = (DescriptorSet)iset;
+                set.Bind(Offsets);
+            });
+        }
+    }
 }

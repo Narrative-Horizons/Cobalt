@@ -1,4 +1,5 @@
 ﻿using Cobalt.Graphics.API;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -9,6 +10,8 @@ namespace Cobalt.Graphics.GL
         private interface IBinding
         {
             void Bind();
+            void Bind(uint offset);
+            bool IsDynamic();
         }
 
         private class CombinedImageSamplerBinding : IBinding
@@ -35,6 +38,16 @@ namespace Cobalt.Graphics.GL
                 
                 StateMachine.UniformHandleuivArb(Index, Handles);
             }
+
+            public void Bind(uint offset)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsDynamic()
+            {
+                return false;
+            }
         }
 
         private class UniformBufferBinding : IBinding
@@ -53,6 +66,16 @@ namespace Cobalt.Graphics.GL
             {
                 StateMachine.BindUniformBufferRange(Index, Buffer, Offset, Range);
             }
+
+            public void Bind(uint offset)
+            {
+                StateMachine.BindUniformBufferRange(Index, Buffer, (int) offset, Range);
+            }
+
+            public bool IsDynamic()
+            {
+                return true;
+            }
         }
 
         private IDescriptorSetLayout _layout;
@@ -60,7 +83,7 @@ namespace Cobalt.Graphics.GL
 
         public DescriptorSet(IDescriptorSetLayout layout)
         {
-            this._layout = layout;
+            _layout = layout;
 
             DescriptorSetLayout lay = (DescriptorSetLayout)layout;
             lay.Bindings.Sort((left, right) => left.BindingIndex - right.BindingIndex);
@@ -137,6 +160,22 @@ namespace Cobalt.Graphics.GL
         public void Bind()
         {
             _bindings.ForEach(binding => binding.Bind());
+        }
+
+        public void Bind(List<uint> offsets)
+        {
+            int offsetIdx = 0;
+            foreach (var binding in _bindings)
+            {
+                if (binding.IsDynamic())
+                {
+                    binding.Bind(offsets[offsetIdx++]);
+                }
+                else
+                {
+                    binding.Bind();
+                }
+            }
         }
 
         public void Dispose()

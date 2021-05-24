@@ -59,6 +59,12 @@ namespace Cobalt.Entities
             return pool.Get(ent);
         }
 
+        public Component TryGet<Component>(Entity ent) where Component : BaseComponent, new()
+        {
+            MemoryPool<Component> pool = GetPool<Component>();
+            return pool.TryGet(ent);
+        }
+
         public bool Has<Component>(Entity ent) where Component : BaseComponent, new()
         {
             MemoryPool<Component> pool = GetPool<Component>();

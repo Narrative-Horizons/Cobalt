@@ -1,4 +1,5 @@
 ﻿using Cobalt.Core;
+using Cobalt.Entities;
 using Cobalt.Graphics.API;
 using System.Collections.Generic;
 
@@ -11,9 +12,19 @@ namespace Cobalt.Graphics
             public int FrameInFlight;
         }
 
+        public IDevice Device { get; private set; }
+
         public string Name { get; protected set; }
         public IRenderPass Native { get; protected set; }
+
+        public RenderPass(IDevice device)
+        {
+            Device = device;
+        }
+
         public abstract void Record(ICommandBuffer buffer, FrameInfo info);
+
+        public abstract void Preprocess(Entity ent, Registry reg);
     }
 
     public class ScreenResolvePass : RenderPass
@@ -25,12 +36,10 @@ namespace Cobalt.Graphics
         public IVertexAttributeArray VAO { get; private set; }
         public IDescriptorPool DescriptorPool { get; private set; }
         public List<IDescriptorSet> DescriptorSets { get; private set; }
-        public IDevice Device;
 
-        public ScreenResolvePass(ISwapchain resolveTo, IDevice device, int width, int height)
+        public ScreenResolvePass(ISwapchain resolveTo, IDevice device, int width, int height) : base(device)
         {
             swapchain = resolveTo;
-            Device = device;
             Width = width;
             Height = height;
 
@@ -102,6 +111,10 @@ namespace Cobalt.Graphics
             buffer.Bind(VAO);
             buffer.Bind(Shader.Layout, 0, new List<IDescriptorSet>() { DescriptorSets[info.FrameInFlight] });
             buffer.Draw(0, 6, 0, 1);
+        }
+
+        public override void Preprocess(Entity ent, Registry reg)
+        {
         }
     }
 }

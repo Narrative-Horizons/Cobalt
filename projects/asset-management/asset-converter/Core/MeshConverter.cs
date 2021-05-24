@@ -2,13 +2,13 @@
 using Newtonsoft.Json.Bson;
 using Silk.NET.Assimp;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 
 namespace CobaltConverter.Core
 {
-    [Serializable]
-    public struct MeshVector2
+    public class MeshVector2
     {
         public MeshVector2(float x, float y)
         {
@@ -19,8 +19,7 @@ namespace CobaltConverter.Core
         public float x, y;
     }
     
-    [Serializable]
-    public struct MeshVector3
+    public class MeshVector3
     {
         public MeshVector3(float x, float y, float z)
         {
@@ -32,8 +31,7 @@ namespace CobaltConverter.Core
         public float x, y, z;
     }
 
-    [Serializable]
-    public struct MeshVector4
+    public class MeshVector4
     {
         public MeshVector4(float x, float y, float z, float w)
         {
@@ -46,8 +44,7 @@ namespace CobaltConverter.Core
         public float x, y, z, w;
     }
 
-    [Serializable]
-    public struct MeshMatrix4
+    public class MeshMatrix4
     {
         public static MeshMatrix4 Identity()
         {
@@ -64,29 +61,29 @@ namespace CobaltConverter.Core
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct MeshVertex
+    public class MeshVertex
     {
         public MeshVector3 position;
-        public MeshVector2[] texcoords;
+        public List<MeshVector2> texcoords;
         public MeshVector3 normal;
         public MeshVector3 tangent;
         public MeshVector3 binormal;
-        public MeshVector4[] colors;
+        public List<MeshVector4> colors;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct MeshFace
+    public class MeshFace
     {
-        public uint[] indices;
+        public List<uint> indices = new List<uint>();
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct CobaltMesh
+    public class CobaltMesh
     {
-        public MeshVertex[] Vertices { get; internal set; }
-        public MeshFace[] Faces { get; internal set; }
+        public List<MeshVertex> Vertices { get; set; }
+        public List<MeshFace> Faces { get; set; }
 
-        public uint MaterialIndex { get; internal set; }
+        public uint MaterialIndex { get; set; }
     }
 
     public enum CobaltMeshTextureType
@@ -102,36 +99,36 @@ namespace CobaltConverter.Core
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct CobaltMeshTexture
+    public class CobaltMeshTexture
     {
-        public CobaltMeshTextureType Type { get; internal set; }
-        public string Path { get; internal set; }
+        public CobaltMeshTextureType Type { get; set; }
+        public string Path { get; set; }
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct CobaltMeshMaterial
+    public class CobaltMeshMaterial
     {
-        public string Name { get; internal set; }
-        public CobaltMeshTexture[] Textures { get; internal set; }
+        public string Name { get; set; }
+        public List<CobaltMeshTexture> Textures { get; set; }
     }
 
     [StructLayout(LayoutKind.Sequential)]
     public class CobaltModelNode
     {
-        public string Name { get; internal set; }
-        public MeshMatrix4 Transformation { get; internal set; }
+        public string Name { get; set; }
+        public MeshMatrix4 Transformation { get; set; }
         //public CobaltModelNode Parent { get; internal set; } = null;
-        public CobaltModelNode[] Children { get; internal set; } = null;
-        public uint[] Meshes { get; internal set; }
+        public List<CobaltModelNode> Children { get; set; }
+        public List<uint> Meshes { get; set; }
     }
 
     [StructLayout(LayoutKind.Sequential)]
     public class CobaltModel
     {
-        public uint Flags { get; internal set; }
-        public CobaltModelNode RootNode { get; internal set; }
-        public CobaltMesh[] Meshes { get; internal set; }
-        public CobaltMeshMaterial[] Materials { get; internal set; }
+        public uint Flags { get; set; }
+        public CobaltModelNode RootNode { get; set; }
+        public List<CobaltMesh> Meshes { get; set; }
+        public List<CobaltMeshMaterial> Materials { get; set; }
 
         /// TODO: Animations
         /// TODO: Other scene objects (lights, camera, etc)
@@ -146,7 +143,7 @@ namespace CobaltConverter.Core
             if (numMaterials == 0)
                 return;
 
-            rootModel.Materials = new CobaltMeshMaterial[numMaterials];
+            rootModel.Materials.Capacity = (int)numMaterials;
             Assimp assimp = Assimp.GetApi();
 
             for (int i = 0; i < numMaterials; i++)
@@ -160,19 +157,19 @@ namespace CobaltConverter.Core
 
         private static unsafe void ProcessNode(CobaltModel rootModel, CobaltModelNode node, Node* assNode, Scene* assScene, MeshMatrix4 parentMatrix)
         {
-            node.Meshes = new uint[assNode->MNumMeshes];
+            node.Meshes = new List<uint>(new uint[assNode->MNumMeshes]);
             node.Name = assNode->MName;
 
             for (int i = 0; i < assNode->MNumMeshes; i++)
             {
                 Mesh* assMesh = assScene->MMeshes[assNode->MMeshes[i]];
 
-                rootModel.Meshes[assNode->MMeshes[i]] = ProcessMesh(node, assMesh, assScene);
+                rootModel.Meshes[(int)assNode->MMeshes[i]] = ProcessMesh(node, assMesh, assScene);
 
                 node.Meshes[i] = assNode->MMeshes[i];
             }
 
-            node.Children = new CobaltModelNode[assNode->MNumChildren];
+            node.Children = new List<CobaltModelNode>(new CobaltModelNode[assNode->MNumChildren]);
             for(int i = 0; i < assNode->MNumChildren; i++)
             {
                 CobaltModelNode childNode = new CobaltModelNode();
@@ -187,13 +184,15 @@ namespace CobaltConverter.Core
         {
             CobaltMesh mesh = new CobaltMesh
             {
-                Vertices = new MeshVertex[assMesh->MNumVertices],
-                Faces = new MeshFace[assMesh->MNumFaces],
                 MaterialIndex = assMesh->MMaterialIndex
             };
 
+            mesh.Vertices = new List<MeshVertex>(new MeshVertex[assMesh->MNumVertices]);
+            mesh.Faces = new List<MeshFace>(new MeshFace[assMesh->MNumFaces]);
+
             for(int i = 0; i < assMesh->MNumVertices; i++)
             {
+                mesh.Vertices[i] = new MeshVertex();
                 mesh.Vertices[i].position = new MeshVector3(assMesh->MVertices[i].X, assMesh->MVertices[i].Y, assMesh->MVertices[i].Z);
 
                 if (assMesh->MNormals != null)
@@ -201,7 +200,7 @@ namespace CobaltConverter.Core
                 else
                     mesh.Vertices[i].normal = new MeshVector3(0, 1, 0);
 
-                mesh.Vertices[i].texcoords = new MeshVector2[1];
+                mesh.Vertices[i].texcoords = new List<MeshVector2>(new MeshVector2[1]);
 
                 if (assMesh->MTextureCoords.Element0 != null)
                     mesh.Vertices[i].texcoords[0] = new MeshVector2(assMesh->MTextureCoords.Element0[i].X, assMesh->MTextureCoords.Element0[i].Y);
@@ -217,16 +216,20 @@ namespace CobaltConverter.Core
                     mesh.Vertices[i].binormal = new MeshVector3(assMesh->MBitangents[i].X, assMesh->MBitangents[i].Y, assMesh->MBitangents[i].Z);
                 else
                     mesh.Vertices[i].binormal = new MeshVector3(0, 0, 1);
+
+                mesh.Vertices[i].colors = new List<MeshVector4>(new MeshVector4[1]);
+                if (assMesh->MColors.Element0 != null)
+                    mesh.Vertices[i].colors[0] = new MeshVector4(assMesh->MColors.Element0[i].X, assMesh->MColors.Element0[i].Y, assMesh->MColors.Element0[i].Z, assMesh->MColors.Element0[i].W);
+                else
+                    mesh.Vertices[i].colors[0] = new MeshVector4(0, 0, 0, 0);
             }
 
             for(int i = 0; i < assMesh->MNumFaces; i++)
             {
-                MeshFace face = new MeshFace
-                {
-                    indices = new uint[assMesh->MFaces[i].MNumIndices]
-                };
+                MeshFace face = new MeshFace();
+                face.indices = new List<uint>(new uint[assMesh->MFaces[i].MNumIndices]);
 
-                for (int j = 0; j < face.indices.Length; j++)
+                for (int j = 0; j < assMesh->MFaces[i].MNumIndices; j++)
                 {
                     face.indices[j] = assMesh->MFaces[i].MIndices[j];
                 }
@@ -245,8 +248,8 @@ namespace CobaltConverter.Core
                 Assimp assimp = Assimp.GetApi();
                 Scene* scene = assimp.ImportFile(path, (uint)PostProcessPreset.TargetRealTimeMaximumQuality);
 
-                model.Meshes = new CobaltMesh[scene->MNumMeshes];
-                model.Materials = new CobaltMeshMaterial[scene->MNumMaterials];
+                model.Meshes = new List<CobaltMesh>(new CobaltMesh[scene->MNumMeshes]);
+                model.Materials = new List<CobaltMeshMaterial>(new CobaltMeshMaterial[scene->MNumMaterials]);
                 model.Flags = scene->MFlags;
                 model.RootNode = new CobaltModelNode();
 
@@ -284,8 +287,7 @@ namespace CobaltConverter.Core
         {
             if(path.Contains(".caf"))
             {
-                string data = System.IO.File.ReadAllText(path);
-                return JsonConvert.DeserializeObject<CobaltModel>(data);
+                return JsonConvert.DeserializeObject<CobaltModel>(System.IO.File.ReadAllText(path));
             }
             else if(path.Contains(".bcaf"))
             {

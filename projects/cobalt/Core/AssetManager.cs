@@ -171,9 +171,6 @@ namespace Cobalt.Core
         {
             Path = path;
 
-            var x = MeshConverter.ConvertModel(path);
-            int jonathan = 0;
-
             unsafe
             {
                 Assimp assimp = Assimp.GetApi();

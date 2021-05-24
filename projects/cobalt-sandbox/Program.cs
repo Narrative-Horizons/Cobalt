@@ -273,16 +273,14 @@ namespace Cobalt.Sandbox
 
             EventManager.Default.Dispatch(new WindowResizeEvent(200, 200));
 
-            //CobaltModel m = MeshConverter.ConvertModel("data/Box.gltf");
+            /*CobaltModel me = MeshConverter.ConvertModel("data/SciFiHelmet/SciFiHelmet.gltf");
 
-            //MemoryStream s = new MemoryStream();
-            //MeshConverter.Export(s, m);
+            MemoryStream s = new MemoryStream();
+            MeshConverter.ExportBinary(s, me);
 
-            //System.IO.File.WriteAllBytes("data/SciFiHelmet/SciFiHelmet.bcaf", s.ToArray());
+            System.IO.File.WriteAllBytes("data/SciFiHelmet/SciFiHelmet.bcaf", s.ToArray());*/
 
-            //System.IO.File.WriteAllText("data/Box.caf", Encoding.ASCII.GetString(s.ToArray()));
-
-            CobaltModel m = MeshConverter.Import("data/Box.caf");
+            CobaltModel m = MeshConverter.Import("data/SciFiHelmet/SciFiHelmet.bcaf");
 
             while (window.IsOpen())
             {

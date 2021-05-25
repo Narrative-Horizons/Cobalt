@@ -79,6 +79,11 @@ namespace Cobalt.Graphics.GL
             commands.Add(new DrawElementsCommand(baseVertex, elementCount, baseInstance, instanceCount, indexOffset));
         }
 
+        public void DrawElementsMultiIndirect(DrawElementsIndirectCommand indirect)
+        {
+            commands.Add(new MultiDrawElementsIndirectCommand(indirect));
+        }
+
         public void End()
         {
             _recording = false;

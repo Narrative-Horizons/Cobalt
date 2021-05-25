@@ -15,6 +15,12 @@ namespace Cobalt.Graphics.API
                     return this;
                 }
 
+                public Builder AddLayout(List<IDescriptorSetLayout> layouts)
+                {
+                    Layouts.AddRange(layouts);
+                    return this;
+                }
+
                 public CreateInfo Build()
                 {
                     CreateInfo info = new CreateInfo

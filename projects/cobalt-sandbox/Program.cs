@@ -66,7 +66,7 @@ namespace Cobalt.Sandbox
             IQueue presentQueue = device.Queues().Find(queue => queue.GetProperties().Present);
             IQueue transferQueue = device.Queues().Find(queue => queue.GetProperties().Transfer);
 
-            #region Framebuffer
+            /*#region Framebuffer
 
             IFrameBuffer[] FrameBuffer = new IFrameBuffer[2];
             IImage[] colorAttachments = new IImage[2];
@@ -95,12 +95,12 @@ namespace Cobalt.Sandbox
                     .AddAttachment(new IFrameBuffer.CreateInfo.Attachment.Builder().ImageView(depthAttachmentViews[i]).Usage(EImageUsage.DepthStencilAttachment)));
             }
 
-            #endregion
+            #endregion*/
 
             IRenderSurface surface = device.GetSurface(window);
             ISwapchain swapchain = surface.CreateSwapchain(new ISwapchain.CreateInfo.Builder().Width(1280).Height(720).ImageCount(2).Layers(1).Build());
 
-            IRenderPass renderPass = device.CreateRenderPass(new IRenderPass.CreateInfo.Builder().AddAttachment(new IRenderPass.AttachmentDescription.Builder().InitialLayout(EImageLayout.Undefined)
+            /*IRenderPass renderPass = device.CreateRenderPass(new IRenderPass.CreateInfo.Builder().AddAttachment(new IRenderPass.AttachmentDescription.Builder().InitialLayout(EImageLayout.Undefined)
                 .FinalLayout(EImageLayout.PresentSource).LoadOp(EAttachmentLoad.Clear).StoreOp(EAttachmentStore.Store).Format(EDataFormat.BGRA8_SRGB)));
 
             IRenderPass screenPass = device.CreateRenderPass(new IRenderPass.CreateInfo.Builder().AddAttachment(new IRenderPass.AttachmentDescription.Builder().InitialLayout(EImageLayout.Undefined)
@@ -111,13 +111,13 @@ namespace Cobalt.Sandbox
                 .DescriptorType(EDescriptorType.UniformBuffer)
                 .AddAccessibleStage(EShaderType.Vertex).Build())
                 .AddBinding(new IDescriptorSetLayout.DescriptorSetLayoutBinding.Builder()
-                .AddAccessibleStage(EShaderType.Fragment).BindingIndex(1).DescriptorType(EDescriptorType.CombinedImageSampler).Count(1).Name("albedo").Build()).Build())).Build());
+                .AddAccessibleStage(EShaderType.Fragment).BindingIndex(1).DescriptorType(EDescriptorType.CombinedImageSampler).Count(1).Name("albedo").Build()).Build())).Build());*/
 
-            ICommandPool commandPool = device.CreateCommandPool(new ICommandPool.CreateInfo.Builder().Queue(graphicsQueue).ResetAllocations(true).TransientAllocations(true));
+            /*ICommandPool commandPool = device.CreateCommandPool(new ICommandPool.CreateInfo.Builder().Queue(graphicsQueue).ResetAllocations(true).TransientAllocations(true));
             List<ICommandBuffer> commandBuffers = commandPool.Allocate(new ICommandBuffer.AllocateInfo.Builder().Count(swapchain.GetImageCount()).Level(ECommandBufferLevel.Primary).Build());
 
             ICommandPool transferPool = device.CreateCommandPool(new ICommandPool.CreateInfo.Builder().Queue(transferQueue).ResetAllocations(false).TransientAllocations(true));
-            ICommandBuffer transferCmdBuffer = transferPool.Allocate(new ICommandBuffer.AllocateInfo.Builder().Count(1).Level(ECommandBufferLevel.Primary))[0];
+            ICommandBuffer transferCmdBuffer = transferPool.Allocate(new ICommandBuffer.AllocateInfo.Builder().Count(1).Level(ECommandBufferLevel.Primary))[0];*/
 
             RenderableManager renderableManager = new RenderableManager(device);
             AssetManager assetManager = new AssetManager();
@@ -132,8 +132,11 @@ namespace Cobalt.Sandbox
             Entity e = reg.Create();
             reg.Assign(e, new MeshComponent(box));
             reg.Assign(e, new TransformComponent());
+            reg.Assign(e, new PbrMaterialComponent());
 
-            string vsSource = FileSystem.LoadFileToString("data/standard_vertex.glsl");
+
+
+            /*string vsSource = FileSystem.LoadFileToString("data/standard_vertex.glsl");
             string fsSource = FileSystem.LoadFileToString("data/standard_fragment.glsl");
 
             Shader shader = device.CreateShader(new Shader.CreateInfo.Builder().VertexSource(vsSource).FragmentSource(fsSource).Build(), layout, true);
@@ -201,10 +204,10 @@ namespace Cobalt.Sandbox
 
             int frame = 0;
             double time = 0.0;
-            double rotSpeed = 1.0;
+            double rotSpeed = 1.0;*/
 
             DebugCamera cam = new DebugCamera(new Vector3(2, 0, 2), new Vector3(0, 1, 0), 0);
-            ScreenResolvePass screenResolve = new ScreenResolvePass(swapchain, device, 1280, 720);
+            //ScreenResolvePass screenResolve = new ScreenResolvePass(swapchain, device, 1280, 720);
 
             /*CobaltModel me = MeshConverter.ConvertModel("data/SciFiHelmet/SciFiHelmet.gltf");
 
@@ -215,18 +218,20 @@ namespace Cobalt.Sandbox
 
             CobaltModel m = MeshConverter.Import("data/SciFiHelmet/SciFiHelmet.caf");*/
 
+            RenderSystem renderSystem = new RenderSystem(reg, device, swapchain);
+
             while (window.IsOpen())
             {
                 cam.Update();
-                ICommandBuffer buffer = commandBuffers[frame];
-                buffer.Record(new ICommandBuffer.RecordInfo());
+                //ICommandBuffer buffer = commandBuffers[frame];
+                //buffer.Record(new ICommandBuffer.RecordInfo());
 
                 if(Input.IsKeyPressed(Bindings.GLFW.Keys.Escape))
                 {
                     window.Close();
                 }
 
-                if(Input.IsKeyDown(Bindings.GLFW.Keys.NumpadAdd))
+                /*if(Input.IsKeyDown(Bindings.GLFW.Keys.NumpadAdd))
                 {
                     rotSpeed += 0.1;
                 }
@@ -270,13 +275,15 @@ namespace Cobalt.Sandbox
                 nativeData.Set(data, 0);
                 uniformBuffer.Unmap();
 
-                graphicsQueue.Execute(new IQueue.SubmitInfo(commandBuffers[frame]));
+                graphicsQueue.Execute(new IQueue.SubmitInfo(commandBuffers[frame]));*/
+
+                renderSystem.render();
 
                 window.Poll();
                 swapchain.Present(new ISwapchain.PresentInfo());
 
-                frame = (frame + 1) % 2;
-                time += rotSpeed;
+                //frame = (frame + 1) % 2;
+                //time += rotSpeed;
             }
 
             gfxContext.Dispose();

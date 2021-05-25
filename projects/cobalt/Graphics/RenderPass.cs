@@ -9,6 +9,7 @@ namespace Cobalt.Graphics
     {
         public struct FrameInfo
         {
+            public IFrameBuffer FrameBuffer;
             public int FrameInFlight;
         }
 

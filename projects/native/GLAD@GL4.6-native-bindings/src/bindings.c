@@ -288,6 +288,11 @@ GLAD_BINDING_EXPORT void cobalt_gl_draw_elements_instanced_base_vertex_base_inst
 	glDrawElementsInstancedBaseVertexBaseInstance(mode, count, type, indices, instanceCount, baseVertex, baseInstance);
 }
 
+GLAD_BINDING_EXPORT void cobalt_gl_multi_draw_elements_indirect(unsigned int mode, unsigned int type, const void* indirect, int drawCount, int stride)
+{
+	glMultiDrawElementsIndirect(mode, type, indirect, drawCount, stride);
+}
+
 GLAD_BINDING_EXPORT void cobalt_gl_draw_arrays_instanced_base_instance(unsigned int mode, int first, int count, int instanceCount, unsigned int baseInstance)
 {
 	glDrawArraysInstancedBaseInstance(mode, first, count, instanceCount, baseInstance);

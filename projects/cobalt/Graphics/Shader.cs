@@ -78,7 +78,7 @@ namespace Cobalt.Graphics
         }
 
         static bool first = true;
-        public Shader(CreateInfo createInfo, IDevice device, IPipelineLayout layout, bool test)
+        public Shader(CreateInfo createInfo, IDevice device, IPipelineLayout layout, bool depthTest)
         {
             if(createInfo.ComputeSource != null)
             {
@@ -177,7 +177,7 @@ namespace Cobalt.Graphics
                         .EntryPoint("main").Build());
                 }
 
-                int sizeOfLayout = 5 * 4;
+                int sizeOfLayout = 18 * 4;
 
                 pipelineCreateInfo.VertexAttributeCreationInformation(
                     new IGraphicsPipeline.VertexAttributeCreateInfo.Builder()
@@ -220,6 +220,14 @@ namespace Cobalt.Graphics
                             .Location(4)
                             .Offset(sizeof(float) * 11)
                             .Rate(EVertexInputRate.PerVertex)
+                            .Stride(sizeOfLayout))
+                    .AddAttribute(
+                        new VertexAttribute.Builder()
+                            .Binding(0)
+                            .Format(EDataFormat.R32G32B32A32_SFLOAT)
+                            .Location(5)
+                            .Offset(sizeof(float) * 14)
+                            .Rate(EVertexInputRate.PerVertex)
                             .Stride(sizeOfLayout)).Build())
                 .InputAssemblyCreationInformation(
                     new IGraphicsPipeline.InputAssemblyCreateInfo.Builder()
@@ -252,8 +260,8 @@ namespace Cobalt.Graphics
                     .RasterizerDiscardEnabled(true).Build())
                 .DepthStencilCreationInformation(
                     new IGraphicsPipeline.DepthStencilCreateInfo.Builder()
-                    .DepthTestEnabled(test)
-                    .DepthWriteEnabled(test)
+                    .DepthTestEnabled(depthTest)
+                    .DepthWriteEnabled(depthTest)
                     .DepthCompareOp(ECompareOp.Less).Build())
                 .MultisamplingCreationInformation(
                     new IGraphicsPipeline.MultisampleCreateInfo.Builder()

@@ -68,6 +68,16 @@ namespace Cobalt.Graphics.GL
             OpenGL.UniformHandleui64vARB(index, handles.Length, handles);
         }
 
+        public static void MultiDrawElementsIndirect(DrawElementsIndirectCommand payload)
+        {
+            GCHandle handle = GCHandle.Alloc(payload.Data.ToArray(), GCHandleType.Pinned);
+            unsafe
+            {
+                OpenGL.MultiDrawElementsIndirect(_currentDrawMode, EDrawElementsType.UnsignedInt, handle.AddrOfPinnedObject(), payload.Data.Count, sizeof(DrawElementsIndirectCommandPayload));
+            }
+            handle.Free();
+        }
+
         public static void UseProgram(GraphicsPipeline pipeline)
         {
             uint handle = pipeline.Handle;

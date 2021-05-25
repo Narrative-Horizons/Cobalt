@@ -63,6 +63,9 @@ namespace Cobalt.Bindings.GL
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_disable", CallingConvention = CallingConvention.Cdecl)]
         public static extern void Disable(EEnableCap mask);
 
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_multi_draw_elements_indirect", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void MultiDrawElementsIndirect(EBeginMode drawMode, EDrawElementsType type, IntPtr indirect, int drawCount, int stride);
+
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_polygon_mode", CallingConvention = CallingConvention.Cdecl)]
         public static extern void PolygonMode(ECullFaceMode face, EPolygonMode mode);
 

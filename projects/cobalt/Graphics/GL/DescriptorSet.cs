@@ -50,6 +50,34 @@ namespace Cobalt.Graphics.GL
             }
         }
 
+        private class StorageBufferBinding : IBinding
+        {
+            public uint Index { get; set; }
+            public IBuffer Buffer { get; set; }
+            public int Offset { get; set; }
+            public int Range { get; set; }
+
+            public StorageBufferBinding(uint index)
+            {
+                Index = index;
+            }
+
+            public void Bind()
+            {
+                StateMachine.BindStorageBufferRange(Index, Buffer, Offset, Range);
+            }
+
+            public void Bind(uint offset)
+            {
+                StateMachine.BindStorageBufferRange(Index, Buffer, (int)offset, Range);
+            }
+
+            public bool IsDynamic()
+            {
+                return true;
+            }
+        }
+
         private class UniformBufferBinding : IBinding
         {
             public uint Index { get; set; }
@@ -104,6 +132,7 @@ namespace Cobalt.Graphics.GL
                         _bindings.Add(new UniformBufferBinding((uint) binding.BindingIndex));
                         break;
                     case EDescriptorType.StorageBuffer:
+                        _bindings.Add(new StorageBufferBinding((uint)binding.BindingIndex));
                         break;
                 }
             });
@@ -152,6 +181,18 @@ namespace Cobalt.Graphics.GL
                         }
                         break;
                     case EDescriptorType.StorageBuffer:
+                        StorageBufferBinding sbb = (StorageBufferBinding)_bindings[bindingIndex];
+                        for(int i = 0; i < info.BufferInfo.Count; i++)
+                        {
+                            DescriptorWriteInfo.DescriptorBufferInfo bufferInfo = info.BufferInfo[i];
+                            IBuffer buf = bufferInfo.Buffer;
+                            int offset = bufferInfo.Offset;
+                            int range = bufferInfo.Range;
+
+                            sbb.Buffer = buf;
+                            sbb.Offset = offset;
+                            sbb.Range = range;
+                        }
                         break;
                 }
             });

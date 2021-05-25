@@ -54,6 +54,11 @@ namespace Cobalt.Graphics.GL
             commands.Add(new BindDynamicDescriptorSetsCommand(sets, offsets));
         }
 
+        public void Bind(EBufferUsage usage, IBuffer buffer)
+        {
+            commands.Add(new BindBufferCommand(usage, buffer));
+        }
+
         public void Copy(IBuffer source, IBuffer destination, List<ICommandBuffer.BufferCopyRegion> regions)
         {
 
@@ -79,9 +84,9 @@ namespace Cobalt.Graphics.GL
             commands.Add(new DrawElementsCommand(baseVertex, elementCount, baseInstance, instanceCount, indexOffset));
         }
 
-        public void DrawElementsMultiIndirect(DrawElementsIndirectCommand indirect)
+        public void DrawElementsMultiIndirect(DrawElementsIndirectCommand indirect, int offset, IBuffer indirectBuffer)
         {
-            commands.Add(new MultiDrawElementsIndirectCommand(indirect));
+            commands.Add(new MultiDrawElementsIndirectCommand(indirect, offset, indirectBuffer));
         }
 
         public void End()
@@ -176,5 +181,7 @@ namespace Cobalt.Graphics.GL
 
             throw new InvalidOperationException("Format unsupported");
         }
+
+        
     }
 }

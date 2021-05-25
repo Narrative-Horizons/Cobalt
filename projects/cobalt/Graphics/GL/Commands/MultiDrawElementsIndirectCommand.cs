@@ -7,10 +7,14 @@ namespace Cobalt.Graphics.GL.Commands
     internal class MultiDrawElementsIndirectCommand : ICommand
     {
         private DrawElementsIndirectCommand _payload;
+        private int _offset;
+        private IBuffer _indirectBuffer;
 
-        public MultiDrawElementsIndirectCommand(DrawElementsIndirectCommand indirect)
+        public MultiDrawElementsIndirectCommand(DrawElementsIndirectCommand indirect, int offset, IBuffer indirectBuffer)
         {
             _payload = indirect;
+            _offset = offset;
+            _indirectBuffer = indirectBuffer;
         }
 
         public void Dispose()
@@ -19,7 +23,7 @@ namespace Cobalt.Graphics.GL.Commands
 
         public void Execute()
         {
-            StateMachine.MultiDrawElementsIndirect(_payload);
+            StateMachine.MultiDrawElementsIndirect(_payload, _offset, _indirectBuffer);
         }
     }
 }

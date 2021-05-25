@@ -206,6 +206,7 @@ namespace Cobalt.Graphics.API
         void Bind(IGraphicsPipeline pipeline);
 
         void Bind(IVertexAttributeArray vao);
+        void Bind(EBufferUsage usage, IBuffer buffer);
 
         void Bind(IPipelineLayout layout, int firstSet, List<IDescriptorSet> sets);
 
@@ -217,7 +218,7 @@ namespace Cobalt.Graphics.API
 
         void DrawElements(int elementCount, int baseVertex, int baseInstance, int instanceCount, long indexOffset);
 
-        void DrawElementsMultiIndirect(DrawElementsIndirectCommand indirect);
+        void DrawElementsMultiIndirect(DrawElementsIndirectCommand indirect, int offset, IBuffer indirectBuffer);
 
         void Copy(IBuffer source, IBuffer destination, List<BufferCopyRegion> regions);
         void Copy(byte[] source, IImage destination, List<BufferImageCopyRegion> regions);

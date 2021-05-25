@@ -30,7 +30,9 @@ namespace Cobalt.Graphics.GL
             if(memoryInfo.Usage != EMemoryUsage.GPUOnly && (memoryInfo.Required.Contains(EMemoryProperty.HostVisible) ||
                 memoryInfo.Preferred.Contains(EMemoryProperty.HostVisible)))
             {
-                Flags |= EBufferAccessMask.MapPersistentBit;
+                if(!createInfo.Usage.Contains(EBufferUsage.IndirectBuffer))
+                    Flags |= EBufferAccessMask.MapPersistentBit;
+
                 Flags |= EBufferAccessMask.DynamicStorageBit;
                 Flags |= EBufferAccessMask.MapReadBit;
                 Flags |= EBufferAccessMask.MapWriteBit;
@@ -38,7 +40,8 @@ namespace Cobalt.Graphics.GL
 
             if(memoryInfo.Preferred.Contains(EMemoryProperty.HostCoherent) || memoryInfo.Required.Contains(EMemoryProperty.HostCoherent))
             {
-                Flags |= EBufferAccessMask.MapCoherentBit;
+                if (!createInfo.Usage.Contains(EBufferUsage.IndirectBuffer))
+                    Flags |= EBufferAccessMask.MapCoherentBit;
             }
 
             if(memoryInfo.Usage == EMemoryUsage.CPUOnly)
@@ -113,7 +116,7 @@ namespace Cobalt.Graphics.GL
             if (!Persistent && Handle != default)
             {
                 OpenGL.UnmapNamedBuffer(Handle);
-                Handle = default;
+                Mapping = default;
             }
         }
 

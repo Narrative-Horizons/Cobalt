@@ -29,8 +29,15 @@ namespace Cobalt.Entities.Components
             {
                 return false;
             }
-            return Type.Equals(casted.Type) && Albedo.Equals(casted.Albedo) && Normal.Equals(casted.Normal)
-                && Emission.Equals(casted.Emission) && OcclusionRoughnessMetallic.Equals(casted.OcclusionRoughnessMetallic);
+            return Type.Equals(casted.Type)
+                   && Albedo != null
+                   && Albedo.Equals(casted.Albedo)
+                   && Normal != null
+                   && Normal.Equals(casted.Normal)
+                   && Emission != null
+                   && Emission.Equals(casted.Emission)
+                   && OcclusionRoughnessMetallic != null
+                   && OcclusionRoughnessMetallic.Equals(casted.OcclusionRoughnessMetallic);
         }
     }
 }

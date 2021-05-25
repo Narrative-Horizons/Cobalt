@@ -2,6 +2,7 @@
 using Cobalt.Entities;
 using Cobalt.Entities.Components;
 using Cobalt.Graphics.API;
+using Cobalt.Graphics.GL;
 using Cobalt.Graphics.GL.Commands;
 using Cobalt.Math;
 using System.Collections.Generic;
@@ -85,6 +86,8 @@ namespace Cobalt.Graphics
             _prerender();
             ICommandBuffer cmdBuffer = cmdBuffers[currentFrame];
 
+            cmdBuffer.Record(new ICommandBuffer.RecordInfo());
+
             _pbrPass.Record(cmdBuffer, new RenderPass.FrameInfo
             {
                 FrameBuffer = FrameBuffer[currentFrame],
@@ -101,6 +104,8 @@ namespace Cobalt.Graphics
                 FrameBuffer = _swapChain.GetFrameBuffer(currentFrame),
                 FrameInFlight = currentFrame
             });
+
+            cmdBuffer.End();
 
             _submitQueue.Execute(new IQueue.SubmitInfo(cmdBuffer));
 
@@ -171,6 +176,7 @@ namespace Cobalt.Graphics
             public IDescriptorSet descriptorSet;
             public IBuffer entityData;
             public IBuffer materialData;
+            public IBuffer indirectBuffer;
         }
 
         private readonly Dictionary<PbrMaterialComponent, uint> MaterialIndices = new Dictionary<PbrMaterialComponent, uint>();
@@ -252,8 +258,9 @@ namespace Cobalt.Graphics
                     .AddPoolSize(EDescriptorType.CombinedImageSampler, (int) MAX_TEX_COUNT * 4) // allow for 4 times the max number of textures per pool
                     .MaxSetCount(32)
                     .Build());
+
                 frames[info.FrameInFlight].descriptorSet = frames[info.FrameInFlight].descriptorPool.Allocate(new IDescriptorSet.CreateInfo.Builder()
-                    .AddLayout(_pbrShader.Pipeline.GetLayout().GetDescriptorSetLayouts())
+                    .AddLayout(_pbrShader.Pipeline.GetLayout().GetDescriptorSetLayouts()[0])
                     .Build())[0];
 
                 /// TODO: Make this actual sizeof
@@ -262,6 +269,9 @@ namespace Cobalt.Graphics
 
                 frames[info.FrameInFlight].materialData = Device.CreateBuffer(new IBuffer.CreateInfo<MaterialPayload>.Builder().AddUsage(EBufferUsage.StorageBuffer).Size(1000000 * 16),
                     new IBuffer.MemoryInfo.Builder().Usage(EMemoryUsage.CPUToGPU).AddRequiredProperty(EMemoryProperty.HostCoherent).AddRequiredProperty(EMemoryProperty.HostVisible));
+
+                frames[info.FrameInFlight].indirectBuffer = Device.CreateBuffer(new IBuffer.CreateInfo<DrawElementsIndirectCommandPayload>.Builder().AddUsage(EBufferUsage.IndirectBuffer).Size(16 * 1024),
+                    new IBuffer.MemoryInfo.Builder().Usage(EMemoryUsage.CPUToGPU).AddRequiredProperty(EMemoryProperty.HostVisible).AddRequiredProperty(EMemoryProperty.HostCoherent));
             }
 
             List<DescriptorWriteInfo> writeInfos = new List<DescriptorWriteInfo>();
@@ -292,11 +302,12 @@ namespace Cobalt.Graphics
                 new DescriptorWriteInfo.DescriptorBufferInfo.Builder()
                     .Buffer(frames[info.FrameInFlight].entityData)
                     .Range(1000000 * 68).Build())
-                    .BindingIndex(9)
+                    .BindingIndex(0)
                     .DescriptorSet(frames[info.FrameInFlight].descriptorSet)
                     .ArrayElement(0).Build());
 
             // Build material array
+            //StateMachine.BindBuffer(EBufferUsage.StorageBuffer, frames[info.FrameInFlight].materialData);
             NativeBuffer<MaterialPayload> nativeMaterialData = new NativeBuffer<MaterialPayload>(frames[info.FrameInFlight].materialData.Map());
             foreach (MaterialPayload payload in materials)
             {
@@ -305,6 +316,7 @@ namespace Cobalt.Graphics
             frames[info.FrameInFlight].materialData.Unmap();
 
             // Build uniform/shader storage buffers
+            //StateMachine.BindBuffer(EBufferUsage.StorageBuffer, frames[info.FrameInFlight].entityData);
             NativeBuffer<EntityData> nativeEntityData = new NativeBuffer<EntityData>(frames[info.FrameInFlight].entityData.Map());
             foreach (var obj in framePayload)
             {
@@ -338,6 +350,8 @@ namespace Cobalt.Graphics
 
             int idx = 0;
 
+            //StateMachine.BindBuffer(EBufferUsage.IndirectBuffer, frames[info.FrameInFlight].indirectBuffer);
+            NativeBuffer<DrawElementsIndirectCommandPayload> nativeIndirectData = new NativeBuffer<DrawElementsIndirectCommandPayload>(frames[info.FrameInFlight].indirectBuffer.Map());
             foreach (var obj in framePayload)
             {
                 buffer.Bind(obj.Key);
@@ -348,21 +362,28 @@ namespace Cobalt.Graphics
                     RenderableMesh mesh = child.Key;
                     List<EntityData> instances = child.Value;
 
-                    drawData.Add(new DrawElementsIndirectCommandPayload
+                    DrawElementsIndirectCommandPayload pay = new DrawElementsIndirectCommandPayload
                     {
                         BaseVertex = mesh.baseVertex,
                         FirstIndex = mesh.baseIndex,
                         BaseInstance = (uint)idx,
                         Count = mesh.indexCount,
                         InstanceCount = (uint)instances.Count
-                    });
+                    };
+
+                    drawData.Add(pay);
+
+                    nativeIndirectData.Set(pay);
 
                     idx += instances.Count;
                 }
+                frames[info.FrameInFlight].indirectBuffer.Unmap();
 
                 // Submit draw to command buffer
-                buffer.DrawElementsMultiIndirect(drawData);
+                buffer.DrawElementsMultiIndirect(drawData, 0, frames[info.FrameInFlight].indirectBuffer);
             }
+
+            framePayload.Clear();
         }
 
         private uint _GetOrInsert(PbrMaterialComponent mat)

@@ -53,6 +53,41 @@ namespace Cobalt.Graphics.GL
             DepthEnabled = v;
         }
 
+        internal static void BindBuffer(EBufferUsage usage, IBuffer buffer)
+        {
+            EBufferTarget target = EBufferTarget.ArrayBuffer;
+
+            switch (usage)
+            {
+                case EBufferUsage.TransferSource:
+                    break;
+                case EBufferUsage.TransferDestination:
+                    break;
+                case EBufferUsage.UniformBuffer:
+                    target = EBufferTarget.UniformBuffer;
+                    break;
+                case EBufferUsage.StorageBuffer:
+                    target = EBufferTarget.ShaderStorageBuffer;
+                    break;
+                case EBufferUsage.ArrayBuffer:
+                    break;
+                case EBufferUsage.IndexBuffer:
+                    break;
+                case EBufferUsage.TextureBuffer:
+                    break;
+                case EBufferUsage.IndirectBuffer:
+                    target = EBufferTarget.DrawIndirectBuffer;
+                    break;
+            }
+
+            OpenGL.BindBuffer(target, ((IHandledType)buffer).GetHandle());
+        }
+
+        internal static void BindStorageBufferRange(uint index, IBuffer buffer, int offset, int range)
+        {
+            OpenGL.BindBufferRange(EBufferTarget.ShaderStorageBuffer, index, ((IHandledType)buffer).GetHandle(), offset, range);
+        }
+
         internal static void BindUniformBufferRange(uint index, IBuffer buffer, int offset, int range)
         {
             OpenGL.BindBufferRange(EBufferTarget.UniformBuffer, index, ((IHandledType)buffer).GetHandle(), offset, range);
@@ -68,14 +103,14 @@ namespace Cobalt.Graphics.GL
             OpenGL.UniformHandleui64vARB(index, handles.Length, handles);
         }
 
-        public static void MultiDrawElementsIndirect(DrawElementsIndirectCommand payload)
+        public static void MultiDrawElementsIndirect(DrawElementsIndirectCommand payload, int offset, IBuffer indirectBuffer)
         {
-            GCHandle handle = GCHandle.Alloc(payload.Data.ToArray(), GCHandleType.Pinned);
             unsafe
             {
-                OpenGL.MultiDrawElementsIndirect(_currentDrawMode, EDrawElementsType.UnsignedInt, handle.AddrOfPinnedObject(), payload.Data.Count, sizeof(DrawElementsIndirectCommandPayload));
+                OpenGL.BindBuffer(EBufferTarget.DrawIndirectBuffer, ((IHandledType)indirectBuffer).GetHandle());
+                IntPtr offsetPtr = new IntPtr(offset);
+                OpenGL.MultiDrawElementsIndirect(_currentDrawMode, EDrawElementsType.UnsignedInt, offsetPtr, payload.Data.Count, sizeof(DrawElementsIndirectCommandPayload));
             }
-            handle.Free();
         }
 
         public static void UseProgram(GraphicsPipeline pipeline)
@@ -101,7 +136,7 @@ namespace Cobalt.Graphics.GL
 
         public static void MakeTextureHandleResidentArb(ulong handle)
         {
-            if(_residentTextureHandles.Contains(handle) == false)
+            if(_residentTextureHandles.Contains(handle) == false && handle != 0)
             {
                 OpenGL.MakeTextureHandleResidentARB(handle);
                 _residentTextureHandles.Add(handle);

@@ -53,7 +53,7 @@ namespace Cobalt.Graphics
             colorAttachmentViews = new IImageView[framesInFlight];
             IImageView[] depthAttachmentViews = new IImageView[framesInFlight];
 
-            _submitQueue = device.Queues()[0];
+            _submitQueue = device.Queues().Find(queue => queue.GetProperties().Graphics);
 
             for (int i = 0; i < framesInFlight; i++)
             {
@@ -94,16 +94,9 @@ namespace Cobalt.Graphics
                 FrameInFlight = currentFrame
             });
 
-            _screenResolvePass.SetInputTexture(new Texture() { Image = colorAttachmentViews[currentFrame], Sampler = imageResolveSampler }, new RenderPass.FrameInfo
-            {
-                FrameInFlight = currentFrame
-            });
-
-            _screenResolvePass.Record(cmdBuffer, new RenderPass.FrameInfo
-            {
-                FrameBuffer = _swapChain.GetFrameBuffer(currentFrame),
-                FrameInFlight = currentFrame
-            });
+            var frameInfo = new RenderPass.FrameInfo { FrameInFlight = currentFrame };
+            _screenResolvePass.SetInputTexture(new Cobalt.Graphics.Texture() { Image = colorAttachmentViews[currentFrame], Sampler = imageResolveSampler }, frameInfo);
+            _screenResolvePass.Record(cmdBuffer, frameInfo);
 
             cmdBuffer.End();
 

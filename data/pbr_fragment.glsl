@@ -1,10 +1,8 @@
-#version 450
+#version 460
 #extension GL_ARB_bindless_texture : enable
 
 #define MAX_TEX_COUNT 1024
 layout(location = 2, bindless_sampler) uniform sampler2D texArray[MAX_TEX_COUNT];
-
-layout(location = 0) out vec4 FragColor;
 
 struct ObjectData
 {
@@ -36,6 +34,8 @@ layout (location = 0) in VertexData
     vec2 texcoord0;
     flat int instanceID;
 } inData;
+
+layout(location = 0) out vec4 FragColor;
 
 void main()
 {

@@ -110,6 +110,7 @@ namespace Cobalt.Graphics.GL
                 OpenGL.BindBuffer(EBufferTarget.DrawIndirectBuffer, ((IHandledType)indirectBuffer).GetHandle());
                 IntPtr offsetPtr = new IntPtr(offset);
                 OpenGL.MultiDrawElementsIndirect(_currentDrawMode, EDrawElementsType.UnsignedInt, offsetPtr, payload.Data.Count, sizeof(DrawElementsIndirectCommandPayload));
+                OpenGL.BindBuffer(EBufferTarget.DrawIndirectBuffer, 0);
             }
         }
 

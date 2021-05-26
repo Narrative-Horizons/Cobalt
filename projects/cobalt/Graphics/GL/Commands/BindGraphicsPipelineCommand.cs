@@ -49,7 +49,7 @@ namespace Cobalt.Graphics.GL.Commands
                     OpenGL.Disable(Bindings.GL.EEnableCap.DepthClamp);
                 }
 
-                switch (Pipeline.Info.RasterizerCreationInformation.CullFaces)
+                /*switch (Pipeline.Info.RasterizerCreationInformation.CullFaces)
                 {
                     case API.EPolgyonFace.None:
                         OpenGL.Disable(Bindings.GL.EEnableCap.CullFace);
@@ -67,8 +67,9 @@ namespace Cobalt.Graphics.GL.Commands
                         OpenGL.CullFace(Bindings.GL.ECullFaceMode.FrontAndBack);
                         break;
                 }
+                OpenGL.Disable(Bindings.GL.EEnableCap.CullFace);*/
 
-                switch (Pipeline.Info.RasterizerCreationInformation.WindingOrder)
+                /*switch (Pipeline.Info.RasterizerCreationInformation.WindingOrder)
                 {
                     case API.EVertexWindingOrder.Clockwise:
                         OpenGL.FrontFace(Bindings.GL.EFrontFaceDirection.Cw);
@@ -89,7 +90,7 @@ namespace Cobalt.Graphics.GL.Commands
                     case API.EPolygonMode.Wireframe:
                         Bindings.GL.GL.PolygonMode(Bindings.GL.ECullFaceMode.FrontAndBack, Bindings.GL.EPolygonMode.Line);
                         break;
-                }
+                }*/
             }
         }
     }

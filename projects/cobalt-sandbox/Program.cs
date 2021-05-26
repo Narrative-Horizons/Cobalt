@@ -4,12 +4,8 @@ using Cobalt.Entities.Components;
 using Cobalt.Graphics;
 using Cobalt.Graphics.API;
 using Cobalt.Math;
-using CobaltConverter.Core;
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace Cobalt.Sandbox
 {
@@ -26,17 +22,6 @@ namespace Cobalt.Sandbox
         public Matrix4 projection;
         public Matrix4 view;
         public Matrix4 model;
-    }
-
-    public class WindowResizeEvent : EventData
-    {
-        public uint width, height;
-
-        public WindowResizeEvent(uint width, uint height)
-        {
-            this.width = width;
-            this.height = height;
-        }
     }
 
     public class Program
@@ -134,7 +119,9 @@ namespace Cobalt.Sandbox
             reg.Assign(e, new TransformComponent());
             reg.Assign(e, new PbrMaterialComponent());
 
-
+            Entity cameraEntity = reg.Create();
+            reg.Assign(cameraEntity, new TransformComponent());
+            reg.Assign(cameraEntity, new DebugCameraComponent(new Vector3(4, 0, 4), Vector3.UnitY));
 
             /*string vsSource = FileSystem.LoadFileToString("data/standard_vertex.glsl");
             string fsSource = FileSystem.LoadFileToString("data/standard_fragment.glsl");

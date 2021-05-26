@@ -86,20 +86,26 @@ namespace Cobalt.Graphics
             _prerender();
             ICommandBuffer cmdBuffer = cmdBuffers[currentFrame];
 
-            cmdBuffer.Record(new ICommandBuffer.RecordInfo());
-
-            _pbrPass.Record(cmdBuffer, new RenderPass.FrameInfo
+            ComponentView<DebugCameraComponent> cameraView = EntityRegistry.GetView<DebugCameraComponent>();
+            cameraView.ForEach((camera) =>
             {
-                FrameBuffer = FrameBuffer[currentFrame],
-                FrameInFlight = currentFrame
+                cmdBuffer.Record(new ICommandBuffer.RecordInfo());
+
+                _pbrPass.Camera = camera;
+                _pbrPass.Record(cmdBuffer, new RenderPass.FrameInfo
+                {
+                    FrameBuffer = FrameBuffer[currentFrame],
+                    FrameInFlight = currentFrame
+                });
+
+                var frameInfo = new RenderPass.FrameInfo { FrameInFlight = currentFrame };
+                _screenResolvePass.SetInputTexture(new Cobalt.Graphics.Texture() { Image = colorAttachmentViews[currentFrame], Sampler = imageResolveSampler }, frameInfo);
+                _screenResolvePass.Record(cmdBuffer, frameInfo);
+
+                camera.Update();
             });
 
-            var frameInfo = new RenderPass.FrameInfo { FrameInFlight = currentFrame };
-            _screenResolvePass.SetInputTexture(new Cobalt.Graphics.Texture() { Image = colorAttachmentViews[currentFrame], Sampler = imageResolveSampler }, frameInfo);
-            _screenResolvePass.Record(cmdBuffer, frameInfo);
-
             cmdBuffer.End();
-
             _submitQueue.Execute(new IQueue.SubmitInfo(cmdBuffer));
 
             // Compute visibility pass
@@ -184,6 +190,8 @@ namespace Cobalt.Graphics
         private readonly List<FrameData> frames = new List<FrameData>();
         private Shader _pbrShader;
         private IRenderPass _pass;
+
+        public DebugCameraComponent Camera { get; set; }
 
         public PbrRenderPass(IDevice device) : base(device)
         {
@@ -317,8 +325,12 @@ namespace Cobalt.Graphics
                 {
                     List<EntityData> instances = child.Value;
 
-                    foreach (EntityData instance in instances)
+                    for(int i = 0; i < instances.Count; i++)
                     {
+                        EntityData instance = instances[i];
+
+                        instance.Transformation = instance.Transformation * Camera.View * Camera.Projection;
+                        
                         nativeEntityData.Set(instance);
                     }
                 }

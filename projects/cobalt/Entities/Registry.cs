@@ -35,13 +35,13 @@ namespace Cobalt.Entities
             return RecycleIdentifier();
         }
 
-        public void Assign<Component>(Entity ent, Component value) where Component : BaseComponent, new()
+        public void Assign<Component>(Entity ent, Component value) where Component : BaseComponent
         {
             MemoryPool<Component> pool = GetPool<Component>();
             pool.Assign(ent, ref value);
         }
 
-        public void AssignOrReplace<Component>(Entity ent, Component value) where Component : BaseComponent, new()
+        public void AssignOrReplace<Component>(Entity ent, Component value) where Component : BaseComponent
         {
             if (Has<Component>(ent))
             {
@@ -53,19 +53,19 @@ namespace Cobalt.Entities
             }
         }
 
-        public Component Get<Component>(Entity ent) where Component : BaseComponent, new()
+        public Component Get<Component>(Entity ent) where Component : BaseComponent
         {
             MemoryPool<Component> pool = GetPool<Component>();
             return pool.Get(ent);
         }
 
-        public Component TryGet<Component>(Entity ent) where Component : BaseComponent, new()
+        public Component TryGet<Component>(Entity ent) where Component : BaseComponent
         {
             MemoryPool<Component> pool = GetPool<Component>();
             return pool.TryGet(ent);
         }
 
-        public bool Has<Component>(Entity ent) where Component : BaseComponent, new()
+        public bool Has<Component>(Entity ent) where Component : BaseComponent
         {
             MemoryPool<Component> pool = GetPool<Component>();
             return pool.Contains(ent);
@@ -89,7 +89,7 @@ namespace Cobalt.Entities
             _next_available = new Entity { Identifier = identifier, Generation = 0 };
         }
 
-        public void Replace<Component>(Entity ent, Component value) where Component : BaseComponent, new()
+        public void Replace<Component>(Entity ent, Component value) where Component : BaseComponent
         {
             MemoryPool<Component> pool = GetPool<Component>();
             pool.Replace(ent, value);
@@ -100,12 +100,12 @@ namespace Cobalt.Entities
             _entities.Capacity = (int)newCapacity;
         }
 
-        public void Reserve<Component>(uint newCapacity) where Component : BaseComponent, new()
+        public void Reserve<Component>(uint newCapacity) where Component : BaseComponent
         {
             GetPool<Component>().Reserve(newCapacity);
         }
 
-        public ComponentView<Component> GetView<Component>() where Component : BaseComponent, new()
+        public ComponentView<Component> GetView<Component>() where Component : BaseComponent
         {
             MemoryPool<Component> pool = GetPool<Component>();
             return new ComponentView<Component>(pool);

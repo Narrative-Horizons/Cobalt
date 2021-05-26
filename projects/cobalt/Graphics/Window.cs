@@ -113,15 +113,11 @@ namespace Cobalt.Graphics
             {
                 EventManager.Default.Dispatch(new CursorMovedEvent(x, y, _oldMouseX, _oldMouseY));
 
+                Input.LastMousePosition = new Vector2((float)_oldMouseX, (float)_oldMouseY);
+                Input.MousePosition = new Vector2((float)x, (float)y);
+
                 _oldMouseX = x;
                 _oldMouseY = y;
-
-                Vector2 pos = Input.MousePosition;
-
-                pos.x = (float)x;
-                pos.y = (float)y;
-
-                Input.MousePosition = pos;
             });
 
             GLFW.SetMouseScrollCallback(_window, (GLFWWindow window, double x, double y) =>

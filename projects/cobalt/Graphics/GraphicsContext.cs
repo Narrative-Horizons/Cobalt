@@ -4,7 +4,7 @@ using Cobalt.Bindings.GLFW;
 using Cobalt.Graphics.API;
 using System;
 using System.Collections.Generic;
-
+using Cobalt.Core;
 
 namespace Cobalt.Graphics
 {
@@ -29,6 +29,8 @@ namespace Cobalt.Graphics
 
         static GraphicsContext()
         {
+            Logger.Construct();
+
             if (!GLFW.Init())
             {
                 Console.WriteLine("Error on GLFW Init");

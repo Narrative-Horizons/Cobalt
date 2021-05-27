@@ -61,5 +61,6 @@ void main()
     outData.worldPos = vec3(myData.transform * vec4(iPosition, 1.0));
 
     outData.fragPosition = (myData.transform * vec4(iPosition, 1)).xyz;
-    gl_Position = myData.transform * projection * view * vec4(iPosition, 1);
+    //gl_Position = myData.transform * view * projection * vec4(iPosition, 1);
+    gl_Position = projection * view * myData.transform * vec4(iPosition, 1);
 }

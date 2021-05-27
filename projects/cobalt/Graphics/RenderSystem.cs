@@ -2,8 +2,6 @@
 using Cobalt.Entities;
 using Cobalt.Entities.Components;
 using Cobalt.Graphics.API;
-using Cobalt.Graphics.GL;
-using Cobalt.Graphics.GL.Commands;
 using Cobalt.Math;
 using System.Collections.Generic;
 

@@ -56,6 +56,32 @@ namespace Cobalt.Math
             }
         }
 
+        public Matrix4(float[] data)
+        {
+            unsafe
+            {
+                buffer[0] =  data[0];
+                buffer[1] =  data[1];
+                buffer[2] =  data[2];
+                buffer[3] =  data[3];
+                             
+                buffer[4] =  data[4];
+                buffer[5] =  data[5];
+                buffer[6] =  data[6];
+                buffer[7] =  data[7];
+                             
+                buffer[8] =  data[8];
+                buffer[9] =  data[9];
+                buffer[10] = data[10];
+                buffer[11] = data[11];
+                             
+                buffer[12] = data[12];
+                buffer[13] = data[13];
+                buffer[14] = data[14];
+                buffer[15] = data[15];
+            }
+        }
+
         public float this[int row, int col]
         {
             get
@@ -336,6 +362,21 @@ namespace Cobalt.Math
             return ret;
         }
 
+        public static Matrix4 FromRowMajorElements(
+            float r1c1, float r1c2, float r1c3, float r1c4,
+            float r2c1, float r2c2, float r2c3, float r2c4,
+            float r3c1, float r3c2, float r3c3, float r3c4,
+            float r4c1, float r4c2, float r4c3, float r4c4)
+        {
+            float[] m = new float[16];
+            m[0]=r1c1; m[4]=r1c2;  m[8]=r1c3; m[12]=r1c4;
+            m[1]=r2c1; m[5]=r2c2;  m[9]=r2c3; m[13]=r2c4;
+            m[2]=r3c1; m[6]=r3c2; m[10]=r3c3; m[14]=r3c4;
+            m[3]=r4c1; m[7]=r4c2; m[11]=r4c3; m[15]=r4c4;
+
+            return new Matrix4(m);
+        }
+
         public static Matrix4 LookAt(Vector3 eye, Vector3 center, Vector3 up)
         {
             Vector3 f = (center - eye).Normalized();
@@ -358,10 +399,40 @@ namespace Cobalt.Math
             ret[3,2] = -Vector3.Dot(f, eye);
 
             return ret;
+
+            /*Vector3 lookDir = (center - eye).Normalized();
+
+            Vector3 z = -lookDir;
+            Vector3 x = Vector3.Cross(up, z).Normalized();
+            Vector3 y = Vector3.Cross(z, x);
+
+            Matrix4 R = Matrix4.FromRowMajorElements(x.x, x.y, x.z, 0,
+                                                        y.x, y.y, y.z, 0,
+                                                        z.x, z.y, z.z, 0,
+                                                        0, 0, 0, 1);
+
+            Matrix4 T = Matrix4.Translate(-eye);
+
+            return R * T;*/
+        }
+
+        public static Matrix4 Frustum(float left, float right, float bottom, float top, float zNear, float zFar)
+        {
+            return Matrix4.FromRowMajorElements(2.0f * zNear / (right - left), 0, (right + left) / (right - left), 0,
+                                                0, 2.0f * zNear / (top - bottom), (top + bottom) / (top - bottom), 0,
+                                                0, 0, -(zFar + zNear) / (zNear - zFar), -2.0f * zFar * zNear / (zFar - zNear),
+                                                0, 0, -1, 0);
         }
 
         public static Matrix4 Perspective(float fov, float aspect, float zNear, float zFar)
         {
+            /*float ymax, xmax;
+
+            ymax = zNear * MathF.Tan(fov);
+            xmax = ymax * aspect;
+
+            return Matrix4.Frustum(-xmax, xmax, -ymax, ymax, zNear, zFar);*/
+
             float tanHalfFov = MathF.Tan(fov / 2.0f);
 
             Matrix4 ret = Matrix4.Identity;

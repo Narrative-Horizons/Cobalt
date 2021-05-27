@@ -124,6 +124,7 @@ namespace Cobalt.Sandbox
             Registry reg = new Registry();
 
             Matrix4 trans = Matrix4.Identity;
+            trans *= Matrix4.Translate(new Vector3(2, 0, 0));
 
             for(int i = 0; i < 1; i ++)
             {
@@ -152,7 +153,7 @@ namespace Cobalt.Sandbox
                     }
                 });
 
-                trans *= Matrix4.Translate(new Vector3(0.3f, 0, 0));
+                //trans *= Matrix4.Translate(new Vector3(0.3f, 0, 0));
             }
 
             Entity cameraEntity = reg.Create();

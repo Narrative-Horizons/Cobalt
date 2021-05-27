@@ -4,7 +4,9 @@ using Cobalt.Entities.Components;
 using Cobalt.Graphics;
 using Cobalt.Graphics.API;
 using Cobalt.Math;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace Cobalt.Sandbox
@@ -51,86 +53,36 @@ namespace Cobalt.Sandbox
             IQueue presentQueue = device.Queues().Find(queue => queue.GetProperties().Present);
             IQueue transferQueue = device.Queues().Find(queue => queue.GetProperties().Transfer);
 
-            /*#region Framebuffer
-
-            IFrameBuffer[] FrameBuffer = new IFrameBuffer[2];
-            IImage[] colorAttachments = new IImage[2];
-            IImage[] depthAttachments = new IImage[2];
-            IImageView[] colorAttachmentViews = new IImageView[2];
-            IImageView[] depthAttachmentViews = new IImageView[2];
-
-            for (int i = 0; i < 2; i++)
-            {
-                colorAttachments[i] = device.CreateImage(new IImage.CreateInfo.Builder().AddUsage(EImageUsage.ColorAttachment).Width(1280).Height(720).Type(EImageType.Image2D)
-                    .Format(EDataFormat.R8G8B8A8).MipCount(1).LayerCount(1),
-                    new IImage.MemoryInfo.Builder().Usage(EMemoryUsage.GPUOnly).AddRequiredProperty(EMemoryProperty.DeviceLocal));
-
-                colorAttachmentViews[i] = colorAttachments[i].CreateImageView(new IImageView.CreateInfo.Builder().ViewType(EImageViewType.ViewType2D).BaseArrayLayer(0)
-                    .BaseMipLevel(0).ArrayLayerCount(1).MipLevelCount(1).Format(EDataFormat.R8G8B8A8));
-
-                depthAttachments[i] = device.CreateImage(new IImage.CreateInfo.Builder().AddUsage(EImageUsage.ColorAttachment).Width(1280).Height(720).Type(EImageType.Image2D)
-                    .Format(EDataFormat.D24_SFLOAT_S8_UINT).MipCount(1).LayerCount(1),
-                    new IImage.MemoryInfo.Builder().Usage(EMemoryUsage.GPUOnly).AddRequiredProperty(EMemoryProperty.DeviceLocal));
-
-                depthAttachmentViews[i] = depthAttachments[i].CreateImageView(new IImageView.CreateInfo.Builder().ViewType(EImageViewType.ViewType2D).BaseArrayLayer(0)
-                    .BaseMipLevel(0).ArrayLayerCount(1).MipLevelCount(1).Format(EDataFormat.D24_SFLOAT_S8_UINT));
-
-                FrameBuffer[i] = device.CreateFrameBuffer(new IFrameBuffer.CreateInfo.Builder()
-                    .AddAttachment(new IFrameBuffer.CreateInfo.Attachment.Builder().ImageView(colorAttachmentViews[i]).Usage(EImageUsage.ColorAttachment))
-                    .AddAttachment(new IFrameBuffer.CreateInfo.Attachment.Builder().ImageView(depthAttachmentViews[i]).Usage(EImageUsage.DepthStencilAttachment)));
-            }
-
-            #endregion*/
-
             IRenderSurface surface = device.GetSurface(window);
             ISwapchain swapchain = surface.CreateSwapchain(new ISwapchain.CreateInfo.Builder().Width(1280).Height(720).ImageCount(2).Layers(1).Build());
+            
+            AssetManager assetManager = new AssetManager();
 
-            /*IRenderPass renderPass = device.CreateRenderPass(new IRenderPass.CreateInfo.Builder().AddAttachment(new IRenderPass.AttachmentDescription.Builder().InitialLayout(EImageLayout.Undefined)
-                .FinalLayout(EImageLayout.PresentSource).LoadOp(EAttachmentLoad.Clear).StoreOp(EAttachmentStore.Store).Format(EDataFormat.BGRA8_SRGB)));
-
-            IRenderPass screenPass = device.CreateRenderPass(new IRenderPass.CreateInfo.Builder().AddAttachment(new IRenderPass.AttachmentDescription.Builder().InitialLayout(EImageLayout.Undefined)
-                .FinalLayout(EImageLayout.PresentSource).LoadOp(EAttachmentLoad.Clear).StoreOp(EAttachmentStore.Store).Format(EDataFormat.BGRA8_SRGB)));
-
-            IPipelineLayout layout = device.CreatePipelineLayout(new IPipelineLayout.CreateInfo.Builder().AddDescriptorSetLayout(device.CreateDescriptorSetLayout(
-                new IDescriptorSetLayout.CreateInfo.Builder().AddBinding(new IDescriptorSetLayout.DescriptorSetLayoutBinding.Builder().BindingIndex(0).Count(1)
-                .DescriptorType(EDescriptorType.UniformBuffer)
-                .AddAccessibleStage(EShaderType.Vertex).Build())
-                .AddBinding(new IDescriptorSetLayout.DescriptorSetLayoutBinding.Builder()
-                .AddAccessibleStage(EShaderType.Fragment).BindingIndex(1).DescriptorType(EDescriptorType.CombinedImageSampler).Count(1).Name("albedo").Build()).Build())).Build());*/
-
-            /*ICommandPool commandPool = device.CreateCommandPool(new ICommandPool.CreateInfo.Builder().Queue(graphicsQueue).ResetAllocations(true).TransientAllocations(true));
+            ICommandPool commandPool = device.CreateCommandPool(new ICommandPool.CreateInfo.Builder().Queue(graphicsQueue).ResetAllocations(true).TransientAllocations(true));
             List<ICommandBuffer> commandBuffers = commandPool.Allocate(new ICommandBuffer.AllocateInfo.Builder().Count(swapchain.GetImageCount()).Level(ECommandBufferLevel.Primary).Build());
 
             ICommandPool transferPool = device.CreateCommandPool(new ICommandPool.CreateInfo.Builder().Queue(transferQueue).ResetAllocations(false).TransientAllocations(true));
-            ICommandBuffer transferCmdBuffer = transferPool.Allocate(new ICommandBuffer.AllocateInfo.Builder().Count(1).Level(ECommandBufferLevel.Primary))[0];*/
-
-            RenderableManager renderableManager = new RenderableManager(device);
-            AssetManager assetManager = new AssetManager();
-
-            ModelAsset asset = assetManager.LoadModel("data/SciFiHelmet/SciFiHelmet.gltf");
-            renderableManager.QueueRenderable(asset);
-
-            List<RenderableMesh> meshes = renderableManager.GetRenderables(asset);
-            RenderableMesh box = meshes[0];
-
-            Registry reg = new Registry();
-            Entity e = reg.Create();
-            reg.Assign(e, new MeshComponent(box));
-            reg.Assign(e, new TransformComponent());
-            reg.Assign(e, new PbrMaterialComponent());
-
-            Entity cameraEntity = reg.Create();
-            reg.Assign(cameraEntity, new TransformComponent());
-            reg.Assign(cameraEntity, new DebugCameraComponent(new Vector3(4, 0, 4), Vector3.UnitY));
-
-            /*string vsSource = FileSystem.LoadFileToString("data/standard_vertex.glsl");
-            string fsSource = FileSystem.LoadFileToString("data/standard_fragment.glsl");
-
-            Shader shader = device.CreateShader(new Shader.CreateInfo.Builder().VertexSource(vsSource).FragmentSource(fsSource).Build(), layout, true);
+            ICommandBuffer transferCmdBuffer = transferPool.Allocate(new ICommandBuffer.AllocateInfo.Builder().Count(1).Level(ECommandBufferLevel.Primary))[0];
 
             Core.ImageAsset assetAlbedo = assetManager.LoadImage("data/SciFiHelmet/SciFiHelmet_BaseColor.png");
             IImage albedoImage = device.CreateImage(new IImage.CreateInfo.Builder()
-                    .Depth(1).Format(EDataFormat.R8G8B8A8).Height((int) assetAlbedo.Height).Width((int) assetAlbedo.Width)
+                    .Depth(1).Format(EDataFormat.R8G8B8A8).Height((int)assetAlbedo.Height).Width((int)assetAlbedo.Width)
+                    .InitialLayout(EImageLayout.Undefined).LayerCount(1).MipCount(1).SampleCount(ESampleCount.Samples1)
+                    .Type(EImageType.Image2D),
+                new IImage.MemoryInfo.Builder()
+                    .AddRequiredProperty(EMemoryProperty.DeviceLocal).Usage(EMemoryUsage.GPUOnly));
+
+            Core.ImageAsset assetNormal = assetManager.LoadImage("data/SciFiHelmet/SciFiHelmet_Normal.png");
+            IImage normalImage = device.CreateImage(new IImage.CreateInfo.Builder()
+                    .Depth(1).Format(EDataFormat.R8G8B8A8).Height((int)assetNormal.Height).Width((int)assetNormal.Width)
+                    .InitialLayout(EImageLayout.Undefined).LayerCount(1).MipCount(1).SampleCount(ESampleCount.Samples1)
+                    .Type(EImageType.Image2D),
+                new IImage.MemoryInfo.Builder()
+                    .AddRequiredProperty(EMemoryProperty.DeviceLocal).Usage(EMemoryUsage.GPUOnly));
+
+            Core.ImageAsset assetORM = assetManager.LoadImage("data/SciFiHelmet/SciFiHelmet_AmbientOcclusion-SciFiHelmet_MetallicRoughness.png");
+            IImage ORMImage = device.CreateImage(new IImage.CreateInfo.Builder()
+                    .Depth(1).Format(EDataFormat.R8G8B8A8).Height((int)assetORM.Height).Width((int)assetORM.Width)
                     .InitialLayout(EImageLayout.Undefined).LayerCount(1).MipCount(1).SampleCount(ESampleCount.Samples1)
                     .Type(EImageType.Image2D),
                 new IImage.MemoryInfo.Builder()
@@ -139,23 +91,11 @@ namespace Cobalt.Sandbox
             transferCmdBuffer.Copy(assetAlbedo.AsBytes, albedoImage, new List<ICommandBuffer.BufferImageCopyRegion>(){new ICommandBuffer.BufferImageCopyRegion.Builder().ArrayLayer(0)
                 .BufferOffset(0).ColorAspect(true).Depth(1).Height((int) assetAlbedo.Height).Width((int) assetAlbedo.Width).MipLevel(0).Build() });
 
-            float[] screenVerts =
-            {
-                -1, -1, 0,    0, 0,
-                1, -1, 0,    1, 0,
-                1, 1, 0,    1, 1,
+            transferCmdBuffer.Copy(assetNormal.AsBytes, normalImage, new List<ICommandBuffer.BufferImageCopyRegion>(){new ICommandBuffer.BufferImageCopyRegion.Builder().ArrayLayer(0)
+                .BufferOffset(0).ColorAspect(true).Depth(1).Height((int) assetNormal.Height).Width((int) assetNormal.Width).MipLevel(0).Build() });
 
-                1, 1, 0,    1, 1,
-                -1, 1, 0,   0, 1,
-                -1, -1, 0,  0, 0
-            };
-
-            IBuffer screenQuadBuf = device.CreateBuffer(
-                IBuffer.FromPayload(screenVerts).AddUsage(EBufferUsage.ArrayBuffer),
-                new IBuffer.MemoryInfo.Builder()
-                    .AddRequiredProperty(EMemoryProperty.DeviceLocal)
-                    .AddRequiredProperty(EMemoryProperty.HostVisible)
-                    .Usage(EMemoryUsage.CPUToGPU));
+            transferCmdBuffer.Copy(assetORM.AsBytes, ORMImage, new List<ICommandBuffer.BufferImageCopyRegion>(){new ICommandBuffer.BufferImageCopyRegion.Builder().ArrayLayer(0)
+                .BufferOffset(0).ColorAspect(true).Depth(1).Height((int) assetORM.Height).Width((int) assetORM.Width).MipLevel(0).Build() });
 
             IQueue.SubmitInfo transferSubmission = new IQueue.SubmitInfo(transferCmdBuffer);
             transferQueue.Execute(transferSubmission);
@@ -163,114 +103,81 @@ namespace Cobalt.Sandbox
             IImageView albedoImageView = albedoImage.CreateImageView(new IImageView.CreateInfo.Builder().ArrayLayerCount(1).BaseArrayLayer(0).BaseMipLevel(0).Format(EDataFormat.R8G8B8A8)
                 .MipLevelCount(1).ViewType(EImageViewType.ViewType2D));
 
+            IImageView normalImageView = normalImage.CreateImageView(new IImageView.CreateInfo.Builder().ArrayLayerCount(1).BaseArrayLayer(0).BaseMipLevel(0).Format(EDataFormat.R8G8B8A8)
+                .MipLevelCount(1).ViewType(EImageViewType.ViewType2D));
+
+            IImageView ORMImageView = ORMImage.CreateImageView(new IImageView.CreateInfo.Builder().ArrayLayerCount(1).BaseArrayLayer(0).BaseMipLevel(0).Format(EDataFormat.R8G8B8A8)
+                .MipLevelCount(1).ViewType(EImageViewType.ViewType2D));
+
             ISampler albedoImageSampler = device.CreateSampler(new ISampler.CreateInfo.Builder().AddressModeU(EAddressMode.Repeat)
                 .AddressModeV(EAddressMode.Repeat).AddressModeW(EAddressMode.Repeat).MagFilter(EFilter.Linear).MinFilter(EFilter.Linear)
                 .MipmapMode(EMipmapMode.Linear));
 
-            IBuffer uniformBuffer = device.CreateBuffer(IBuffer.FromPayload(new UniformBufferData()).AddUsage(EBufferUsage.UniformBuffer),
-                new IBuffer.MemoryInfo.Builder().Usage(EMemoryUsage.CPUToGPU).AddRequiredProperty(EMemoryProperty.HostCoherent).AddRequiredProperty(EMemoryProperty.HostVisible));
+            RenderableManager renderableManager = new RenderableManager(device);
 
-            IDescriptorPool descriptorPool = device.CreateDescriptorPool(new IDescriptorPool.CreateInfo.Builder().AddPoolSize(EDescriptorType.CombinedImageSampler, 2).MaxSetCount(2).Build());
+            ModelAsset asset = assetManager.LoadModel("data/SciFiHelmet/SciFiHelmet.gltf");
+            renderableManager.QueueRenderable(asset);
 
-            List<IDescriptorSet> descriptorSets = descriptorPool.Allocate(new IDescriptorSet.CreateInfo.Builder().AddLayout(layout.GetDescriptorSetLayouts()[0])
-                .AddLayout(layout.GetDescriptorSetLayouts()[0]).Build());
+            List<RenderableMesh> meshes = renderableManager.GetRenderables(asset);
+            RenderableMesh box = meshes[0];
 
-            descriptorSets.ForEach(set =>
+            Registry reg = new Registry();
+
+            Matrix4 trans = Matrix4.Identity;
+
+            for(int i = 0; i < 1; i ++)
             {
-                DescriptorWriteInfo writeInfo = new DescriptorWriteInfo.Builder()
-                    .AddImageInfo(new DescriptorWriteInfo.DescriptorImageInfo.Builder().Layout(EImageLayout.ShaderReadOnly)
-                    .Sampler(albedoImageSampler).View(albedoImageView)).ArrayElement(0).BindingIndex(1).DescriptorSet(set).Build();
+                Entity helmetEntity = reg.Create();
+                reg.Assign(helmetEntity, new MeshComponent(box));
+                reg.Assign(helmetEntity, new TransformComponent
+                {
+                    transformMatrix = trans
+                });
+                reg.Assign(helmetEntity, new PbrMaterialComponent
+                {
+                    Albedo = new Texture
+                    {
+                        Image = albedoImageView,
+                        Sampler = albedoImageSampler
+                    },
+                    Normal = new Texture
+                    {
+                        Image = normalImageView,
+                        Sampler = albedoImageSampler
+                    },
+                    OcclusionRoughnessMetallic = new Texture
+                    {
+                        Image = ORMImageView,
+                        Sampler = albedoImageSampler
+                    }
+                });
 
-                DescriptorWriteInfo writeInfo2 = new DescriptorWriteInfo.Builder()
-                    .AddBufferInfo(new DescriptorWriteInfo.DescriptorBufferInfo.Builder().Buffer(uniformBuffer).Offset(0).Range(64).Build())
-                    .ArrayElement(0).BindingIndex(0).DescriptorSet(set)
-                    .Build();
+                trans *= Matrix4.Translate(new Vector3(0.3f, 0, 0));
+            }
 
-                device.UpdateDescriptorSets(new List<DescriptorWriteInfo>() { writeInfo, writeInfo2 });
-            });
-
-            int frame = 0;
-            double time = 0.0;
-            double rotSpeed = 1.0;*/
-
-            DebugCamera cam = new DebugCamera(new Vector3(2, 0, 2), new Vector3(0, 1, 0), 0);
-            //ScreenResolvePass screenResolve = new ScreenResolvePass(swapchain, device, 1280, 720);
-
-            /*CobaltModel me = MeshConverter.ConvertModel("data/SciFiHelmet/SciFiHelmet.gltf");
-
-            MemoryStream s = new MemoryStream();
-            MeshConverter.Export(s, me);
-
-            System.IO.File.WriteAllText("data/SciFiHelmet/SciFiHelmet.caf", Encoding.ASCII.GetString(s.ToArray()));
-
-            CobaltModel m = MeshConverter.Import("data/SciFiHelmet/SciFiHelmet.caf");*/
+            Entity cameraEntity = reg.Create();
+            reg.Assign(cameraEntity, new TransformComponent());
+            reg.Assign(cameraEntity, new DebugCameraComponent(new Vector3(4, 0, 4), Vector3.UnitY));
 
             RenderSystem renderSystem = new RenderSystem(reg, device, swapchain);
 
+            Stopwatch sw = new Stopwatch();
+
             while (window.IsOpen())
             {
-                cam.Update();
-                //ICommandBuffer buffer = commandBuffers[frame];
-                //buffer.Record(new ICommandBuffer.RecordInfo());
-
                 if(Input.IsKeyPressed(Bindings.GLFW.Keys.Escape))
                 {
                     window.Close();
                 }
 
-                /*if(Input.IsKeyDown(Bindings.GLFW.Keys.NumpadAdd))
-                {
-                    rotSpeed += 0.1;
-                }
-
-                if(Input.IsKeyDown(Bindings.GLFW.Keys.NumpadSubtract))
-                {
-                    rotSpeed -= 0.1;
-                }
-
-                buffer.BeginRenderPass(new ICommandBuffer.RenderPassBeginInfo()
-                {
-                    ClearValues = new List<ClearValue>() { new ClearValue(new ClearValue.ClearColor(0, 0, 0, 1)), new ClearValue(1) },
-                    Width = 1280,
-                    Height = 720,
-                    FrameBuffer = FrameBuffer[frame],
-                    RenderPass = renderPass
-                });
-
-                MeshComponent meshC = reg.Get<MeshComponent>(e);
-                RenderableMesh mesh = meshC.Mesh;
-
-                buffer.Bind(shader.Pipeline);
-                buffer.Bind(meshC.Mesh.VAO);
-                buffer.Bind(layout, 0, new List<IDescriptorSet>() { descriptorSets[frame] });
-                buffer.DrawElements((int) mesh.indexCount, (int) mesh.baseVertex, 0, 1, (int) mesh.baseIndex);
-
-                // Screen Resolve
-                var frameInfo = new RenderPass.FrameInfo { FrameInFlight = frame };
-                screenResolve.SetInputTexture(new Cobalt.Graphics.Texture() { Image = colorAttachmentViews[frame], Sampler = albedoImageSampler }, frameInfo);
-                screenResolve.Record(buffer, frameInfo);
-
-                buffer.End();
-
-                Matrix4 model = Matrix4.Rotate(new Vector3(0, (float)time, 0));
-
-                NativeBuffer<UniformBufferData> nativeData = new NativeBuffer<UniformBufferData>(uniformBuffer.Map());
-                UniformBufferData data = nativeData.Get(0);
-                    data.projection = cam.projection;
-                    data.view = cam.view;
-                    data.model = model;
-                nativeData.Set(data, 0);
-                uniformBuffer.Unmap();
-
-                graphicsQueue.Execute(new IQueue.SubmitInfo(commandBuffers[frame]));*/
-
+                sw.Restart();
                 renderSystem.render();
+                sw.Stop();
+
+                Console.WriteLine(sw.Elapsed.TotalMilliseconds);
 
                 window.Poll();
                 swapchain.Present(new ISwapchain.PresentInfo());
-
-                //frame = (frame + 1) % 2;
-                //time += rotSpeed;
             }
 
             gfxContext.Dispose();

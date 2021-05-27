@@ -169,6 +169,18 @@ namespace Cobalt.Graphics
             public uint MaterialId;
         }
 
+        private struct SceneData
+        {
+            public Matrix4 View;
+            public Matrix4 Projection;
+
+            public Vector3 CameraPosition;
+            public Vector3 CameraDirection;
+
+            public Vector3 SunDirection;
+            public Vector3 SunColor;
+        }
+
         private class FrameData
         {
             public IDescriptorPool descriptorPool;
@@ -176,6 +188,7 @@ namespace Cobalt.Graphics
             public IBuffer entityData;
             public IBuffer materialData;
             public IBuffer indirectBuffer;
+            public IBuffer sceneBuffer;
         }
 
         private readonly Dictionary<PbrMaterialComponent, uint> MaterialIndices = new Dictionary<PbrMaterialComponent, uint>();
@@ -185,7 +198,7 @@ namespace Cobalt.Graphics
         private static readonly uint MAT_NOT_FOUND = uint.MaxValue;
         private static readonly uint TEX_NOT_FOUND = uint.MaxValue;
         private static readonly uint MAX_MAT_COUNT = 4096;
-        private static readonly uint MAX_TEX_COUNT = 1024;
+        private static readonly uint MAX_TEX_COUNT = 500;
         private readonly Dictionary<IVertexAttributeArray, Dictionary<RenderableMesh, List<EntityData>>> framePayload = new Dictionary<IVertexAttributeArray, Dictionary<RenderableMesh, List<EntityData>>>();
         private readonly List<FrameData> frames = new List<FrameData>();
         private Shader _pbrShader;
@@ -215,6 +228,13 @@ namespace Cobalt.Graphics
                         .Count((int)MAX_TEX_COUNT)
                         .DescriptorType(EDescriptorType.CombinedImageSampler)
                         .Name("Textures")
+                        .AddAccessibleStage(EShaderType.Fragment).Build())
+                    .AddBinding(new IDescriptorSetLayout.DescriptorSetLayoutBinding.Builder()
+                        .BindingIndex(3)
+                        .Count(1)
+                        .DescriptorType(EDescriptorType.UniformBuffer)
+                        .Name("SceneData")
+                        .AddAccessibleStage(EShaderType.Vertex)
                         .AddAccessibleStage(EShaderType.Fragment).Build())
                     .Build()))
                 .Build());
@@ -273,6 +293,9 @@ namespace Cobalt.Graphics
 
                 frames[info.FrameInFlight].indirectBuffer = Device.CreateBuffer(new IBuffer.CreateInfo<DrawElementsIndirectCommandPayload>.Builder().AddUsage(EBufferUsage.IndirectBuffer).Size(16 * 1024),
                     new IBuffer.MemoryInfo.Builder().Usage(EMemoryUsage.CPUToGPU).AddRequiredProperty(EMemoryProperty.HostVisible).AddRequiredProperty(EMemoryProperty.HostCoherent));
+
+                frames[info.FrameInFlight].sceneBuffer = Device.CreateBuffer(IBuffer.FromPayload(new SceneData()).AddUsage(EBufferUsage.UniformBuffer),
+                    new IBuffer.MemoryInfo.Builder().Usage(EMemoryUsage.CPUToGPU).AddRequiredProperty(EMemoryProperty.HostCoherent).AddRequiredProperty(EMemoryProperty.HostVisible));
             }
 
             List<DescriptorWriteInfo> writeInfos = new List<DescriptorWriteInfo>();
@@ -307,6 +330,14 @@ namespace Cobalt.Graphics
                     .DescriptorSet(frames[info.FrameInFlight].descriptorSet)
                     .ArrayElement(0).Build());
 
+            writeInfos.Add(new DescriptorWriteInfo.Builder().AddBufferInfo(
+                new DescriptorWriteInfo.DescriptorBufferInfo.Builder()
+                    .Buffer(frames[info.FrameInFlight].sceneBuffer)
+                    .Range(44 * 4).Build())
+                    .BindingIndex(3)
+                    .DescriptorSet(frames[info.FrameInFlight].descriptorSet)
+                    .ArrayElement(0).Build());
+
             // Build material array
             //StateMachine.BindBuffer(EBufferUsage.StorageBuffer, frames[info.FrameInFlight].materialData);
             NativeBuffer<MaterialPayload> nativeMaterialData = new NativeBuffer<MaterialPayload>(frames[info.FrameInFlight].materialData.Map());
@@ -328,14 +359,26 @@ namespace Cobalt.Graphics
                     for(int i = 0; i < instances.Count; i++)
                     {
                         EntityData instance = instances[i];
-
-                        instance.Transformation = instance.Transformation * Camera.View * Camera.Projection;
-                        
                         nativeEntityData.Set(instance);
                     }
                 }
             }
             frames[info.FrameInFlight].entityData.Unmap();
+
+            NativeBuffer<SceneData> nativeSceneData = new NativeBuffer<SceneData>(frames[info.FrameInFlight].sceneBuffer.Map());
+            SceneData data = new SceneData
+            {
+                View = Camera.View,
+                Projection = Camera.Projection,
+
+                CameraPosition = Camera.position,
+                CameraDirection = Camera.front,
+
+                SunDirection = new Vector3(-1, -1, -1),
+                SunColor = new Vector3(1, 1, 1)
+            };
+            nativeSceneData.Set(data);
+            frames[info.FrameInFlight].sceneBuffer.Unmap();
 
             // Build the multidraw indirect buffers
 

@@ -246,6 +246,17 @@ namespace Cobalt.Math
             return ret;
         }
 
+        public static Matrix4 Translate(Vector3 position)
+        {
+            Matrix4 ret = Matrix4.Identity;
+
+            ret[3, 0] = position.x;
+            ret[3, 1] = position.y;
+            ret[3, 2] = position.z;
+
+            return ret;
+        }
+
         public static Matrix4 Scale(Vector3 scale)
         {
             Matrix4 ret = Matrix4.Identity;

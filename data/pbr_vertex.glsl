@@ -20,10 +20,28 @@ layout(std430, binding = 0) buffer ObjectDataBuffer
     ObjectData objects[];
 };
 
+layout(std140, binding = 3) uniform SceneData
+{
+    mat4 view;
+    mat4 projection;
+
+    vec3 cameraPosition;
+    vec3 cameraDirection;
+
+    vec3 sunDirection;
+    vec3 sunColor;
+};
+
 layout (location = 0) out VertexData
 {
     vec3 position;
+    vec3 normal;
+    vec3 tangent;
+    vec3 binormal;
     vec2 texcoord0;
+
+    vec3 worldPos;
+    vec3 fragPosition;
     flat int instanceID;
 } outData;
 
@@ -36,6 +54,12 @@ void main()
 
     outData.position = iPosition;
     outData.texcoord0 = iTexCoord0;
+    outData.normal = iNormal;
+    outData.tangent = iTangent;
+    outData.binormal = iBinormal;
 
-    gl_Position = myData.transform * vec4(iPosition, 1);
+    outData.worldPos = vec3(myData.transform * vec4(iPosition, 1.0));
+
+    outData.fragPosition = (myData.transform * vec4(iPosition, 1)).xyz;
+    gl_Position = myData.transform * projection * view * vec4(iPosition, 1);
 }

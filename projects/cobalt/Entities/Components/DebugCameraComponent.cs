@@ -9,7 +9,7 @@ namespace Cobalt.Entities.Components
         private const float YAW = -90.0f;
         private const float PITCH = 0.0f;
         private const float SPEED = 0.2f;
-        private const float SENSITIVITY = 0.1f;
+        private const float SENSITIVITY = 0.25f;
         private const float ZOOM = 45.0f;
 
         public Matrix4 View

@@ -163,8 +163,13 @@ namespace Cobalt.Graphics
 
         private struct EntityData
         {
-            public Matrix4 Transformation;
-            public uint MaterialId;
+            public Matrix4 Transformation; // [0, 64)
+            public uint MaterialId; // [64, 68)
+
+            // padding
+            private uint padding0; // [68, 72)
+            private uint padding1; // [72, 76)
+            private uint padding2; // [76, 80)
         }
 
         private struct SceneData

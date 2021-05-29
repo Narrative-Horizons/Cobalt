@@ -132,7 +132,7 @@ namespace Cobalt.Sandbox
                 reg.Assign(helmetEntity, new MeshComponent(box));
                 reg.Assign(helmetEntity, new TransformComponent
                 {
-                    transformMatrix = trans
+                    TransformMatrix = trans
                 });
                 reg.Assign(helmetEntity, new PbrMaterialComponent
                 {

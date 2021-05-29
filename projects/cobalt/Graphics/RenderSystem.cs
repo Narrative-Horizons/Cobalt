@@ -258,7 +258,7 @@ namespace Cobalt.Graphics
             {
                 // Process PBR data
                 uint matId = _GetOrInsert(matComponent);
-                EntityData e = new EntityData { MaterialId = matId, Transformation = reg.Get<TransformComponent>(ent).transformMatrix };
+                EntityData e = new EntityData { MaterialId = matId, Transformation = reg.Get<TransformComponent>(ent).TransformMatrix };
                 RenderableMesh renderMesh = mesh.Mesh;
                 if (!framePayload.ContainsKey(renderMesh.VAO))
                 {

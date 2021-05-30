@@ -16,7 +16,7 @@ namespace Cobalt.Core
 
         public void AddHandler<T>(Func<T, bool> handler) where T : EventData
         {
-            if (!_handlers.TryGetValue(typeof(T).Name, out List<Func<EventData, bool>> eventHandlers))
+            if (!_handlers.TryGetValue(typeof(T).FullName, out List<Func<EventData, bool>> eventHandlers))
                 eventHandlers = new List<Func<EventData, bool>>();
 
             eventHandlers.Add((EventData e) =>
@@ -24,12 +24,12 @@ namespace Cobalt.Core
                 return handler.Invoke((T)e);
             });
 
-            _handlers.Add(typeof(T).Name, eventHandlers);
+            _handlers.Add(typeof(T).FullName, eventHandlers);
         }
 
         public void RemoveHandler<T>(Func<T, bool> handler) where T : EventData
         {
-            if (!_handlers.TryGetValue(typeof(T).Name, out List<Func<EventData, bool>> eventHandlers))
+            if (!_handlers.TryGetValue(typeof(T).FullName, out List<Func<EventData, bool>> eventHandlers))
                 return;
 
             for(int i = 0; i < eventHandlers.Count; i++)
@@ -44,7 +44,7 @@ namespace Cobalt.Core
 
         public void Dispatch<T>(T data = null) where T : EventData
         {
-            if (!_handlers.TryGetValue(typeof(T).Name, out List<Func<EventData, bool>> eventHandlers))
+            if (!_handlers.TryGetValue(typeof(T).FullName, out List<Func<EventData, bool>> eventHandlers))
                 return;
 
             for(int i = 0; i < eventHandlers.Count; i++)

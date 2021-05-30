@@ -126,7 +126,7 @@ namespace Cobalt.Sandbox
             Matrix4 trans = Matrix4.Identity;
             trans *= Matrix4.Translate(new Vector3(2, 0, 0));
 
-            for(int i = 0; i < 10; i ++)
+            for(int i = 0; i < 20; i ++)
             {
                 Entity helmetEntity = reg.Create();
                 reg.Assign(helmetEntity, new MeshComponent(box));
@@ -166,6 +166,7 @@ namespace Cobalt.Sandbox
 
             while (window.IsOpen())
             {
+                window.Poll();
                 if(Input.IsKeyPressed(Bindings.GLFW.Keys.Escape))
                 {
                     window.Close();
@@ -173,10 +174,10 @@ namespace Cobalt.Sandbox
 
                 sw.Restart();
                 renderSystem.render();
-                sw.Stop();
 
-                window.Poll();
                 swapchain.Present(new ISwapchain.PresentInfo());
+                sw.Stop();
+                Console.WriteLine(sw.ElapsedMilliseconds);
             }
 
             gfxContext.Dispose();

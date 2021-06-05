@@ -37,7 +37,7 @@ namespace Cobalt.Graphics
             cmdPool = device.CreateCommandPool(new ICommandPool.CreateInfo.Builder().ResetAllocations(true));
             cmdBuffers = cmdPool.Allocate(new ICommandBuffer.AllocateInfo.Builder().Count(framesInFlight).Level(ECommandBufferLevel.Primary).Build());
 
-            _pbrPass = new PbrRenderPass(device, (int) swapchain.GetImageCount());
+            _pbrPass = new PbrRenderPass(device, (int) swapchain.GetImageCount(), registry);
             /// TODO: Resize this
             _screenResolvePass = new ScreenResolvePass(swapchain, device, 1280, 720);
 
@@ -80,7 +80,6 @@ namespace Cobalt.Graphics
 
         public void render()
         {
-            _prerender();
             ICommandBuffer cmdBuffer = cmdBuffers[currentFrame];
 
             ComponentView<DebugCameraComponent> cameraView = EntityRegistry.GetView<DebugCameraComponent>();
@@ -114,22 +113,6 @@ namespace Cobalt.Graphics
             // Post Processing
 
             currentFrame = (currentFrame + 1) % (int) framesInFlight;
-        }
-
-        private void _prerender()
-        {
-            // build the pass render lists
-            EntityView view = EntityRegistry.GetView();
-            view.ForEach((e, reg) =>
-            {
-                bool hasTransform = reg.Has<TransformComponent>(e);
-                bool hasMesh = reg.Has<MeshComponent>(e);
-                
-                if (hasTransform && hasMesh)
-                {
-                    passes.ForEach(pass => pass.Preprocess(e, reg));
-                }
-            });
         }
     }
 

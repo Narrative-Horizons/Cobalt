@@ -2,7 +2,6 @@
 using Cobalt.Graphics.API;
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using OpenGL = Cobalt.Bindings.GL.GL;
 
 namespace Cobalt.Graphics.GL
@@ -13,12 +12,17 @@ namespace Cobalt.Graphics.GL
         private static uint _currentVao = uint.MaxValue;
         private static EBeginMode _currentDrawMode = 0;
         private static HashSet<TextureSamplerHandleWrapper> _residentTextureSamplerHandles = new HashSet<TextureSamplerHandleWrapper>();
+        private static Dictionary<EEnableCap, bool> _capabilities = new Dictionary<EEnableCap, bool>();
 
         private static HashSet<ulong> _residentTextureHandles = new HashSet<ulong>();
 
         private static Dictionary<TextureSamplerHandleWrapper, ulong> _cachedHandles = new Dictionary<TextureSamplerHandleWrapper, ulong>();
 
         private static bool DepthEnabled = false;
+
+        private static ECullFaceMode cullFace = ECullFaceMode.Back;
+        private static EFrontFaceDirection frontFaceDirection = EFrontFaceDirection.Ccw;
+        private static Bindings.GL.EPolygonMode fillMode = Bindings.GL.EPolygonMode.Fill;
 
         private struct TextureSamplerHandleWrapper : IEquatable<TextureSamplerHandleWrapper>
         {
@@ -41,6 +45,45 @@ namespace Cobalt.Graphics.GL
             public bool Equals(TextureSamplerHandleWrapper wrapper)
             {
                 return textureHandle == wrapper.textureHandle && samplerHandle == wrapper.samplerHandle;
+            }
+        }
+
+        internal static void Enable(EEnableCap capability, bool enabled)
+        {
+            if (_capabilities.GetValueOrDefault(capability, false) != enabled)
+            {
+                _capabilities[capability] = enabled;
+                if (enabled)
+                    OpenGL.Enable(capability);
+                else
+                    OpenGL.Disable(capability);
+            }
+        }
+
+        internal static void CullFace(ECullFaceMode mode)
+        {
+            if (cullFace != mode)
+            {
+                cullFace = mode;
+                OpenGL.CullFace(cullFace);
+            }
+        }
+
+        internal static void FrontFace(EFrontFaceDirection direction)
+        {
+            if (frontFaceDirection != direction)
+            {
+                frontFaceDirection = direction;
+                OpenGL.FrontFace(frontFaceDirection);
+            }
+        }
+
+        internal static void PolygonMode(Bindings.GL.EPolygonMode mode)
+        {
+            if (fillMode != mode)
+            {
+                fillMode = mode;
+                OpenGL.PolygonMode(ECullFaceMode.FrontAndBack, fillMode);
             }
         }
 

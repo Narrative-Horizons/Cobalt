@@ -55,7 +55,10 @@ namespace Cobalt.Sandbox
 
             IRenderSurface surface = device.GetSurface(window);
             ISwapchain swapchain = surface.CreateSwapchain(new ISwapchain.CreateInfo.Builder().Width(1280).Height(720).ImageCount(2).Layers(1).Build());
-            
+
+            Registry reg = new Registry();
+            RenderSystem renderSystem = new RenderSystem(reg, device, swapchain);
+
             AssetManager assetManager = new AssetManager();
 
             ICommandPool commandPool = device.CreateCommandPool(new ICommandPool.CreateInfo.Builder().Queue(graphicsQueue).ResetAllocations(true).TransientAllocations(true));
@@ -115,19 +118,17 @@ namespace Cobalt.Sandbox
 
             RenderableManager renderableManager = new RenderableManager(device);
 
-            ModelAsset asset = assetManager.LoadModel("data/Dragon/DragonUgly.FBX");
+            ModelAsset asset = assetManager.LoadModel("data/Dragon/Dragon.FBX");
             renderableManager.QueueRenderable(asset);
 
             List<RenderableMesh> meshes = renderableManager.GetRenderables(asset);
             RenderableMesh box = meshes[0];
 
-            Registry reg = new Registry();
-
             Matrix4 trans = Matrix4.Identity;
             trans *= Matrix4.Scale(new Vector3(0.005f));
             trans *= Matrix4.Rotate(new Vector3(90, 0, 0)); 
 
-            for(int i = 0; i < 50; i ++)
+            for(int i = 0; i < 10; i ++)
             {
                 Entity helmetEntity = reg.Create();
                 reg.Assign(helmetEntity, new MeshComponent(box));
@@ -160,8 +161,6 @@ namespace Cobalt.Sandbox
             Entity cameraEntity = reg.Create();
             reg.Assign(cameraEntity, new TransformComponent());
             reg.Assign(cameraEntity, new DebugCameraComponent(new Vector3(4, 0, 4), Vector3.UnitY));
-
-            RenderSystem renderSystem = new RenderSystem(reg, device, swapchain);
 
             Stopwatch sw = new Stopwatch();
 

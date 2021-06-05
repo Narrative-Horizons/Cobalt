@@ -19,78 +19,55 @@ namespace Cobalt.Graphics.GL.Commands
         public void Execute()
         {
             StateMachine.UseProgram(Pipeline);
-            if(Pipeline.Info.DepthStencilCreationInformation.DepthTestEnabled)
-            {
-                OpenGL.Enable(Bindings.GL.EEnableCap.DepthTest);
-            }
-            else
-            {
-                OpenGL.Disable(Bindings.GL.EEnableCap.DepthTest);
-            }
-
-            if(Pipeline.Info.DepthStencilCreationInformation.DepthWriteEnabled)
-            {
-                StateMachine.SetDepthMask(true);
-            }
-            else
-            {
-                StateMachine.SetDepthMask(false);
-            }
+            StateMachine.Enable(Bindings.GL.EEnableCap.DepthTest, Pipeline.Info.DepthStencilCreationInformation.DepthTestEnabled);
+            StateMachine.SetDepthMask(Pipeline.Info.DepthStencilCreationInformation.DepthWriteEnabled);
 
 
-            if(Pipeline.Info.RasterizerCreationInformation != null)
+            if (Pipeline.Info.RasterizerCreationInformation != null)
             {
-                if(Pipeline.Info.RasterizerCreationInformation.DepthClampEnabled)
-                {
-                    OpenGL.Enable(Bindings.GL.EEnableCap.DepthClamp);
-                }
-                else
-                {
-                    OpenGL.Disable(Bindings.GL.EEnableCap.DepthClamp);
-                }
+                StateMachine.Enable(Bindings.GL.EEnableCap.DepthClamp, true);
 
-                /*switch (Pipeline.Info.RasterizerCreationInformation.CullFaces)
+                switch (Pipeline.Info.RasterizerCreationInformation.CullFaces)
                 {
                     case API.EPolgyonFace.None:
-                        OpenGL.Disable(Bindings.GL.EEnableCap.CullFace);
+                        StateMachine.Enable(Bindings.GL.EEnableCap.CullFace, false);
                         break;
                     case API.EPolgyonFace.Back:
-                        OpenGL.Enable(Bindings.GL.EEnableCap.CullFace);
-                        OpenGL.CullFace(Bindings.GL.ECullFaceMode.Back);
+                        StateMachine.Enable(Bindings.GL.EEnableCap.CullFace, true);
+                        StateMachine.CullFace(Bindings.GL.ECullFaceMode.Back);
                         break;
                     case API.EPolgyonFace.Front:
-                        OpenGL.Enable(Bindings.GL.EEnableCap.CullFace);
-                        OpenGL.CullFace(Bindings.GL.ECullFaceMode.Front);
+                        StateMachine.Enable(Bindings.GL.EEnableCap.CullFace, true);
+                        StateMachine.CullFace(Bindings.GL.ECullFaceMode.Front);
                         break;
                     case API.EPolgyonFace.FrontAndBack:
-                        OpenGL.Enable(Bindings.GL.EEnableCap.CullFace);
-                        OpenGL.CullFace(Bindings.GL.ECullFaceMode.FrontAndBack);
+                        StateMachine.Enable(Bindings.GL.EEnableCap.CullFace, true);
+                        StateMachine.CullFace(Bindings.GL.ECullFaceMode.FrontAndBack);
                         break;
                 }
-                OpenGL.Disable(Bindings.GL.EEnableCap.CullFace);*/
 
-                /*switch (Pipeline.Info.RasterizerCreationInformation.WindingOrder)
+                switch (Pipeline.Info.RasterizerCreationInformation.WindingOrder)
                 {
                     case API.EVertexWindingOrder.Clockwise:
-                        OpenGL.FrontFace(Bindings.GL.EFrontFaceDirection.Cw);
+                        StateMachine.FrontFace(Bindings.GL.EFrontFaceDirection.Cw);
                         break;
                     case API.EVertexWindingOrder.CounterClockwise:
-                        OpenGL.FrontFace(Bindings.GL.EFrontFaceDirection.Ccw);
+                        StateMachine.FrontFace(Bindings.GL.EFrontFaceDirection.Ccw);
                         break;
                 }
 
                 switch (Pipeline.Info.RasterizerCreationInformation.PolygonMode)
                 {
                     case API.EPolygonMode.Fill:
-                        Bindings.GL.GL.PolygonMode(Bindings.GL.ECullFaceMode.FrontAndBack, Bindings.GL.EPolygonMode.Fill);
+                        StateMachine.PolygonMode(Bindings.GL.EPolygonMode.Fill);
                         break;
                     case API.EPolygonMode.Point:
-                        Bindings.GL.GL.PolygonMode(Bindings.GL.ECullFaceMode.FrontAndBack, Bindings.GL.EPolygonMode.Point);
+                        StateMachine.PolygonMode(Bindings.GL.EPolygonMode.Point);
                         break;
                     case API.EPolygonMode.Wireframe:
-                        Bindings.GL.GL.PolygonMode(Bindings.GL.ECullFaceMode.FrontAndBack, Bindings.GL.EPolygonMode.Line);
+                        StateMachine.PolygonMode(Bindings.GL.EPolygonMode.Line);
                         break;
-                }*/
+                }
             }
         }
     }

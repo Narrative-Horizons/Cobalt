@@ -24,6 +24,7 @@ layout(std140, binding = 3) uniform SceneData
 {
     mat4 view;
     mat4 projection;
+    mat4 viewProjection;
 
     vec3 cameraPosition;
     vec3 cameraDirection;
@@ -57,10 +58,8 @@ void main()
     outData.normal = iNormal;
     outData.tangent = iTangent;
     outData.binormal = iBinormal;
-
     outData.worldPos = vec3(myData.transform * vec4(iPosition, 1.0));
+    gl_Position = viewProjection * myData.transform * vec4(iPosition, 1);
 
-    outData.fragPosition = (myData.transform * vec4(iPosition, 1)).xyz;
-    //gl_Position = myData.transform * view * projection * vec4(iPosition, 1);
-    gl_Position = projection * view * myData.transform * vec4(iPosition, 1);
+    outData.fragPosition = gl_Position.xyz;
 }

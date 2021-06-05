@@ -32,6 +32,7 @@ layout(std140, binding = 3) uniform SceneData
 {
     mat4 view;
     mat4 projection;
+    mat4 viewProjection;
 
     vec3 cameraPosition;
     vec3 cameraDirection;

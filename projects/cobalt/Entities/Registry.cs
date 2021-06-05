@@ -1,4 +1,6 @@
-﻿using Cobalt.Entities.Components;
+﻿using Cobalt.Core;
+using Cobalt.Entities.Components;
+using Cobalt.Events;
 using System;
 using System.Collections.Generic;
 
@@ -12,6 +14,8 @@ namespace Cobalt.Entities
 
         public uint Capacity => (uint)_entities.Capacity;
         public uint Count => (uint)_entities.Count;
+
+        public EventManager Events { get; private set; } = new EventManager();
 
         public uint Active()
         {
@@ -28,17 +32,16 @@ namespace Cobalt.Entities
 
         public Entity Create()
         {
-            if (_next_available == Entity.Invalid)
-            {
-                return CreateNewIdentifier();
-            }
-            return RecycleIdentifier();
+            Entity result = _next_available == Entity.Invalid ? CreateNewIdentifier() : RecycleIdentifier();
+            Events.Dispatch(new EntitySpawnEvent(result, this));
+            return result;
         }
 
         public void Assign<Component>(Entity ent, Component value) where Component : BaseComponent
         {
             MemoryPool<Component> pool = GetPool<Component>();
             pool.Assign(ent, ref value);
+            Events.Dispatch(new ComponentAddEvent<Component>(ent, this, value));
         }
 
         public void AssignOrReplace<Component>(Entity ent, Component value) where Component : BaseComponent
@@ -73,13 +76,12 @@ namespace Cobalt.Entities
 
         public void Release(Entity ent)
         {
+            Events.Dispatch(new EntityReleaseEvent(ent, this));
+
             // Release components
             foreach (var pool in _pools.Values)
             {
-                if (pool.Contains(ent))
-                {
-                    pool.Remove(ent);
-                }
+                pool.Remove(ent);
             }
 
             // Recycle entity
@@ -89,10 +91,20 @@ namespace Cobalt.Entities
             _next_available = new Entity { Identifier = identifier, Generation = 0 };
         }
 
+        public void Remove<Component>(Entity ent)
+        {
+            bool removed = GetPool<Component>().Remove(ent);
+            if (removed)
+            {
+                Events.Dispatch(new ComponentRemoveEvent<Component>(ent, this));
+            }
+        }
+
         public void Replace<Component>(Entity ent, Component value) where Component : BaseComponent
         {
             MemoryPool<Component> pool = GetPool<Component>();
             pool.Replace(ent, value);
+            Events.Dispatch(new ComponentReplaceEvent<Component>(ent, this, value));
         }
 
         public void Reserve(uint newCapacity)

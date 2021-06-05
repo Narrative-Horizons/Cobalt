@@ -6,7 +6,7 @@ namespace Cobalt.Entities
     public interface IMemoryPool
     {
         bool Contains(Entity ent);
-        void Remove(Entity ent);
+        bool Remove(Entity ent);
     }
 
     /// <summary>
@@ -85,6 +85,10 @@ namespace Cobalt.Entities
         {
             uint page = _Page(ent);
             uint offset = _PageOffset(ent);
+            if (page >= _sparse.Count)
+            {
+                return default(Type);
+            }
             Entity sparse = _sparse[(int)page].Payload[offset];
             if (sparse.IsInvalid)
             {
@@ -101,24 +105,29 @@ namespace Cobalt.Entities
             _payload[(int)index] = value;
         }
 
-        public void Remove(Entity ent)
+        public bool Remove(Entity ent)
         {
             uint page = _Page(ent);
             uint offset = _PageOffset(ent);
             ref Entity r = ref _sparse[(int)page].Payload[offset];
 
-            uint payloadIndex = r.Identifier;
-            Type last = _payload[_payload.Count - 1];
-            _payload[(int)payloadIndex] = last;
-            _payload.RemoveAt(_payload.Count - 1);
-            
-            Entity back = _packed[_packed.Count - 1];
-            uint backPage = _Page(back);
-            uint backOffset = _PageOffset(back);
-            _packed[_packed.Count - 1] = ent;
-            _sparse[(int)backPage].Payload[backOffset] = r;
-            r = Entity.Invalid;
-            _packed.RemoveAt(_packed.Count - 1);
+            if (!r.IsInvalid)
+            {
+                uint payloadIndex = r.Identifier;
+                Type last = _payload[_payload.Count - 1];
+                _payload[(int)payloadIndex] = last;
+                _payload.RemoveAt(_payload.Count - 1);
+
+                Entity back = _packed[_packed.Count - 1];
+                uint backPage = _Page(back);
+                uint backOffset = _PageOffset(back);
+                _packed[_packed.Count - 1] = ent;
+                _sparse[(int)backPage].Payload[backOffset] = r;
+                r = Entity.Invalid;
+                _packed.RemoveAt(_packed.Count - 1);
+                return true;
+            }
+            return false;
         }
 
         public List<Type> GetPayloadEnumerable()

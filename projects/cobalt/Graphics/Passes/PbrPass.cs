@@ -1,6 +1,7 @@
 ﻿using Cobalt.Core;
 using Cobalt.Entities;
 using Cobalt.Entities.Components;
+using Cobalt.Events;
 using Cobalt.Graphics.API;
 using Cobalt.Math;
 using System.Collections.Generic;
@@ -32,6 +33,7 @@ namespace Cobalt.Graphics.Passes
         {
             public Matrix4 View;
             public Matrix4 Projection;
+            public Matrix4 ViewProjection;
 
             public Vector3 CameraPosition;
             public Vector3 CameraDirection;
@@ -64,7 +66,7 @@ namespace Cobalt.Graphics.Passes
 
         public DebugCameraComponent Camera { get; set; }
 
-        public PbrRenderPass(IDevice device, int framesInFlight) : base(device)
+        public PbrRenderPass(IDevice device, int framesInFlight, Registry registry) : base(device)
         {
             IPipelineLayout layout = device.CreatePipelineLayout(new IPipelineLayout.CreateInfo.Builder().AddDescriptorSetLayout(device.CreateDescriptorSetLayout(
                     new IDescriptorSetLayout.CreateInfo.Builder()
@@ -132,29 +134,14 @@ namespace Cobalt.Graphics.Passes
                         new IBuffer.MemoryInfo.Builder().Usage(EMemoryUsage.CPUToGPU).AddRequiredProperty(EMemoryProperty.HostCoherent).AddRequiredProperty(EMemoryProperty.HostVisible));
                 }
             }
+
+            registry.Events.AddHandler<ComponentAddEvent<PbrMaterialComponent>>(_pbrComponentAddHandler);
+            registry.Events.AddHandler<ComponentAddEvent<MeshComponent>>(_meshComponentAddHandler);
+            registry.Events.AddHandler<ComponentAddEvent<TransformComponent>>(_transformComponentAddHandler);
         }
 
         public override void Preprocess(Entity ent, Registry reg)
         {
-            PbrMaterialComponent matComponent = reg.TryGet<PbrMaterialComponent>(ent);
-            MeshComponent mesh = reg.Get<MeshComponent>(ent);
-
-            if (matComponent != default)
-            {
-                // Process PBR data
-                uint matId = _GetOrInsert(matComponent);
-                EntityData e = new EntityData { MaterialId = matId, Transformation = reg.Get<TransformComponent>(ent).TransformMatrix };
-                RenderableMesh renderMesh = mesh.Mesh;
-                if (!framePayload.ContainsKey(renderMesh.VAO))
-                {
-                    framePayload.Add(renderMesh.VAO, new Dictionary<RenderableMesh, List<EntityData>>());
-                }
-                if (!framePayload[renderMesh.VAO].ContainsKey(renderMesh))
-                {
-                    framePayload[renderMesh.VAO].Add(renderMesh, new List<EntityData>());
-                }
-                framePayload[renderMesh.VAO][renderMesh].Add(e);
-            }
         }
 
         public override void Record(ICommandBuffer buffer, FrameInfo info)
@@ -179,6 +166,7 @@ namespace Cobalt.Graphics.Passes
             foreach (var obj in framePayload)
             {
                 buffer.Bind(obj.Key);
+
                 DrawElementsIndirectCommand drawData = new DrawElementsIndirectCommand();
 
                 foreach (var child in obj.Value)
@@ -207,7 +195,7 @@ namespace Cobalt.Graphics.Passes
                 buffer.DrawElementsMultiIndirect(drawData, 0, frames[info.FrameInFlight].indirectBuffer);
             }
 
-            framePayload.Clear();
+            // framePayload.Clear();
         }
 
         private void _UploadData(int frameInFlight)
@@ -280,6 +268,7 @@ namespace Cobalt.Graphics.Passes
             {
                 View = Camera.View,
                 Projection = Camera.Projection,
+                ViewProjection = Camera.View * Camera.Projection,
 
                 CameraPosition = Camera.position,
                 CameraDirection = Camera.front,
@@ -324,6 +313,50 @@ namespace Cobalt.Graphics.Passes
             textureIndices.Add(tex, (uint)textureIndices.Count);
             textures.Add(tex);
             return (uint)textureIndices.Count - 1;
+        }
+
+        private bool _pbrComponentAddHandler(ComponentAddEvent<PbrMaterialComponent> data)
+        {
+            _addEntity(data.Entity, data.Registry);
+            return false;
+        }
+
+        private bool _meshComponentAddHandler(ComponentAddEvent<MeshComponent> data)
+        {
+            _addEntity(data.Entity, data.Registry);
+            return false;
+        }
+
+        private bool _transformComponentAddHandler(ComponentAddEvent<TransformComponent> data)
+        {
+            _addEntity(data.Entity, data.Registry);
+            return false;
+        }
+
+        private void _addEntity(Entity ent, Registry reg)
+        {
+            if (reg.Has<PbrMaterialComponent>(ent) && reg.Has<TransformComponent>(ent) && reg.Has<MeshComponent>(ent))
+            {
+                PbrMaterialComponent matComponent = reg.Get<PbrMaterialComponent>(ent);
+                MeshComponent mesh = reg.Get<MeshComponent>(ent);
+
+                if (matComponent != default)
+                {
+                    // Process PBR data
+                    uint matId = _GetOrInsert(matComponent);
+                    EntityData e = new EntityData { MaterialId = matId, Transformation = reg.Get<TransformComponent>(ent).TransformMatrix };
+                    RenderableMesh renderMesh = mesh.Mesh;
+                    if (!framePayload.ContainsKey(renderMesh.VAO))
+                    {
+                        framePayload.Add(renderMesh.VAO, new Dictionary<RenderableMesh, List<EntityData>>());
+                    }
+                    if (!framePayload[renderMesh.VAO].ContainsKey(renderMesh))
+                    {
+                        framePayload[renderMesh.VAO].Add(renderMesh, new List<EntityData>());
+                    }
+                    framePayload[renderMesh.VAO][renderMesh].Add(e);
+                }
+            }
         }
     }
 }

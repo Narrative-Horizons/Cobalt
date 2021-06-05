@@ -157,6 +157,7 @@ namespace Cobalt.Graphics.Passes
                 RenderPass = _pass
             });
 
+            buffer.Sync();
             buffer.Bind(_pbrShader.Pipeline);
             buffer.Bind(_pbrShader.Layout, 0, new List<IDescriptorSet> { frames[info.FrameInFlight].descriptorSet });
 

@@ -377,3 +377,12 @@ GLAD_BINDING_EXPORT unsigned int cobalt_gl_get_error()
 {
 	return glGetError();
 }
+
+GLAD_BINDING_EXPORT void* cobalt_gl_fence_sync() {
+	const GLsync sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+	return sync;
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_wait_sync(void* sync) {
+	glWaitSync((GLsync)sync, 0, GL_TIMEOUT_IGNORED);
+}

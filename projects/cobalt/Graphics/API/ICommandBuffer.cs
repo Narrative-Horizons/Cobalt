@@ -222,5 +222,7 @@ namespace Cobalt.Graphics.API
 
         void Copy(IBuffer source, IBuffer destination, List<BufferCopyRegion> regions);
         void Copy(byte[] source, IImage destination, List<BufferImageCopyRegion> regions);
+
+        void Sync();
     }
 }

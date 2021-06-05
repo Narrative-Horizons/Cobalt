@@ -246,6 +246,12 @@ namespace Cobalt.Bindings.GL
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_get_error", CallingConvention = CallingConvention.Cdecl)]
         public static extern EErrorCode GetError();
 
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_fence_sync", CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr FenceSync();
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_wait_sync", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void WaitSync(IntPtr sync);
+
         public static void NamedBufferStorageTyped<T>(uint buffer, long size, [NotNull] [In, Out] T[] data, EBufferAccessMask flags) where T : unmanaged
         {
             unsafe

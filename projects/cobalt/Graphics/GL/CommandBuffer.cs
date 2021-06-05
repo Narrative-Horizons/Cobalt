@@ -141,6 +141,11 @@ namespace Cobalt.Graphics.GL
             });
         }
 
+        public void Sync()
+        {
+            commands.Add(new WaitSyncCommand());
+        }
+
         private static Bindings.GL.EPixelInternalFormat ToInternalFormat(EDataFormat format)
         {
             switch (format)

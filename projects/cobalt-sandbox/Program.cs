@@ -64,7 +64,7 @@ namespace Cobalt.Sandbox
             ICommandPool transferPool = device.CreateCommandPool(new ICommandPool.CreateInfo.Builder().Queue(transferQueue).ResetAllocations(false).TransientAllocations(true));
             ICommandBuffer transferCmdBuffer = transferPool.Allocate(new ICommandBuffer.AllocateInfo.Builder().Count(1).Level(ECommandBufferLevel.Primary))[0];
 
-            Core.ImageAsset assetAlbedo = assetManager.LoadImage("data/SciFiHelmet/SciFiHelmet_BaseColor.png");
+            Core.ImageAsset assetAlbedo = assetManager.LoadImage("data/Dragon/T_MountainDragon_BaseColor.jpg");
             IImage albedoImage = device.CreateImage(new IImage.CreateInfo.Builder()
                     .Depth(1).Format(EDataFormat.R8G8B8A8).Height((int)assetAlbedo.Height).Width((int)assetAlbedo.Width)
                     .InitialLayout(EImageLayout.Undefined).LayerCount(1).MipCount(1).SampleCount(ESampleCount.Samples1)
@@ -72,7 +72,7 @@ namespace Cobalt.Sandbox
                 new IImage.MemoryInfo.Builder()
                     .AddRequiredProperty(EMemoryProperty.DeviceLocal).Usage(EMemoryUsage.GPUOnly));
 
-            Core.ImageAsset assetNormal = assetManager.LoadImage("data/SciFiHelmet/SciFiHelmet_Normal.png");
+            Core.ImageAsset assetNormal = assetManager.LoadImage("data/Dragon/T_MountainDragon_Normal.jpg");
             IImage normalImage = device.CreateImage(new IImage.CreateInfo.Builder()
                     .Depth(1).Format(EDataFormat.R8G8B8A8).Height((int)assetNormal.Height).Width((int)assetNormal.Width)
                     .InitialLayout(EImageLayout.Undefined).LayerCount(1).MipCount(1).SampleCount(ESampleCount.Samples1)
@@ -80,7 +80,7 @@ namespace Cobalt.Sandbox
                 new IImage.MemoryInfo.Builder()
                     .AddRequiredProperty(EMemoryProperty.DeviceLocal).Usage(EMemoryUsage.GPUOnly));
 
-            Core.ImageAsset assetORM = assetManager.LoadImage("data/SciFiHelmet/SciFiHelmet_AmbientOcclusion-SciFiHelmet_MetallicRoughness.png");
+            Core.ImageAsset assetORM = assetManager.LoadImage("data/Dragon/T_MountainDragon_MetallicSmoothness.tga");
             IImage ORMImage = device.CreateImage(new IImage.CreateInfo.Builder()
                     .Depth(1).Format(EDataFormat.R8G8B8A8).Height((int)assetORM.Height).Width((int)assetORM.Width)
                     .InitialLayout(EImageLayout.Undefined).LayerCount(1).MipCount(1).SampleCount(ESampleCount.Samples1)
@@ -115,7 +115,7 @@ namespace Cobalt.Sandbox
 
             RenderableManager renderableManager = new RenderableManager(device);
 
-            ModelAsset asset = assetManager.LoadModel("data/SciFiHelmet/SciFiHelmet.gltf");
+            ModelAsset asset = assetManager.LoadModel("data/Dragon/DragonUgly.FBX");
             renderableManager.QueueRenderable(asset);
 
             List<RenderableMesh> meshes = renderableManager.GetRenderables(asset);
@@ -124,9 +124,10 @@ namespace Cobalt.Sandbox
             Registry reg = new Registry();
 
             Matrix4 trans = Matrix4.Identity;
-            trans *= Matrix4.Translate(new Vector3(2, 0, 0));
+            trans *= Matrix4.Scale(new Vector3(0.005f));
+            trans *= Matrix4.Rotate(new Vector3(90, 0, 0)); 
 
-            for(int i = 0; i < 20; i ++)
+            for(int i = 0; i < 50; i ++)
             {
                 Entity helmetEntity = reg.Create();
                 reg.Assign(helmetEntity, new MeshComponent(box));
@@ -153,7 +154,7 @@ namespace Cobalt.Sandbox
                     }
                 });
 
-                trans *= Matrix4.Translate(new Vector3(1.5f, 0, 0));
+                trans *= Matrix4.Translate(new Vector3(5f, 0, 0));
             }
 
             Entity cameraEntity = reg.Create();
@@ -174,10 +175,10 @@ namespace Cobalt.Sandbox
 
                 sw.Restart();
                 renderSystem.render();
+                sw.Stop();
 
                 swapchain.Present(new ISwapchain.PresentInfo());
-                sw.Stop();
-                Console.WriteLine(sw.ElapsedMilliseconds);
+                Console.WriteLine(sw.Elapsed.TotalMilliseconds);
             }
 
             gfxContext.Dispose();

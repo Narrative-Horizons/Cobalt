@@ -69,7 +69,7 @@ namespace Cobalt.Graphics
             GLFW.ShowWindow(_window);
 
             GLFW.SetWindowSizeCallback(_window, Resize);
-            //GLFW.SwapInterval(1);
+            GLFW.SwapInterval(0);
 
             GLFW.SetKeyCallback(_window, (GLFWWindow window, Keys key, int scanCode, InputState state, ModifierKeys mods) =>
             {

@@ -1,11 +1,14 @@
 ﻿using Cobalt.Math;
 using System;
+using System.Collections.Generic;
 
 namespace Cobalt.Core
 {
     public class MeshNode
     {
-        public Mesh mesh;
+        public List<Mesh> meshes = new List<Mesh>();
+        public MeshNode parent;
+        public List<MeshNode> children = new List<MeshNode>();
         //public Material material;
         public Matrix4 transform;
     }
@@ -19,5 +22,7 @@ namespace Cobalt.Core
         public Vector3[] binormals;
 
         public uint[] triangles;
+
+        public Guid GUID { get; internal set; }
     }
 }

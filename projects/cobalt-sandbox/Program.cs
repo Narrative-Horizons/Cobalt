@@ -119,6 +119,10 @@ namespace Cobalt.Sandbox
             RenderableManager renderableManager = new RenderableManager(device);
 
             ModelAsset asset = assetManager.LoadModel("data/Dragon/Dragon.FBX");
+
+
+            //Entity meshEntity = asset.AsEntity(reg, renderableManager);
+
             renderableManager.QueueRenderable(asset);
 
             List<RenderableMesh> meshes = renderableManager.GetRenderables(asset);

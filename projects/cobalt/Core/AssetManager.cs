@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using Cobalt.Entities;
+using Cobalt.Entities.Components;
 using Cobalt.Graphics.API;
 using Cobalt.Math;
 using CobaltConverter.Core;
@@ -60,21 +62,74 @@ namespace Cobalt.Core
         public List<MeshNode> meshes = new List<MeshNode>();
         public string Path { get; private set; }
 
-        internal unsafe void ProcessNode(Node* node, Scene* scene, Matrix4 parentMatrix)
+        public MeshNode RootNode;
+
+        private void ProcessMeshNode(Entity parent, Registry registry, MeshNode node, List<RenderableMesh> renderableMeshes)
         {
-            for(int i = 0; i < node->MNumMeshes; i++)
+            foreach(Mesh mesh in node.meshes)
+            {
+                RenderableMesh rMesh = renderableMeshes.Find(rMesh => rMesh.localMesh.GUID == mesh.GUID);
+                MeshComponent meshComp = new MeshComponent(rMesh);
+
+                registry.Assign(parent, meshComp);
+
+                PbrMaterialComponent materialComponent = new PbrMaterialComponent
+                {
+                    Type = EMaterialType.Opaque
+                };
+
+                registry.Assign(parent, materialComponent);
+            }
+
+            foreach(MeshNode child in node.children)
+            {
+                Entity childEntity = registry.Create();
+                TransformComponent trans = new TransformComponent
+                {
+                    Parent = parent,
+                    TransformMatrix = node.transform
+                };
+
+                registry.Assign(childEntity, trans);
+
+                ProcessMeshNode(childEntity, registry, child, renderableMeshes);
+
+                registry.Get<TransformComponent>(parent).Children.Add(childEntity);
+            }
+        }
+
+        public Entity AsEntity(Registry registry, RenderableManager renderableManager)
+        {
+            renderableManager.QueueRenderable(this);
+            List<RenderableMesh> meshes = renderableManager.GetRenderables(this);
+
+            Entity rootEntity = registry.Create();
+
+            ProcessMeshNode(rootEntity, registry, RootNode, meshes);
+
+            return rootEntity;
+        }
+
+        internal unsafe void ProcessNode(Node* node, MeshNode meshNode, Scene* scene, Matrix4 parentMatrix)
+        {
+            Matrix4 mat = parentMatrix * node->MTransformation;
+            MeshNode mNode = new MeshNode
+            {
+                transform = mat
+            };
+
+            meshNode.children.Add(mNode);
+            meshes.Add(mNode);
+
+            for (int i = 0; i < node->MNumMeshes; i++)
             {
                 Silk.NET.Assimp.Mesh* assMesh = scene->MMeshes[node->MMeshes[i]];
-                MeshNode meshNode = new MeshNode();
-
-                ProcessMesh(assMesh, scene, meshNode, parentMatrix);
-
-                meshes.Add(meshNode);
+                ProcessMesh(assMesh, scene, mNode, mat);
             }
 
             for(int i = 0; i < node->MNumChildren; i++)
             {
-                ProcessNode(node->MChildren[i], scene, parentMatrix);
+                ProcessNode(node->MChildren[i], mNode, scene, mat);
             }
         }
 
@@ -86,7 +141,8 @@ namespace Cobalt.Core
                 normals = new Vector3[assMesh->MNumVertices],
                 tangents = new Vector3[assMesh->MNumVertices],
                 binormals = new Vector3[assMesh->MNumVertices],
-                texcoords = new Vector2[assMesh->MNumVertices]
+                texcoords = new Vector2[assMesh->MNumVertices],
+                GUID = Guid.NewGuid()
             };
 
             for (int i = 0; i < assMesh->MNumVertices; i++)
@@ -143,7 +199,7 @@ namespace Cobalt.Core
 
             Array.Reverse(mesh.triangles);
 
-            meshNode.mesh = mesh;
+            meshNode.meshes.Add(mesh);
         }
 
         internal unsafe void ProcessMaterials(Node* node, Scene* scene)
@@ -178,8 +234,9 @@ namespace Cobalt.Core
 
                 if(assScene != null)
                 {
+                    RootNode = new MeshNode();
                     ProcessMaterials(assScene->MRootNode, assScene);
-                    ProcessNode(assScene->MRootNode, assScene, assScene->MRootNode->MTransformation);
+                    ProcessNode(assScene->MRootNode, RootNode, assScene, assScene->MRootNode->MTransformation);
                 }
             }
         }
@@ -284,6 +341,9 @@ namespace Cobalt.Core
 
         public void QueueRenderable(ModelAsset asset)
         {
+            if (_renderableMeshes.ContainsKey(asset))
+                return;
+
             List<RenderableMesh> processingMeshes = new List<RenderableMesh>();
 
             List<MeshNode> meshes = asset.meshes;
@@ -293,58 +353,59 @@ namespace Cobalt.Core
 
             foreach (MeshNode meshNode in meshes)
             {
-                ++ _meshCount;
-                Mesh mesh = meshNode.mesh;
-
-                RenderableMesh rMesh = new RenderableMesh
+                foreach (Mesh mesh in meshNode.meshes)
                 {
-                    localMesh = mesh,
-                    uuid = _meshCount
-                };
-
-                uint vertexCount = (uint)mesh.positions.Length;
-
-                rMesh.baseVertex = (uint)combinedVertices.Count;
-                rMesh.baseIndex = (uint)combinedIndices.Count;
-                rMesh.indexCount = (uint)mesh.triangles.Length;
-
-                rMesh.localVertices = new RenderableMeshVertex[vertexCount];
-
-                for (int i = 0; i < vertexCount; i++)
-                {
-                    RenderableMeshVertex vertex = new RenderableMeshVertex
+                    ++_meshCount;
+                    RenderableMesh rMesh = new RenderableMesh
                     {
-                        position = mesh.positions[i]
+                        localMesh = mesh,
+                        uuid = _meshCount
                     };
 
-                    if (mesh.texcoords != null)
-                        vertex.uv = mesh.texcoords[i];
-                    else
-                        vertex.uv = Vector2.Zero;
+                    uint vertexCount = (uint)mesh.positions.Length;
 
-                    if (mesh.normals != null)
-                        vertex.normal = mesh.normals[i];
-                    else
-                        vertex.normal = Vector3.UnitY;
+                    rMesh.baseVertex = (uint)combinedVertices.Count;
+                    rMesh.baseIndex = (uint)combinedIndices.Count;
+                    rMesh.indexCount = (uint)mesh.triangles.Length;
 
-                    if (mesh.tangents != null)
-                        vertex.tangent = mesh.tangents[i];
-                    else
-                        vertex.tangent = Vector3.UnitX;
+                    rMesh.localVertices = new RenderableMeshVertex[vertexCount];
 
-                    if (mesh.binormals != null)
-                        vertex.binormal = mesh.binormals[i];
-                    else
-                        vertex.binormal = Vector3.UnitZ;
+                    for (int i = 0; i < vertexCount; i++)
+                    {
+                        RenderableMeshVertex vertex = new RenderableMeshVertex
+                        {
+                            position = mesh.positions[i]
+                        };
 
-                    rMesh.localVertices[i] = vertex;
+                        if (mesh.texcoords != null)
+                            vertex.uv = mesh.texcoords[i];
+                        else
+                            vertex.uv = Vector2.Zero;
 
-                    combinedVertices.Add(vertex);
+                        if (mesh.normals != null)
+                            vertex.normal = mesh.normals[i];
+                        else
+                            vertex.normal = Vector3.UnitY;
+
+                        if (mesh.tangents != null)
+                            vertex.tangent = mesh.tangents[i];
+                        else
+                            vertex.tangent = Vector3.UnitX;
+
+                        if (mesh.binormals != null)
+                            vertex.binormal = mesh.binormals[i];
+                        else
+                            vertex.binormal = Vector3.UnitZ;
+
+                        rMesh.localVertices[i] = vertex;
+
+                        combinedVertices.Add(vertex);
+                    }
+
+                    combinedIndices.AddRange(mesh.triangles);
+
+                    processingMeshes.Add(rMesh);
                 }
-
-                combinedIndices.AddRange(mesh.triangles);
-
-                processingMeshes.Add(rMesh);
             }
 
             IBuffer vertexBuffer = _device.CreateBuffer(

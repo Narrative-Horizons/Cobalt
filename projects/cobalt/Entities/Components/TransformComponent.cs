@@ -1,4 +1,5 @@
 ﻿using Cobalt.Math;
+using System.Collections.Generic;
 
 namespace Cobalt.Entities.Components
 {
@@ -6,9 +7,7 @@ namespace Cobalt.Entities.Components
     {
         public Matrix4 TransformMatrix { get; set; } = Matrix4.Identity;
         public Entity Parent { get; set; } = Entity.Invalid;
-        public Entity FirstChild { get; set; } = Entity.Invalid;
-        public Entity NextSibling { get; set; } = Entity.Invalid;
-
+        public List<Entity> Children { get; set; } = new List<Entity>();
         public TransformComponent()
         {
 

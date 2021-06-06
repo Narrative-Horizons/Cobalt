@@ -121,7 +121,7 @@ namespace Cobalt.Sandbox
             ModelAsset asset = assetManager.LoadModel("data/Dragon/Dragon.FBX");
 
 
-            //Entity meshEntity = asset.AsEntity(reg, renderableManager);
+            Entity meshEntity = asset.AsEntity(reg, renderableManager);
 
             renderableManager.QueueRenderable(asset);
 

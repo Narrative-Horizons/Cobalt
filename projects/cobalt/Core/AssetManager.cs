@@ -104,7 +104,7 @@ namespace Cobalt.Core
             List<RenderableMesh> meshes = renderableManager.GetRenderables(this);
 
             Entity rootEntity = registry.Create();
-
+            registry.Assign(rootEntity, new TransformComponent() { TransformMatrix = Matrix4.Identity });
             ProcessMeshNode(rootEntity, registry, RootNode, meshes);
 
             return rootEntity;

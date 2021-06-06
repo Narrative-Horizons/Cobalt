@@ -56,7 +56,10 @@ namespace Cobalt.Entities
             uint page = _Page(ent);
             uint offset = _PageOffset(ent);
             Page pg = _Assure(page);
-            pg.Payload[offset] = ent;
+
+            Entity e = new Entity { Generation = 0, Identifier = Count };
+
+            pg.Payload[offset] = e;
             _payload.Add(value);
             _packed.Add(ent);
         }

@@ -107,8 +107,8 @@ namespace Cobalt.Graphics.Passes
                     .Build()))
                 .Build());
 
-            _pbrShader = new Shader(new Shader.CreateInfo.Builder().VertexSource(FileSystem.LoadFileToString("data/pbr_vertex.glsl"))
-                .FragmentSource(FileSystem.LoadFileToString("data/pbr_fragment.glsl")).Build(), device, layout, true);
+            _pbrShader = new Shader(new Shader.CreateInfo.Builder().VertexSource(FileSystem.LoadFileToString("data/shaders/pbr/pbr_vertex.glsl"))
+                .FragmentSource(FileSystem.LoadFileToString("data/shaders/pbr/pbr_fragment.glsl")).Build(), device, layout, true);
 
             _pass = device.CreateRenderPass(new IRenderPass.CreateInfo.Builder().AddAttachment(new IRenderPass.AttachmentDescription.Builder().InitialLayout(EImageLayout.Undefined)
                 .FinalLayout(EImageLayout.PresentSource).LoadOp(EAttachmentLoad.Clear).StoreOp(EAttachmentStore.Store).Format(EDataFormat.BGRA8_SRGB)));
@@ -152,10 +152,6 @@ namespace Cobalt.Graphics.Passes
             registry.Events.AddHandler<ComponentRemoveEvent<TransformComponent>>(_removeComponent);
         }
 
-        public override void Preprocess(Entity ent, Registry reg)
-        {
-        }
-
         public override void Record(ICommandBuffer buffer, FrameInfo info)
         {
             _UploadData(info.FrameInFlight);
@@ -171,16 +167,21 @@ namespace Cobalt.Graphics.Passes
 
             buffer.Bind(_pbrShader.Pipeline);
             buffer.Bind(_pbrShader.Layout, 0, new List<IDescriptorSet> { frames[info.FrameInFlight].descriptorSet });
-            // buffer.Sync();
 
             int idx = 0;
 
+            DrawInfo drawInfo = new DrawInfo();
+            drawInfo.indirectDrawBuffer = frames[info.FrameInFlight].indirectBuffer;
+            drawInfo.payload = new Dictionary<IVertexAttributeArray, DrawCommand>();
+
+            DrawElementsIndirectCommand drawData = new DrawElementsIndirectCommand();
             NativeBuffer<DrawElementsIndirectCommandPayload> nativeIndirectData = new NativeBuffer<DrawElementsIndirectCommandPayload>(frames[info.FrameInFlight].indirectBuffer.Map());
             foreach (var obj in framePayload)
             {
-                buffer.Bind(obj.Key);
-
-                DrawElementsIndirectCommand drawData = new DrawElementsIndirectCommand();
+                DrawCommand cmd = new DrawCommand();
+                cmd.bufferOffset = drawData.Data.Count * 20;
+                cmd.indirect = drawData;
+                drawInfo.payload.Add(obj.Key, cmd);
 
                 foreach (var child in obj.Value)
                 {
@@ -202,12 +203,13 @@ namespace Cobalt.Graphics.Passes
 
                     idx += instances.Count;
                 }
-                frames[info.FrameInFlight].indirectBuffer.Unmap();
 
                 // Submit draw to command buffer
-                // buffer.Sync();
-                buffer.DrawElementsMultiIndirect(drawData, 0, frames[info.FrameInFlight].indirectBuffer);
+                // buffer.Bind(obj.Key);
+                // buffer.DrawElementsMultiIndirect(drawData, 0, frames[info.FrameInFlight].indirectBuffer);
             }
+            frames[info.FrameInFlight].indirectBuffer.Unmap();
+            Draw(buffer, drawInfo);
         }
 
         private void _UploadData(int frameInFlight)

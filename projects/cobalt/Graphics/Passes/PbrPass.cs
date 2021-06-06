@@ -63,11 +63,14 @@ namespace Cobalt.Graphics.Passes
         private readonly List<FrameData> frames = new List<FrameData>();
         private Shader _pbrShader;
         private IRenderPass _pass;
+        private readonly List<Entity> _renderables = new List<Entity>(); // replace with sparse set at some point
+        private readonly Registry _registry;
 
         public DebugCameraComponent Camera { get; set; }
 
         public PbrRenderPass(IDevice device, int framesInFlight, Registry registry) : base(device)
         {
+            _registry = registry;
             IPipelineLayout layout = device.CreatePipelineLayout(new IPipelineLayout.CreateInfo.Builder().AddDescriptorSetLayout(device.CreateDescriptorSetLayout(
                     new IDescriptorSetLayout.CreateInfo.Builder()
                     .AddBinding(new IDescriptorSetLayout.DescriptorSetLayoutBinding.Builder()
@@ -135,9 +138,13 @@ namespace Cobalt.Graphics.Passes
                 }
             }
 
-            registry.Events.AddHandler<ComponentAddEvent<PbrMaterialComponent>>(_pbrComponentAddHandler);
-            registry.Events.AddHandler<ComponentAddEvent<MeshComponent>>(_meshComponentAddHandler);
-            registry.Events.AddHandler<ComponentAddEvent<TransformComponent>>(_transformComponentAddHandler);
+            registry.Events.AddHandler<ComponentAddEvent<PbrMaterialComponent>>(_addComponent);
+            registry.Events.AddHandler<ComponentAddEvent<MeshComponent>>(_addComponent);
+            registry.Events.AddHandler<ComponentAddEvent<TransformComponent>>(_addComponent);
+            registry.Events.AddHandler<EntityReleaseEvent>(_removeEntity);
+            registry.Events.AddHandler<ComponentRemoveEvent<PbrMaterialComponent>>(_removeComponent);
+            registry.Events.AddHandler<ComponentRemoveEvent<MeshComponent>>(_removeComponent);
+            registry.Events.AddHandler<ComponentRemoveEvent<TransformComponent>>(_removeComponent);
         }
 
         public override void Preprocess(Entity ent, Registry reg)
@@ -151,15 +158,15 @@ namespace Cobalt.Graphics.Passes
             buffer.BeginRenderPass(new ICommandBuffer.RenderPassBeginInfo
             {
                 ClearValues = new List<ClearValue>() { new ClearValue(new ClearValue.ClearColor(0, 0, 0, 1)), new ClearValue(1) },
-                Width = 1280,
-                Height = 720,
+                Width = 1920,
+                Height = 1080,
                 FrameBuffer = info.FrameBuffer,
                 RenderPass = _pass
             });
 
-            buffer.Sync();
             buffer.Bind(_pbrShader.Pipeline);
             buffer.Bind(_pbrShader.Layout, 0, new List<IDescriptorSet> { frames[info.FrameInFlight].descriptorSet });
+            buffer.Sync();
 
             int idx = 0;
 
@@ -195,8 +202,6 @@ namespace Cobalt.Graphics.Passes
                 // Submit draw to command buffer
                 buffer.DrawElementsMultiIndirect(drawData, 0, frames[info.FrameInFlight].indirectBuffer);
             }
-
-            // framePayload.Clear();
         }
 
         private void _UploadData(int frameInFlight)
@@ -241,6 +246,27 @@ namespace Cobalt.Graphics.Passes
                     .DescriptorSet(frames[frameInFlight].descriptorSet)
                     .ArrayElement(0).Build());
 
+            foreach (var (vao, meshes) in framePayload)
+                foreach (var (mesh, entities) in framePayload)
+                    entities.Clear();
+
+            _renderables.ForEach(renderable =>
+            {
+                PbrMaterialComponent matComponent = _registry.Get<PbrMaterialComponent>(renderable);
+                MeshComponent mesh = _registry.Get<MeshComponent>(renderable);
+                EntityData e = new EntityData { MaterialId = _GetOrInsert(matComponent), Transformation = _registry.Get<TransformComponent>(renderable).TransformMatrix };
+                RenderableMesh renderMesh = mesh.Mesh;
+                if (!framePayload.ContainsKey(renderMesh.VAO))
+                {
+                    framePayload.Add(renderMesh.VAO, new Dictionary<RenderableMesh, List<EntityData>>());
+                }
+                if (!framePayload[renderMesh.VAO].ContainsKey(renderMesh))
+                {
+                    framePayload[renderMesh.VAO].Add(renderMesh, new List<EntityData>());
+                }
+                framePayload[renderMesh.VAO][renderMesh].Add(e);
+            });
+
             // Build material array
             NativeBuffer<MaterialPayload> nativeMaterialData = new NativeBuffer<MaterialPayload>(frames[frameInFlight].materialData.Map());
             foreach (MaterialPayload payload in materials)
@@ -250,17 +276,11 @@ namespace Cobalt.Graphics.Passes
 
             // Build uniform/shader storage buffers
             NativeBuffer<EntityData> nativeEntityData = new NativeBuffer<EntityData>(frames[frameInFlight].entityData.Map());
-            foreach (var obj in framePayload)
+            foreach (var (vao, meshes) in framePayload)
             {
-                foreach (var child in obj.Value)
+                foreach (var (mesh, instances) in meshes)
                 {
-                    List<EntityData> instances = child.Value;
-
-                    for (int i = 0; i < instances.Count; i++)
-                    {
-                        EntityData instance = instances[i];
-                        nativeEntityData.Set(instance);
-                    }
+                    instances.ForEach(instance => nativeEntityData.Set(instance));
                 }
             }
 
@@ -316,19 +336,7 @@ namespace Cobalt.Graphics.Passes
             return (uint)textureIndices.Count - 1;
         }
 
-        private bool _pbrComponentAddHandler(ComponentAddEvent<PbrMaterialComponent> data)
-        {
-            _addEntity(data.Entity, data.Registry);
-            return false;
-        }
-
-        private bool _meshComponentAddHandler(ComponentAddEvent<MeshComponent> data)
-        {
-            _addEntity(data.Entity, data.Registry);
-            return false;
-        }
-
-        private bool _transformComponentAddHandler(ComponentAddEvent<TransformComponent> data)
+        private bool _addComponent<T>(ComponentAddEvent<T> data)
         {
             _addEntity(data.Entity, data.Registry);
             return false;
@@ -339,25 +347,25 @@ namespace Cobalt.Graphics.Passes
             if (reg.Has<PbrMaterialComponent>(ent) && reg.Has<TransformComponent>(ent) && reg.Has<MeshComponent>(ent))
             {
                 PbrMaterialComponent matComponent = reg.Get<PbrMaterialComponent>(ent);
-                MeshComponent mesh = reg.Get<MeshComponent>(ent);
 
                 if (matComponent != default)
                 {
-                    // Process PBR data
-                    uint matId = _GetOrInsert(matComponent);
-                    EntityData e = new EntityData { MaterialId = matId, Transformation = reg.Get<TransformComponent>(ent).TransformMatrix };
-                    RenderableMesh renderMesh = mesh.Mesh;
-                    if (!framePayload.ContainsKey(renderMesh.VAO))
-                    {
-                        framePayload.Add(renderMesh.VAO, new Dictionary<RenderableMesh, List<EntityData>>());
-                    }
-                    if (!framePayload[renderMesh.VAO].ContainsKey(renderMesh))
-                    {
-                        framePayload[renderMesh.VAO].Add(renderMesh, new List<EntityData>());
-                    }
-                    framePayload[renderMesh.VAO][renderMesh].Add(e);
+                    _GetOrInsert(matComponent);
+                    _renderables.Add(ent);
                 }
             }
+        }
+
+        private bool _removeComponent<T>(ComponentRemoveEvent<T> data)
+        {
+            _renderables.Remove(data.Entity);
+            return false;
+        }
+
+        private bool _removeEntity(EntityReleaseEvent data)
+        {
+            _renderables.Remove(data.SpawnedEntity);
+            return false;
         }
     }
 }

@@ -25,7 +25,7 @@ namespace Cobalt.Graphics.Passes
             _shader = new Shader(new Shader.CreateInfo.Builder().VertexSource(vsScreenSource).Build(), device, screenLayout, false);
         }
 
-        public override void Record(ICommandBuffer buffer, FrameInfo info)
+        public override void Record(ICommandBuffer buffer, FrameInfo info, DrawInfo draw)
         {
         }
     }

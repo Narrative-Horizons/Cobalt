@@ -24,7 +24,7 @@ namespace Cobalt.Core
                 return handler.Invoke((T)e);
             });
 
-            _handlers.Add(typeof(T).FullName, eventHandlers);
+            _handlers[typeof(T).FullName] = eventHandlers;
         }
 
         public void RemoveHandler<T>(Func<T, bool> handler) where T : EventData

@@ -6,103 +6,39 @@ using Cobalt.Graphics.API;
 using Cobalt.Graphics.Passes;
 using Cobalt.Math;
 using System.Collections.Generic;
+using static Cobalt.Graphics.RenderPass;
 
 namespace Cobalt.Graphics
 {
     public class RenderSystem
     {
-        public Registry EntityRegistry { get; private set; }
-        private ICommandPool cmdPool;
-        private List<ICommandBuffer> cmdBuffers;
-        private IDevice device;
-        private readonly uint framesInFlight;
-        private int currentFrame = 0;
-
-        private readonly List<RenderPass> passes = new List<RenderPass>();
-
-        private PbrRenderPass _pbrPass;
-        private ScreenResolvePass _screenResolvePass;
-        private ZPrePass _zPrePass;
-
-        private IFrameBuffer[] FrameBuffer;
-        private ISwapchain _swapChain;
-
-        private IImageView[] colorAttachmentViews;
-
-        private ISampler imageResolveSampler;
+        private Registry _registry;
+        private ICommandPool _cmdPool;
+        private List<ICommandBuffer> _cmdBuffers;
+        private readonly uint _framesInFlight;
+        private int _currentFrame = 0;
         private IQueue _submitQueue;
+        private PbrPipeline _pipeline;
 
         public RenderSystem(Registry registry, IDevice device, ISwapchain swapchain)
         {
-            this.framesInFlight = swapchain.GetImageCount();
-            this.device = device;
-            _swapChain = swapchain;
-
-            EntityRegistry = registry;
-            cmdPool = device.CreateCommandPool(new ICommandPool.CreateInfo.Builder().ResetAllocations(true));
-            cmdBuffers = cmdPool.Allocate(new ICommandBuffer.AllocateInfo.Builder().Count(framesInFlight).Level(ECommandBufferLevel.Primary).Build());
-
-            _zPrePass = new ZPrePass(device, (int)swapchain.GetImageCount(), registry);
-            _pbrPass = new PbrRenderPass(device, (int) swapchain.GetImageCount(), registry);
-            _screenResolvePass = new ScreenResolvePass(swapchain, device, 1280, 720);
-
-            passes.Add(_zPrePass);
-            passes.Add(_pbrPass);
-            passes.Add(_screenResolvePass);
-
-            FrameBuffer = new IFrameBuffer[framesInFlight];
-            IImage[] colorAttachments = new IImage[framesInFlight];
-            IImage[] depthAttachments = new IImage[framesInFlight];
-            colorAttachmentViews = new IImageView[framesInFlight];
-            IImageView[] depthAttachmentViews = new IImageView[framesInFlight];
-
+            _registry = registry;
+            _framesInFlight = swapchain.GetImageCount();
+            _pipeline = new PbrPipeline(registry, device, swapchain);
             _submitQueue = device.Queues().Find(queue => queue.GetProperties().Graphics);
-
-            for (int i = 0; i < framesInFlight; i++)
-            {
-                colorAttachments[i] = device.CreateImage(new IImage.CreateInfo.Builder().AddUsage(EImageUsage.ColorAttachment).Width(1280).Height(720).Type(EImageType.Image2D)
-                    .Format(EDataFormat.R8G8B8A8).MipCount(1).LayerCount(1),
-                    new IImage.MemoryInfo.Builder().Usage(EMemoryUsage.GPUOnly).AddRequiredProperty(EMemoryProperty.DeviceLocal));
-
-                colorAttachmentViews[i] = colorAttachments[i].CreateImageView(new IImageView.CreateInfo.Builder().ViewType(EImageViewType.ViewType2D).BaseArrayLayer(0)
-                    .BaseMipLevel(0).ArrayLayerCount(1).MipLevelCount(1).Format(EDataFormat.R8G8B8A8));
-
-                depthAttachments[i] = device.CreateImage(new IImage.CreateInfo.Builder().AddUsage(EImageUsage.ColorAttachment).Width(1280).Height(720).Type(EImageType.Image2D)
-                    .Format(EDataFormat.D24_SFLOAT_S8_UINT).MipCount(1).LayerCount(1),
-                    new IImage.MemoryInfo.Builder().Usage(EMemoryUsage.GPUOnly).AddRequiredProperty(EMemoryProperty.DeviceLocal));
-
-                depthAttachmentViews[i] = depthAttachments[i].CreateImageView(new IImageView.CreateInfo.Builder().ViewType(EImageViewType.ViewType2D).BaseArrayLayer(0)
-                    .BaseMipLevel(0).ArrayLayerCount(1).MipLevelCount(1).Format(EDataFormat.D24_SFLOAT_S8_UINT));
-
-                FrameBuffer[i] = device.CreateFrameBuffer(new IFrameBuffer.CreateInfo.Builder()
-                    .AddAttachment(new IFrameBuffer.CreateInfo.Attachment.Builder().ImageView(colorAttachmentViews[i]).Usage(EImageUsage.ColorAttachment))
-                    .AddAttachment(new IFrameBuffer.CreateInfo.Attachment.Builder().ImageView(depthAttachmentViews[i]).Usage(EImageUsage.DepthStencilAttachment)));
-            }
-
-            imageResolveSampler = device.CreateSampler(new ISampler.CreateInfo.Builder().AddressModeU(EAddressMode.Repeat)
-                .AddressModeV(EAddressMode.Repeat).AddressModeW(EAddressMode.Repeat).MagFilter(EFilter.Linear).MinFilter(EFilter.Linear)
-                .MipmapMode(EMipmapMode.Linear));
+            _cmdPool = device.CreateCommandPool(new ICommandPool.CreateInfo.Builder().ResetAllocations(true));
+            _cmdBuffers = _cmdPool.Allocate(new ICommandBuffer.AllocateInfo.Builder().Count(_framesInFlight).Level(ECommandBufferLevel.Primary).Build());
         }
 
         public void render()
         {
-            ICommandBuffer cmdBuffer = cmdBuffers[currentFrame];
+            ICommandBuffer cmdBuffer = _cmdBuffers[_currentFrame];
 
-            ComponentView<DebugCameraComponent> cameraView = EntityRegistry.GetView<DebugCameraComponent>();
+            ComponentView<DebugCameraComponent> cameraView = _registry.GetView<DebugCameraComponent>();
             cameraView.ForEach((camera) =>
             {
                 cmdBuffer.Record(new ICommandBuffer.RecordInfo());
-
-                _pbrPass.Camera = camera;
-                _pbrPass.Record(cmdBuffer, new RenderPass.FrameInfo
-                {
-                    FrameBuffer = FrameBuffer[currentFrame],
-                    FrameInFlight = currentFrame
-                });
-
-                var frameInfo = new RenderPass.FrameInfo { FrameInFlight = currentFrame };
-                _screenResolvePass.SetInputTexture(new Cobalt.Graphics.Texture() { Image = colorAttachmentViews[currentFrame], Sampler = imageResolveSampler }, frameInfo);
-                _screenResolvePass.Record(cmdBuffer, frameInfo);
+                _pipeline.Render(cmdBuffer, _currentFrame, camera);
 
                 camera.Update();
             });
@@ -118,7 +54,7 @@ namespace Cobalt.Graphics
             // Resolve Pass
             // Post Processing
 
-            currentFrame = (currentFrame + 1) % (int) framesInFlight;
+            _currentFrame = (_currentFrame + 1) % (int) _framesInFlight;
         }
     }
 
@@ -169,7 +105,6 @@ namespace Cobalt.Graphics
         private IFrameBuffer[] _frameBuffer;
         private IImageView[] _colorAttachmentViews;
         private ISampler _imageResolveSampler;
-        private IQueue _submitQueue;
 
         private readonly ZPrePass _zPrePass;
         private readonly PbrRenderPass _pbrPass;
@@ -191,12 +126,6 @@ namespace Cobalt.Graphics
         public PbrPipeline(Registry registry, IDevice device, ISwapchain swapchain)
         {
             int framesInFlight = (int) swapchain.GetImageCount();
-
-            _device = device;
-            _registry = registry;
-            _zPrePass = new ZPrePass(device, (int)swapchain.GetImageCount(), registry);
-            _pbrPass = new PbrRenderPass(device, (int)swapchain.GetImageCount(), registry);
-            _screenResolvePass = new ScreenResolvePass(swapchain, device, 1280, 720);
             
             IPipelineLayout layout = device.CreatePipelineLayout(new IPipelineLayout.CreateInfo.Builder().AddDescriptorSetLayout(device.CreateDescriptorSetLayout(
                     new IDescriptorSetLayout.CreateInfo.Builder()
@@ -229,107 +158,84 @@ namespace Cobalt.Graphics
                     .Build()))
                 .Build());
 
-            registry.Events.AddHandler<ComponentAddEvent<PbrMaterialComponent>>(_addComponent);
-            registry.Events.AddHandler<ComponentAddEvent<MeshComponent>>(_addComponent);
-            registry.Events.AddHandler<ComponentAddEvent<TransformComponent>>(_addComponent);
-            registry.Events.AddHandler<EntityReleaseEvent>(_removeEntity);
-            registry.Events.AddHandler<ComponentRemoveEvent<PbrMaterialComponent>>(_removeComponent);
-            registry.Events.AddHandler<ComponentRemoveEvent<MeshComponent>>(_removeComponent);
-            registry.Events.AddHandler<ComponentRemoveEvent<TransformComponent>>(_removeComponent);
+            _device = device;
+            _registry = registry;
+            _zPrePass = new ZPrePass(device, (int)swapchain.GetImageCount(), registry);
+            _pbrPass = new PbrRenderPass(device, layout);
+            _screenResolvePass = new ScreenResolvePass(swapchain, device, 1280, 720);
 
-            for (int frame = 0; frame < framesInFlight; ++frame)
-            {
-                if (frame >= _frames.Count)
-                {
-                    _frames.Capacity = frame + 1;
-                    _frames.Add(new FrameData());
-                    _frames[frame].descriptorPool = _device.CreateDescriptorPool(new IDescriptorPool.CreateInfo.Builder()
-                        .AddPoolSize(EDescriptorType.CombinedImageSampler, (int)MAX_TEX_COUNT * 4) // allow for 4 times the max number of textures per pool
-                        .MaxSetCount(32)
-                        .Build());
+            registry.Events.AddHandler<ComponentAddEvent<PbrMaterialComponent>>(_AddComponent);
+            registry.Events.AddHandler<ComponentAddEvent<PbrMaterialComponent>>(_AddComponent);
+            registry.Events.AddHandler<ComponentAddEvent<MeshComponent>>(_AddComponent);
+            registry.Events.AddHandler<ComponentAddEvent<TransformComponent>>(_AddComponent);
+            registry.Events.AddHandler<EntityReleaseEvent>(_RemoveEntity);
+            registry.Events.AddHandler<ComponentRemoveEvent<PbrMaterialComponent>>(_RemoveComponent);
+            registry.Events.AddHandler<ComponentRemoveEvent<MeshComponent>>(_RemoveComponent);
+            registry.Events.AddHandler<ComponentRemoveEvent<TransformComponent>>(_RemoveComponent);
 
-                    _frames[frame].descriptorSet = _frames[frame].descriptorPool.Allocate(new IDescriptorSet.CreateInfo.Builder()
-                        .AddLayout(layout.GetDescriptorSetLayouts()[0])
-                        .Build())[0];
-
-                    /// TODO: Make this actual sizeof
-                    _frames[frame].entityData = _device.CreateBuffer(new IBuffer.CreateInfo<EntityData>.Builder().AddUsage(EBufferUsage.StorageBuffer).Size(1000000 * 68),
-                        new IBuffer.MemoryInfo.Builder().Usage(EMemoryUsage.CPUToGPU).AddRequiredProperty(EMemoryProperty.HostCoherent).AddRequiredProperty(EMemoryProperty.HostVisible));
-
-                    _frames[frame].materialData = _device.CreateBuffer(new IBuffer.CreateInfo<MaterialPayload>.Builder().AddUsage(EBufferUsage.StorageBuffer).Size(1000000 * 16),
-                        new IBuffer.MemoryInfo.Builder().Usage(EMemoryUsage.CPUToGPU).AddRequiredProperty(EMemoryProperty.HostCoherent).AddRequiredProperty(EMemoryProperty.HostVisible));
-
-                    _frames[frame].indirectBuffer = _device.CreateBuffer(new IBuffer.CreateInfo<DrawElementsIndirectCommandPayload>.Builder().AddUsage(EBufferUsage.IndirectBuffer).Size(16 * 1024),
-                        new IBuffer.MemoryInfo.Builder().Usage(EMemoryUsage.CPUToGPU).AddRequiredProperty(EMemoryProperty.HostVisible).AddRequiredProperty(EMemoryProperty.HostCoherent));
-
-                    _frames[frame].sceneBuffer = _device.CreateBuffer(IBuffer.FromPayload(new SceneData()).AddUsage(EBufferUsage.UniformBuffer),
-                        new IBuffer.MemoryInfo.Builder().Usage(EMemoryUsage.CPUToGPU).AddRequiredProperty(EMemoryProperty.HostCoherent).AddRequiredProperty(EMemoryProperty.HostVisible));
-                }
-            }
-
-            _frameBuffer = new IFrameBuffer[framesInFlight];
-            IImage[] colorAttachments = new IImage[framesInFlight];
-            IImage[] depthAttachments = new IImage[framesInFlight];
-            _colorAttachmentViews = new IImageView[framesInFlight];
-            IImageView[] depthAttachmentViews = new IImageView[framesInFlight];
-
-            _submitQueue = device.Queues().Find(queue => queue.GetProperties().Graphics);
-
-            for (int i = 0; i < framesInFlight; i++)
-            {
-                colorAttachments[i] = device.CreateImage(new IImage.CreateInfo.Builder().AddUsage(EImageUsage.ColorAttachment).Width(1280).Height(720).Type(EImageType.Image2D)
-                    .Format(EDataFormat.R8G8B8A8).MipCount(1).LayerCount(1),
-                    new IImage.MemoryInfo.Builder().Usage(EMemoryUsage.GPUOnly).AddRequiredProperty(EMemoryProperty.DeviceLocal));
-
-                _colorAttachmentViews[i] = colorAttachments[i].CreateImageView(new IImageView.CreateInfo.Builder().ViewType(EImageViewType.ViewType2D).BaseArrayLayer(0)
-                    .BaseMipLevel(0).ArrayLayerCount(1).MipLevelCount(1).Format(EDataFormat.R8G8B8A8));
-
-                depthAttachments[i] = device.CreateImage(new IImage.CreateInfo.Builder().AddUsage(EImageUsage.ColorAttachment).Width(1280).Height(720).Type(EImageType.Image2D)
-                    .Format(EDataFormat.D24_SFLOAT_S8_UINT).MipCount(1).LayerCount(1),
-                    new IImage.MemoryInfo.Builder().Usage(EMemoryUsage.GPUOnly).AddRequiredProperty(EMemoryProperty.DeviceLocal));
-
-                depthAttachmentViews[i] = depthAttachments[i].CreateImageView(new IImageView.CreateInfo.Builder().ViewType(EImageViewType.ViewType2D).BaseArrayLayer(0)
-                    .BaseMipLevel(0).ArrayLayerCount(1).MipLevelCount(1).Format(EDataFormat.D24_SFLOAT_S8_UINT));
-
-                _frameBuffer[i] = device.CreateFrameBuffer(new IFrameBuffer.CreateInfo.Builder()
-                    .AddAttachment(new IFrameBuffer.CreateInfo.Attachment.Builder().ImageView(_colorAttachmentViews[i]).Usage(EImageUsage.ColorAttachment))
-                    .AddAttachment(new IFrameBuffer.CreateInfo.Attachment.Builder().ImageView(depthAttachmentViews[i]).Usage(EImageUsage.DepthStencilAttachment)));
-            }
-
-            _imageResolveSampler = device.CreateSampler(new ISampler.CreateInfo.Builder().AddressModeU(EAddressMode.Repeat)
-                .AddressModeV(EAddressMode.Repeat).AddressModeW(EAddressMode.Repeat).MagFilter(EFilter.Linear).MinFilter(EFilter.Linear)
-                .MipmapMode(EMipmapMode.Linear));
+            _BuildFrameData(framesInFlight, layout);
         }
 
-        public void render(ICommandBuffer buffer, int frameInFlight, DebugCameraComponent camera)
+        public void Render(ICommandBuffer buffer, int frameInFlight, DebugCameraComponent camera)
         {
-            _build(frameInFlight, camera);
+            _Build(frameInFlight, camera);
 
-            RenderPass.DrawInfo draw = new RenderPass.DrawInfo()
-            {
-                indirectDrawBuffer = _frames[frameInFlight].indirectBuffer,
-                payload = new Dictionary<IVertexAttributeArray, RenderPass.DrawCommand>()
-            };
+            int idx = 0;
 
-            RenderPass.FrameInfo sceneRenderInfo = new RenderPass.FrameInfo
+            DrawInfo drawInfo = new DrawInfo();
+            drawInfo.indirectDrawBuffer = _frames[frameInFlight].indirectBuffer;
+            drawInfo.payload = new Dictionary<IVertexAttributeArray, DrawCommand>();
+            drawInfo.descriptorSets = new List<IDescriptorSet>() { _frames[frameInFlight].descriptorSet };
+
+            DrawElementsIndirectCommand drawData = new DrawElementsIndirectCommand();
+            NativeBuffer<DrawElementsIndirectCommandPayload> nativeIndirectData = new NativeBuffer<DrawElementsIndirectCommandPayload>(_frames[frameInFlight].indirectBuffer.Map());
+            foreach (var obj in _framePayload)
             {
-                FrameBuffer = _frameBuffer[frameInFlight],
-                FrameInFlight = frameInFlight
+                DrawCommand cmd = new DrawCommand();
+                cmd.bufferOffset = drawData.Data.Count * 20;
+                cmd.indirect = drawData;
+                drawInfo.payload.Add(obj.Key, cmd);
+
+                foreach (var child in obj.Value)
+                {
+                    RenderableMesh mesh = child.Key;
+                    List<EntityData> instances = child.Value;
+
+                    DrawElementsIndirectCommandPayload pay = new DrawElementsIndirectCommandPayload
+                    {
+                        BaseVertex = mesh.baseVertex,
+                        FirstIndex = mesh.baseIndex,
+                        BaseInstance = (uint)idx,
+                        Count = mesh.indexCount,
+                        InstanceCount = (uint)instances.Count
+                    };
+
+                    drawData.Add(pay);
+
+                    nativeIndirectData.Set(pay);
+
+                    idx += instances.Count;
+                }
+            }
+            _frames[frameInFlight].indirectBuffer.Unmap();
+
+            FrameInfo sceneRenderInfo = new FrameInfo
+            {
+                frameBuffer = _frameBuffer[frameInFlight],
+                frameInFlight = frameInFlight
             };
 
             // Handle scene draw
             _pbrPass.Camera = camera;
-            _pbrPass.Record(buffer, sceneRenderInfo);
+            _pbrPass.Record(buffer, sceneRenderInfo, drawInfo);
 
             // Handle screen resolution
-            var frameInfo = new RenderPass.FrameInfo { FrameInFlight = frameInFlight };
+            var frameInfo = new FrameInfo { frameInFlight = frameInFlight };
             _screenResolvePass.SetInputTexture(new Texture() { Image = _colorAttachmentViews[frameInFlight], Sampler = _imageResolveSampler }, frameInfo);
-            _screenResolvePass.Record(buffer, frameInfo);
-
-            camera.Update();
+            _screenResolvePass.Record(buffer, frameInfo, new DrawInfo());
         }
 
-        private void _build(int frameInFlight, DebugCameraComponent camera)
+        private void _Build(int frameInFlight, DebugCameraComponent camera)
         {
             List<DescriptorWriteInfo> writeInfos = new List<DescriptorWriteInfo>();
             DescriptorWriteInfo.Builder texArrayBuilder = new DescriptorWriteInfo.Builder();
@@ -432,13 +338,13 @@ namespace Cobalt.Graphics
             nativeSceneData.Set(data);
         }
 
-        private bool _addComponent<T>(ComponentAddEvent<T> data)
+        private bool _AddComponent<T>(ComponentAddEvent<T> data)
         {
-            _addEntity(data.Entity, data.Registry);
+            _AddEntity(data.Entity, data.Registry);
             return false;
         }
 
-        private void _addEntity(Entity ent, Registry reg)
+        private void _AddEntity(Entity ent, Registry reg)
         {
             if (reg.Has<PbrMaterialComponent>(ent) && reg.Has<TransformComponent>(ent) && reg.Has<MeshComponent>(ent))
             {
@@ -452,13 +358,13 @@ namespace Cobalt.Graphics
             }
         }
 
-        private bool _removeComponent<T>(ComponentRemoveEvent<T> data)
+        private bool _RemoveComponent<T>(ComponentRemoveEvent<T> data)
         {
             _renderables.Remove(data.Entity);
             return false;
         }
 
-        private bool _removeEntity(EntityReleaseEvent data)
+        private bool _RemoveEntity(EntityReleaseEvent data)
         {
             _renderables.Remove(data.SpawnedEntity);
             return false;
@@ -496,6 +402,70 @@ namespace Cobalt.Graphics
             _textureIndices.Add(tex, (uint)_textureIndices.Count);
             _textures.Add(tex);
             return (uint)_textureIndices.Count - 1;
+        }
+    
+        private void _BuildFrameData(int framesInFlight, IPipelineLayout layout)
+        {
+            for (int frame = 0; frame < framesInFlight; ++frame)
+            {
+                if (frame >= _frames.Count)
+                {
+                    _frames.Capacity = frame + 1;
+                    _frames.Add(new FrameData());
+                    _frames[frame].descriptorPool = _device.CreateDescriptorPool(new IDescriptorPool.CreateInfo.Builder()
+                        .AddPoolSize(EDescriptorType.CombinedImageSampler, (int)MAX_TEX_COUNT * 4) // allow for 4 times the max number of textures per pool
+                        .MaxSetCount(32)
+                        .Build());
+
+                    _frames[frame].descriptorSet = _frames[frame].descriptorPool.Allocate(new IDescriptorSet.CreateInfo.Builder()
+                        .AddLayout(layout.GetDescriptorSetLayouts()[0])
+                        .Build())[0];
+
+                    /// TODO: Make this actual sizeof
+                    _frames[frame].entityData = _device.CreateBuffer(new IBuffer.CreateInfo<EntityData>.Builder().AddUsage(EBufferUsage.StorageBuffer).Size(1000000 * 68),
+                        new IBuffer.MemoryInfo.Builder().Usage(EMemoryUsage.CPUToGPU).AddRequiredProperty(EMemoryProperty.HostCoherent).AddRequiredProperty(EMemoryProperty.HostVisible));
+
+                    _frames[frame].materialData = _device.CreateBuffer(new IBuffer.CreateInfo<MaterialPayload>.Builder().AddUsage(EBufferUsage.StorageBuffer).Size(1000000 * 16),
+                        new IBuffer.MemoryInfo.Builder().Usage(EMemoryUsage.CPUToGPU).AddRequiredProperty(EMemoryProperty.HostCoherent).AddRequiredProperty(EMemoryProperty.HostVisible));
+
+                    _frames[frame].indirectBuffer = _device.CreateBuffer(new IBuffer.CreateInfo<DrawElementsIndirectCommandPayload>.Builder().AddUsage(EBufferUsage.IndirectBuffer).Size(16 * 1024),
+                        new IBuffer.MemoryInfo.Builder().Usage(EMemoryUsage.CPUToGPU).AddRequiredProperty(EMemoryProperty.HostVisible).AddRequiredProperty(EMemoryProperty.HostCoherent));
+
+                    _frames[frame].sceneBuffer = _device.CreateBuffer(IBuffer.FromPayload(new SceneData()).AddUsage(EBufferUsage.UniformBuffer),
+                        new IBuffer.MemoryInfo.Builder().Usage(EMemoryUsage.CPUToGPU).AddRequiredProperty(EMemoryProperty.HostCoherent).AddRequiredProperty(EMemoryProperty.HostVisible));
+                }
+            }
+
+            _frameBuffer = new IFrameBuffer[framesInFlight];
+            IImage[] colorAttachments = new IImage[framesInFlight];
+            IImage[] depthAttachments = new IImage[framesInFlight];
+            _colorAttachmentViews = new IImageView[framesInFlight];
+            IImageView[] depthAttachmentViews = new IImageView[framesInFlight];
+
+            for (int i = 0; i < framesInFlight; i++)
+            {
+                colorAttachments[i] = _device.CreateImage(new IImage.CreateInfo.Builder().AddUsage(EImageUsage.ColorAttachment).Width(1280).Height(720).Type(EImageType.Image2D)
+                    .Format(EDataFormat.R8G8B8A8).MipCount(1).LayerCount(1),
+                    new IImage.MemoryInfo.Builder().Usage(EMemoryUsage.GPUOnly).AddRequiredProperty(EMemoryProperty.DeviceLocal));
+
+                _colorAttachmentViews[i] = colorAttachments[i].CreateImageView(new IImageView.CreateInfo.Builder().ViewType(EImageViewType.ViewType2D).BaseArrayLayer(0)
+                    .BaseMipLevel(0).ArrayLayerCount(1).MipLevelCount(1).Format(EDataFormat.R8G8B8A8));
+
+                depthAttachments[i] = _device.CreateImage(new IImage.CreateInfo.Builder().AddUsage(EImageUsage.ColorAttachment).Width(1280).Height(720).Type(EImageType.Image2D)
+                    .Format(EDataFormat.D24_SFLOAT_S8_UINT).MipCount(1).LayerCount(1),
+                    new IImage.MemoryInfo.Builder().Usage(EMemoryUsage.GPUOnly).AddRequiredProperty(EMemoryProperty.DeviceLocal));
+
+                depthAttachmentViews[i] = depthAttachments[i].CreateImageView(new IImageView.CreateInfo.Builder().ViewType(EImageViewType.ViewType2D).BaseArrayLayer(0)
+                    .BaseMipLevel(0).ArrayLayerCount(1).MipLevelCount(1).Format(EDataFormat.D24_SFLOAT_S8_UINT));
+
+                _frameBuffer[i] = _device.CreateFrameBuffer(new IFrameBuffer.CreateInfo.Builder()
+                    .AddAttachment(new IFrameBuffer.CreateInfo.Attachment.Builder().ImageView(_colorAttachmentViews[i]).Usage(EImageUsage.ColorAttachment))
+                    .AddAttachment(new IFrameBuffer.CreateInfo.Attachment.Builder().ImageView(depthAttachmentViews[i]).Usage(EImageUsage.DepthStencilAttachment)));
+            }
+
+            _imageResolveSampler = _device.CreateSampler(new ISampler.CreateInfo.Builder().AddressModeU(EAddressMode.Repeat)
+                .AddressModeV(EAddressMode.Repeat).AddressModeW(EAddressMode.Repeat).MagFilter(EFilter.Linear).MinFilter(EFilter.Linear)
+                .MipmapMode(EMipmapMode.Linear));
         }
     }
 }

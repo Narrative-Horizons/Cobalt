@@ -8,8 +8,8 @@ namespace Cobalt.Graphics
     {
         public struct FrameInfo
         {
-            public IFrameBuffer FrameBuffer;
-            public int FrameInFlight;
+            public IFrameBuffer frameBuffer;
+            public int frameInFlight;
             public int width;
             public int height;
         }
@@ -22,6 +22,7 @@ namespace Cobalt.Graphics
 
         public struct DrawInfo
         {
+            public List<IDescriptorSet> descriptorSets;
             public Dictionary<IVertexAttributeArray, DrawCommand> payload;
             public IBuffer indirectDrawBuffer;
         }
@@ -36,7 +37,7 @@ namespace Cobalt.Graphics
             Device = device;
         }
 
-        public abstract void Record(ICommandBuffer buffer, FrameInfo info);
+        public abstract void Record(ICommandBuffer buffer, FrameInfo info, DrawInfo draw);
 
         protected void Draw(ICommandBuffer buffer, DrawInfo draw)
         {

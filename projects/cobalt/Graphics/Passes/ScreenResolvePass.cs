@@ -64,7 +64,7 @@ namespace Cobalt.Graphics.Passes
 
         public void SetInputTexture(Texture input, FrameInfo info)
         {
-            IDescriptorSet dest = DescriptorSets[info.FrameInFlight];
+            IDescriptorSet dest = DescriptorSets[info.frameInFlight];
             DescriptorWriteInfo writeInfo = new DescriptorWriteInfo.Builder()
                    .AddImageInfo(new DescriptorWriteInfo.DescriptorImageInfo.Builder().Layout(EImageLayout.ShaderReadOnly)
                    .Sampler(input.Sampler).View(input.Image)).ArrayElement(0).BindingIndex(0).DescriptorSet(dest).Build();
@@ -72,9 +72,9 @@ namespace Cobalt.Graphics.Passes
             Device.UpdateDescriptorSets(new List<DescriptorWriteInfo>() { writeInfo });
         }
 
-        public override void Record(ICommandBuffer buffer, FrameInfo info)
+        public override void Record(ICommandBuffer buffer, FrameInfo info, DrawInfo draw)
         {
-            IFrameBuffer renderTo = swapchain.GetFrameBuffer(info.FrameInFlight);
+            IFrameBuffer renderTo = swapchain.GetFrameBuffer(info.frameInFlight);
 
             buffer.BeginRenderPass(new ICommandBuffer.RenderPassBeginInfo()
             {
@@ -87,7 +87,7 @@ namespace Cobalt.Graphics.Passes
 
             buffer.Bind(Shader.Pipeline);
             buffer.Bind(VAO);
-            buffer.Bind(Shader.Layout, 0, new List<IDescriptorSet>() { DescriptorSets[info.FrameInFlight] });
+            buffer.Bind(Shader.Layout, 0, new List<IDescriptorSet>() { DescriptorSets[info.frameInFlight] });
             buffer.Draw(0, 6, 0, 1);
         }
     }

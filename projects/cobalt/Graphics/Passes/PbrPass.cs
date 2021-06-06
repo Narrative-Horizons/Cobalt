@@ -5,6 +5,11 @@ using Cobalt.Events;
 using Cobalt.Graphics.API;
 using Cobalt.Math;
 using System.Collections.Generic;
+using System;
+using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Cobalt.Graphics.Passes
 {
@@ -166,7 +171,7 @@ namespace Cobalt.Graphics.Passes
 
             buffer.Bind(_pbrShader.Pipeline);
             buffer.Bind(_pbrShader.Layout, 0, new List<IDescriptorSet> { frames[info.FrameInFlight].descriptorSet });
-            buffer.Sync();
+            // buffer.Sync();
 
             int idx = 0;
 
@@ -200,6 +205,7 @@ namespace Cobalt.Graphics.Passes
                 frames[info.FrameInFlight].indirectBuffer.Unmap();
 
                 // Submit draw to command buffer
+                // buffer.Sync();
                 buffer.DrawElementsMultiIndirect(drawData, 0, frames[info.FrameInFlight].indirectBuffer);
             }
         }
@@ -246,9 +252,14 @@ namespace Cobalt.Graphics.Passes
                     .DescriptorSet(frames[frameInFlight].descriptorSet)
                     .ArrayElement(0).Build());
 
+            Device.UpdateDescriptorSets(writeInfos);
+
+            // Upload data for next frame
+
             foreach (var (vao, meshes) in framePayload)
                 foreach (var (mesh, entities) in framePayload)
                     entities.Clear();
+                
 
             _renderables.ForEach(renderable =>
             {
@@ -267,15 +278,17 @@ namespace Cobalt.Graphics.Passes
                 framePayload[renderMesh.VAO][renderMesh].Add(e);
             });
 
+            int writeFrame = (frameInFlight + 1) % frames.Count;
+
             // Build material array
-            NativeBuffer<MaterialPayload> nativeMaterialData = new NativeBuffer<MaterialPayload>(frames[frameInFlight].materialData.Map());
+            NativeBuffer<MaterialPayload> nativeMaterialData = new NativeBuffer<MaterialPayload>(frames[writeFrame].materialData.Map());
             foreach (MaterialPayload payload in materials)
             {
                 nativeMaterialData.Set(payload);
             }
 
             // Build uniform/shader storage buffers
-            NativeBuffer<EntityData> nativeEntityData = new NativeBuffer<EntityData>(frames[frameInFlight].entityData.Map());
+            NativeBuffer<EntityData> nativeEntityData = new NativeBuffer<EntityData>(frames[writeFrame].entityData.Map());
             foreach (var (vao, meshes) in framePayload)
             {
                 foreach (var (mesh, instances) in meshes)
@@ -284,7 +297,7 @@ namespace Cobalt.Graphics.Passes
                 }
             }
 
-            NativeBuffer<SceneData> nativeSceneData = new NativeBuffer<SceneData>(frames[frameInFlight].sceneBuffer.Map());
+            NativeBuffer<SceneData> nativeSceneData = new NativeBuffer<SceneData>(frames[writeFrame].sceneBuffer.Map());
             SceneData data = new SceneData
             {
                 View = Camera.View,
@@ -298,8 +311,6 @@ namespace Cobalt.Graphics.Passes
                 SunColor = new Vector3(1, 1, 1)
             };
             nativeSceneData.Set(data);
-
-            Device.UpdateDescriptorSets(writeInfos);
         }
 
         private uint _GetOrInsert(PbrMaterialComponent mat)

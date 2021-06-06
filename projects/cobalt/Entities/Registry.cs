@@ -34,6 +34,7 @@ namespace Cobalt.Entities
         {
             Entity result = _next_available == Entity.Invalid ? CreateNewIdentifier() : RecycleIdentifier();
             Events.Dispatch(new EntitySpawnEvent(result, this));
+            Assign(result, new DirtyComponent());
             return result;
         }
 
@@ -41,6 +42,7 @@ namespace Cobalt.Entities
         {
             MemoryPool<Component> pool = GetPool<Component>();
             pool.Assign(ent, ref value);
+            value.Owner = ent;
             Events.Dispatch(new ComponentAddEvent<Component>(ent, this, value));
         }
 
@@ -104,6 +106,7 @@ namespace Cobalt.Entities
         {
             MemoryPool<Component> pool = GetPool<Component>();
             pool.Replace(ent, value);
+            value.Owner = ent;
             Events.Dispatch(new ComponentReplaceEvent<Component>(ent, this, value));
         }
 

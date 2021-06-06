@@ -148,8 +148,8 @@ namespace Cobalt.Graphics
 
         public void Poll()
         {
-            Input.Update();
             GLFW.PollEvents();
+            Input.Update();
         }
 
         private void Resize(GLFWWindow window, int width, int height)

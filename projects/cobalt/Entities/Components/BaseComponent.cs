@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Cobalt.Entities.Components
+﻿namespace Cobalt.Entities.Components
 {
     public abstract class BaseComponent
     {
-
+        public Entity Owner { get; internal set; }
     }
 }

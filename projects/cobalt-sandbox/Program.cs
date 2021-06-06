@@ -132,35 +132,30 @@ namespace Cobalt.Sandbox
             trans *= Matrix4.Scale(new Vector3(0.005f));
             trans *= Matrix4.Rotate(new Vector3(90, 0, 0)); 
 
-            for(int i = 0; i < 10; i ++)
+            Entity helmetEntity = reg.Create();
+            reg.Assign(helmetEntity, new MeshComponent(box));
+            reg.Assign(helmetEntity, new TransformComponent
             {
-                Entity helmetEntity = reg.Create();
-                reg.Assign(helmetEntity, new MeshComponent(box));
-                reg.Assign(helmetEntity, new TransformComponent
+                TransformMatrix = trans
+            });
+            reg.Assign(helmetEntity, new PbrMaterialComponent
+            {
+                Albedo = new Texture
                 {
-                    TransformMatrix = trans
-                });
-                reg.Assign(helmetEntity, new PbrMaterialComponent
+                    Image = albedoImageView,
+                    Sampler = albedoImageSampler
+                },
+                Normal = new Texture
                 {
-                    Albedo = new Texture
-                    {
-                        Image = albedoImageView,
-                        Sampler = albedoImageSampler
-                    },
-                    Normal = new Texture
-                    {
-                        Image = normalImageView,
-                        Sampler = albedoImageSampler
-                    },
-                    OcclusionRoughnessMetallic = new Texture
-                    {
-                        Image = ORMImageView,
-                        Sampler = albedoImageSampler
-                    }
-                });
-
-                trans *= Matrix4.Translate(new Vector3(5f, 0, 0));
-            }
+                    Image = normalImageView,
+                    Sampler = albedoImageSampler
+                },
+                OcclusionRoughnessMetallic = new Texture
+                {
+                    Image = ORMImageView,
+                    Sampler = albedoImageSampler
+                }
+            });
 
             Entity cameraEntity = reg.Create();
             reg.Assign(cameraEntity, new TransformComponent());
@@ -168,8 +163,19 @@ namespace Cobalt.Sandbox
 
             Stopwatch sw = new Stopwatch();
 
+            Bindings.GL.GL.Finish();
+
+            float angle = 0.0f;
+
             while (window.IsOpen())
             {
+                trans = Matrix4.Identity;
+                trans *= Matrix4.Scale(new Vector3(0.005f));
+                trans *= Matrix4.Rotate(new Vector3(90, angle, 0));
+                reg.Get<TransformComponent>(helmetEntity).TransformMatrix = trans;
+
+                angle = (angle + 0.01f) % 360.0f;
+
                 window.Poll();
                 if(Input.IsKeyPressed(Bindings.GLFW.Keys.Escape))
                 {

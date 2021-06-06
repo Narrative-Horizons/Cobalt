@@ -38,6 +38,7 @@ namespace Cobalt.Entities.Components
         private float _movementSpeed;
         private float _mouseSensitivity;
         private float _zoom;
+        private bool _locked = true;
 
         public DebugCameraComponent(Vector3 position, Vector3 up, float yaw = YAW, float pitch = PITCH)
         {
@@ -62,6 +63,11 @@ namespace Cobalt.Entities.Components
 
         private void ProcessMouseMovement()
         {
+            if (!_locked)
+            {
+                return;
+            }
+
             Vector2 mouse = Input.MousePosition;
             Vector2 delta = mouse - oldMouse;
 
@@ -101,6 +107,11 @@ namespace Cobalt.Entities.Components
             if (Input.IsKeyDown(Bindings.GLFW.Keys.D))
             {
                 position -= right * _movementSpeed;
+            }
+
+            if (Input.IsKeyUp(Bindings.GLFW.Keys.Tab))
+            {
+                _locked = !_locked;
             }
         }
 

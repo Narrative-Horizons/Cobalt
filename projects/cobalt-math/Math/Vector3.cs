@@ -37,6 +37,13 @@ namespace Cobalt.Math
             z = vec.z;
         }
 
+        public Vector3(System.Numerics.Vector3 other)
+        {
+            x = other.X;
+            y = other.Y;
+            z = other.Z;
+        }
+
         public float this[int index]
         {
             get

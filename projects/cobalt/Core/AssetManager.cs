@@ -90,10 +90,22 @@ namespace Cobalt.Core
                 PbrMaterialComponent materialComponent = new PbrMaterialComponent
                 {
                     Type = EMaterialType.Opaque,
-                    Albedo = new Graphics.Texture { Image = node.material.albedo.view, Sampler = node.material.albedo.sampler},
-                    Normal = new Graphics.Texture { Image = node.material.normal.view, Sampler = node.material.normal.sampler},
-                    OcclusionRoughnessMetallic = new Graphics.Texture { Image = node.material.ORM.view, Sampler = node.material.ORM.sampler}
                 };
+
+                if(node.material.albedo != null)
+                {
+                    materialComponent.Albedo = new Graphics.Texture { Image = node.material.albedo.view, Sampler = node.material.albedo.sampler };
+                }
+
+                if(node.material.normal != null)
+                {
+                    materialComponent.Normal = new Graphics.Texture { Image = node.material.normal.view, Sampler = node.material.normal.sampler };
+                }
+
+                if(node.material.ORM != null)
+                {
+                    materialComponent.OcclusionRoughnessMetallic = new Graphics.Texture { Image = node.material.ORM.view, Sampler = node.material.ORM.sampler };
+                }
 
                 if(node.material.emissive != null)
                 {
@@ -109,7 +121,7 @@ namespace Cobalt.Core
                 TransformComponent trans = new TransformComponent
                 {
                     Parent = parent,
-                    TransformMatrix = Matrix4.Identity
+                    TransformMatrix = child.transform
                 };
 
                 registry.Assign(childEntity, trans);
@@ -134,7 +146,10 @@ namespace Cobalt.Core
 
         internal unsafe void ProcessNode(Node* node, MeshNode meshNode, Scene* scene, Matrix4 parentMatrix)
         {
-            Matrix4 mat = parentMatrix * node->MTransformation;
+            Assimp assimp = Assimp.GetApi();
+
+            Matrix4 mat = System.Numerics.Matrix4x4.Transpose(node->MTransformation) * parentMatrix;
+
             MeshNode mNode = new MeshNode
             {
                 transform = mat
@@ -146,7 +161,7 @@ namespace Cobalt.Core
             for (int i = 0; i < node->MNumMeshes; i++)
             {
                 Silk.NET.Assimp.Mesh* assMesh = scene->MMeshes[node->MMeshes[i]];
-                ProcessMesh(assMesh, scene, mNode, mat);
+                ProcessMesh(assMesh, scene, mNode);
 
                 mNode.material = materials[(int)assMesh->MMaterialIndex];
             }
@@ -157,7 +172,7 @@ namespace Cobalt.Core
             }
         }
 
-        internal unsafe void ProcessMesh(Silk.NET.Assimp.Mesh* assMesh, Scene* scene, MeshNode meshNode, Matrix4 parentMatrix)
+        internal unsafe void ProcessMesh(Silk.NET.Assimp.Mesh* assMesh, Scene* scene, MeshNode meshNode)
         {
             Mesh mesh = new Mesh
             {
@@ -334,11 +349,13 @@ namespace Cobalt.Core
                 Assimp assimp = Assimp.GetApi();
                 Scene* assScene = assimp.ImportFile(path, (uint)PostProcessPreset.TargetRealTimeMaximumQuality);
 
+                Matrix4 offset = Matrix4.Rotate(new Vector3(0, 90, 0));
+
                 if(assScene != null)
                 {
                     RootNode = new MeshNode();
                     ProcessMaterials(assScene->MRootNode, assScene);
-                    ProcessNode(assScene->MRootNode, RootNode, assScene, assScene->MRootNode->MTransformation);
+                    ProcessNode(assScene->MRootNode, RootNode, assScene, System.Numerics.Matrix4x4.Transpose(assScene->MRootNode->MTransformation));
                 }
             }
         }

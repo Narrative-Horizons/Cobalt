@@ -35,7 +35,7 @@ layout(std140, binding = 3) uniform SceneData
 
 void main()
 {
-    int instance = gl_InstanceID;
+    int instance = gl_InstanceID + gl_BaseInstance;
     ObjectData myData = objects[instance];
     gl_Position = viewProjection * myData.transform * vec4(iPosition, 1);
 }

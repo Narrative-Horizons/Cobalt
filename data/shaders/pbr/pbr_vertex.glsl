@@ -48,7 +48,7 @@ layout (location = 0) out VertexData
 
 void main()
 {
-    int instance = gl_InstanceID;
+    int instance = gl_InstanceID + gl_BaseInstance;
     outData.instanceID = instance;
 
     ObjectData myData = objects[instance];

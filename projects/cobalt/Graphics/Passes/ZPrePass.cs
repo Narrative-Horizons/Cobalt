@@ -70,7 +70,7 @@ namespace Cobalt.Graphics.Passes
             buffer.BeginRenderPass(new ICommandBuffer.RenderPassBeginInfo
             {
                 ClearValues = new List<ClearValue>() { new ClearValue(new ClearValue.ClearColor(0, 0, 0, 1)), new ClearValue(1) },
-                Width = 1280,
+                Width = 1280, 
                 Height = 720,
                 FrameBuffer = info.frameBuffer,
                 RenderPass = _pass

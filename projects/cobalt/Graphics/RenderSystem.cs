@@ -256,7 +256,7 @@ namespace Cobalt.Graphics
             writeInfos.Add(texArrayBuilder.DescriptorSet(_frames[frameInFlight].descriptorSet).ArrayElement(0).BindingIndex(2)
                 .Build());
 
-            writeInfos.Add(new DescriptorWriteInfo.Builder().AddBufferInfo(
+            writeInfos.Add(new DescriptorWriteInfo.Builder().AddBufferInfo( 
                 new DescriptorWriteInfo.DescriptorBufferInfo.Builder()
                     .Buffer(_frames[frameInFlight].materialData)
                     .Range(1000000 * 16).Build())
@@ -304,11 +304,6 @@ namespace Cobalt.Graphics
                 }
                 _framePayload[renderMesh.VAO][renderMesh].Add(e);
             }
-
-            /*_renderables.ForEach(renderable =>
-            {
-                
-            });*/
 
             int writeFrame = (frameInFlight + 1) % _frames.Count;
 

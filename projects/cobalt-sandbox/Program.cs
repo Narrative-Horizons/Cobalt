@@ -121,7 +121,7 @@ namespace Cobalt.Sandbox
 
             RenderableManager renderableManager = new RenderableManager(device);
 
-            ModelAsset asset = assetManager.LoadModel("data/SciFiHelmet/SciFiHelmet.gltf");
+            ModelAsset asset = assetManager.LoadModel("data/Lantern/Lantern.gltf");
 
 
             Entity meshEntity = asset.AsEntity(reg, renderableManager);
@@ -164,6 +164,8 @@ namespace Cobalt.Sandbox
             reg.Assign(cameraEntity, new TransformComponent());
             reg.Assign<CameraComponent>(cameraEntity, new FreeLookCamera(65.0f, 0.01f, 1000.0f, 16.0f/9.0f));
 
+            reg.Get<TransformComponent>(cameraEntity).Position = new Vector3(10, 20, 10);
+
             Stopwatch sw = new Stopwatch();
 
             Bindings.GL.GL.Finish();
@@ -175,9 +177,11 @@ namespace Cobalt.Sandbox
                 /*trans = Matrix4.Identity;
                 trans *= Matrix4.Scale(new Vector3(0.005f));
                 trans *= Matrix4.Rotate(new Vector3(90, angle, 0));
-                reg.Get<TransformComponent>(helmetEntity).TransformMatrix = trans;*/
+                */
 
-                // angle = (angle + 0.01f) % 360.0f;
+                reg.Get<TransformComponent>(meshEntity).TransformMatrix = Matrix4.Rotate(new Vector3(0, angle, 0));
+
+                angle += 0.1f;
 
                 window.Poll();
                 if(Input.IsKeyPressed(Bindings.GLFW.Keys.Escape))

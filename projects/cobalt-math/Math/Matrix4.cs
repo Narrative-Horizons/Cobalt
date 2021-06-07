@@ -7,109 +7,264 @@ namespace Cobalt.Math
     [StructLayout(LayoutKind.Sequential)]
     public struct Matrix4 : IEquatable<Matrix4>
     {
-        private unsafe fixed float buffer[16];
+        public float M11;
+        public float M12;
+        public float M13;
+        public float M14;
+
+        public float M21;
+        public float M22;
+        public float M23;
+        public float M24;
+
+        public float M31;
+        public float M32;
+        public float M33;
+        public float M34;
+
+        public float M41;
+        public float M42;
+        public float M43;
+        public float M44;
+
         public Matrix4(float scalar)
         {
-            unsafe
-            {
-                for(int i = 0; i < 16; i++)
-                {
-                    buffer[i] = scalar;
-                }
-            }
+            M11 = M12 = M13 = M14 = M21 = M22 = M23 = M24 = M31 = M32 = M33 = M34 = M41 = M42 = M43 = M44 = 0.0f;
         }
 
         public Matrix4(Vector4 diagonal) : this(0.0f)
         {
-            unsafe
-            {
-                buffer[0] = diagonal.x;
-                buffer[5] = diagonal.y;
-                buffer[10] = diagonal.z;
-                buffer[15] = diagonal.w;
-            }
+            M11 = diagonal.x;
+            M22 = diagonal.y;
+            M33 = diagonal.z;
+            M44 = diagonal.w;
         }
 
-        public Matrix4(Vector4 col0, Vector4 col1, Vector4 col2, Vector4 col3)
+        public Matrix4(Vector4 col0, Vector4 col1, Vector4 col2, Vector4 col3) : this(0.0f)
         {
-            unsafe
-            {
-                buffer[0] = col0.x;
-                buffer[1] = col0.y;
-                buffer[2] = col0.z;
-                buffer[3] = col0.w;
+            M11 = col0.x;
+            M12 = col0.y;
+            M13 = col0.z;
+            M14 = col0.w;
 
-                buffer[4] = col1.x;
-                buffer[5] = col1.y;
-                buffer[6] = col1.z;
-                buffer[7] = col1.w;
+            M21 = col1.x;
+            M22 = col1.y;
+            M23 = col1.z;
+            M24 = col1.w;
 
-                buffer[8] = col2.x;
-                buffer[9] = col2.y;
-                buffer[10] = col2.z;
-                buffer[11] = col2.w;
+            M31 = col2.x;
+            M32 = col2.y;
+            M33 = col2.z;
+            M34 = col2.w;
 
-                buffer[12] = col3.x;
-                buffer[13] = col3.y;
-                buffer[14] = col3.z;
-                buffer[15] = col3.w;
-            }
+            M41 = col3.x;
+            M42 = col3.y;
+            M43 = col3.z;
+            M44 = col3.w;
         }
 
-        public Matrix4(float[] data)
+        public Matrix4(float[] data) : this(0.0f)
         {
-            unsafe
-            {
-                buffer[0] =  data[0];
-                buffer[1] =  data[1];
-                buffer[2] =  data[2];
-                buffer[3] =  data[3];
-                             
-                buffer[4] =  data[4];
-                buffer[5] =  data[5];
-                buffer[6] =  data[6];
-                buffer[7] =  data[7];
-                             
-                buffer[8] =  data[8];
-                buffer[9] =  data[9];
-                buffer[10] = data[10];
-                buffer[11] = data[11];
-                             
-                buffer[12] = data[12];
-                buffer[13] = data[13];
-                buffer[14] = data[14];
-                buffer[15] = data[15];
-            }
+            M11 = data[0];
+            M12 = data[1];
+            M13 = data[2];
+            M14 = data[3];
+
+            M21 = data[4];
+            M22 = data[5];
+            M23 = data[6];
+            M24 = data[7];
+
+            M31 = data[8];
+            M32 = data[9];
+            M33 = data[10];
+            M34 = data[11];
+
+            M41 = data[12];
+            M42 = data[13];
+            M43 = data[14];
+            M44 = data[15];
         }
 
         public float this[int row, int col]
         {
             get
             {
-                unsafe
+                switch(row)
                 {
-                    return buffer[row * 4 + col];
+                    case 0:
+                        {
+                            switch (col)
+                            {
+                                case 0:
+                                    return M11;
+                                case 1:
+                                    return M12;
+                                case 2:
+                                    return M13;
+                                case 3:
+                                    return M14;
+                            }
+                            break;
+                        }
+
+                    case 1:
+                        {
+                            switch (col)
+                            {
+                                case 0:
+                                    return M21;
+                                case 1:
+                                    return M22;
+                                case 2:
+                                    return M23;
+                                case 3:
+                                    return M24;
+                            }
+                            break;
+                        }
+
+                    case 2:
+                        {
+                            switch (col)
+                            {
+                                case 0:
+                                    return M31;
+                                case 1:
+                                    return M32;
+                                case 2:
+                                    return M33;
+                                case 3:
+                                    return M34;
+                            }
+                            break;
+                        }
+
+                    case 3:
+                        {
+                            switch (col)
+                            {
+                                case 0:
+                                    return M41;
+                                case 1:
+                                    return M42;
+                                case 2:
+                                    return M43;
+                                case 3:
+                                    return M44;
+                            }
+                            break;
+                        }
                 }
+
+                return 0.0f;
             }
 
             set
             {
-                unsafe
+                switch (row)
                 {
-                    buffer[row * 4 + col] = value;
+                    case 0:
+                        {
+                            switch (col)
+                            {
+                                case 0:
+                                    M11 = value;
+                                    break;
+                                case 1:
+                                    M12 = value;
+                                    break;
+                                case 2:
+                                    M13 = value;
+                                    break;
+                                case 3:
+                                    M14 = value;
+                                    break;
+                            }
+                            break;
+                        }
+
+                    case 1:
+                        {
+                            switch (col)
+                            {
+                                case 0:
+                                    M21 = value;
+                                    break;
+                                case 1:
+                                    M22 = value;
+                                    break;
+                                case 2:
+                                    M23 = value;
+                                    break;
+                                case 3:
+                                    M24 = value;
+                                    break;
+                            }
+                            break;
+                        }
+
+                    case 2:
+                        {
+                            switch (col)
+                            {
+                                case 0:
+                                    M31 = value;
+                                    break;
+                                case 1:
+                                    M32 = value;
+                                    break;
+                                case 2:
+                                    M33 = value;
+                                    break;
+                                case 3:
+                                    M34 = value;
+                                    break;
+                            }
+                            break;
+                        }
+
+                    case 3:
+                        {
+                            switch (col)
+                            {
+                                case 0:
+                                    M41 = value;
+                                    break;
+                                case 1:
+                                    M42 = value;
+                                    break;
+                                case 2:
+                                    M43 = value;
+                                    break;
+                                case 3:
+                                    M44 = value;
+                                    break;
+                            }
+                            break;
+                        }
                 }
             }
         }
 
-        public Matrix4(Matrix4 matrix)
+        public Matrix4(Matrix4 matrix) : this(0.0f)
         {
-            unsafe
-            {
-                for(int i = 0; i < 16; i++)
-                {
-                    buffer[i] = matrix.buffer[i];
-                }
-            }
+            M11 = matrix.M11;
+            M12 = matrix.M12;
+            M13 = matrix.M13;
+            M14 = matrix.M14;
+            M21 = matrix.M21;
+            M22 = matrix.M22;
+            M23 = matrix.M23;
+            M24 = matrix.M24;
+            M31 = matrix.M31;
+            M32 = matrix.M32;
+            M33 = matrix.M33;
+            M34 = matrix.M34;
+            M41 = matrix.M41;
+            M42 = matrix.M42;
+            M43 = matrix.M43;
+            M44 = matrix.M44;
         }
 
         public static readonly Matrix4 Identity = new Matrix4(Vector4.One);
@@ -125,86 +280,65 @@ namespace Cobalt.Math
 
         public bool Equals(Matrix4 other)
         {
-            unsafe
-            {
-                bool equal = true;
-                for (int i = 0; i < 16; i++)
-                {
-                    if (buffer[i] != other.buffer[i])
-                        equal = false;
-                }
-
-                return equal;
-            }
-        }
-
-        public override int GetHashCode()
-        {
-            unsafe
-            {
-                float hc = 17;
-                for (int i = 0; i < 16; i++)
-                {
-                   hc = unchecked(31 * hc + buffer[i]);
-                }
-                return (int)hc;
-            }
+            return M11 == other.M11 && M12 == other.M12 && M13 == other.M13 && M14 == other.M14 &&
+                M21 == other.M21 && M22 == other.M22 && M23 == other.M23 && M24 == other.M24 &&
+                M31 == other.M31 && M32 == other.M32 && M33 == other.M33 && M34 == other.M34 &&
+                M41 == other.M41 && M42 == other.M42 && M43 == other.M43 && M44 == other.M44;
         }
 
         public override string ToString()
         {
-            unsafe
-            {
-                string ret = "";
-
-                fixed (float* b = buffer)
-                {
-                    for (int i = 0; i < 16; i++)
-                    {
-                        ret += b[i] + ", ";
-                    }
-                }
-                
-                return ret;
-            }
+            return M11 + ", " + M12 + ", " + M13 + ", " + M14 + ", " 
+                + M21 + ", " + M22 + ", " + M23 + ", " + M24 + ", " 
+                + M31 + ", " + M32 + ", " + M33 + ", " + M34 + ", " 
+                + M41 + ", " + M42 + ", " + M43 + ", " + M44;
         }
 
-        public string ToString2()
+        public override int GetHashCode()
         {
-            unsafe
-            {
-                string ret = "";
-
-                for (int i = 0; i < 16; i++)
-                {
-                    ret += buffer[i] + ", ";
-                }
-                return ret;
-            }
+            return HashCode.Combine(M11, M12, M13, M14) + HashCode.Combine(M21, M22, M23, M24) + HashCode.Combine(M31, M32, M33, M34) + HashCode.Combine(M41, M42, M43, M44);
         }
 
         public static Matrix4 operator +(Matrix4 left, Matrix4 right)
         {
-            unsafe
-            {
-                for (int i = 0; i < 16; i++)
-                {
-                    left.buffer[i] += right.buffer[i];
-                }
-            }
+            left.M11 += right.M11;
+            left.M12 += right.M12;
+            left.M13 += right.M13;
+            left.M14 += right.M14;
+            left.M21 += right.M21;
+            left.M22 += right.M22;
+            left.M23 += right.M23;
+            left.M24 += right.M24;
+            left.M31 += right.M31;
+            left.M32 += right.M32;
+            left.M33 += right.M33;
+            left.M34 += right.M34;
+            left.M41 += right.M41;
+            left.M42 += right.M42;
+            left.M43 += right.M43;
+            left.M44 += right.M44;
 
             return left;
         }
 
         public static Matrix4 operator -(Matrix4 left, Matrix4 right)
         {
-            unsafe
-            {
-                for (int i = 0; i < 16; i++)
-                {
-                    left.buffer[i] -= right.buffer[i];
-                }
-            }
+            left.M11 -= right.M11;
+            left.M12 -= right.M12;
+            left.M13 -= right.M13;
+            left.M14 -= right.M14;
+            left.M21 -= right.M21;
+            left.M22 -= right.M22;
+            left.M23 -= right.M23;
+            left.M24 -= right.M24;
+            left.M31 -= right.M31;
+            left.M32 -= right.M32;
+            left.M33 -= right.M33;
+            left.M34 -= right.M34;
+            left.M41 -= right.M41;
+            left.M42 -= right.M42;
+            left.M43 -= right.M43;
+            left.M44 -= right.M44;
 
             return left;
         }
@@ -495,15 +629,12 @@ namespace Cobalt.Math
 
         public Matrix4 Transpose()
         {
-            unsafe
-            {
-                Swap(ref buffer[1], ref buffer[4]);
-                Swap(ref buffer[2], ref buffer[8]);
-                Swap(ref buffer[6], ref buffer[9]);
-                Swap(ref buffer[3], ref buffer[12]);
-                Swap(ref buffer[7], ref buffer[13]);
-                Swap(ref buffer[11], ref buffer[14]);
-            }
+            Swap(ref M12, ref M21);
+            Swap(ref M31, ref M13);
+            Swap(ref M32, ref M23);
+            Swap(ref M41, ref M14);
+            Swap(ref M42, ref M24);
+            Swap(ref M43, ref M34);
 
             return this;
         }

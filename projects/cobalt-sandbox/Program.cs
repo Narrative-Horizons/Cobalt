@@ -159,7 +159,7 @@ namespace Cobalt.Sandbox
 
             Entity cameraEntity = reg.Create();
             reg.Assign(cameraEntity, new TransformComponent());
-            reg.Assign(cameraEntity, new DebugCameraComponent(new Vector3(-5, 3, 0), Vector3.UnitY, 0.0f));
+            reg.Assign<CameraComponent>(cameraEntity, new FreeLookCamera(65.0f, 0.01f, 1000.0f, 16.0f/9.0f));
 
             Stopwatch sw = new Stopwatch();
 

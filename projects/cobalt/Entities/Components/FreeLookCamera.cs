@@ -4,56 +4,47 @@ using System;
 
 namespace Cobalt.Entities.Components
 {
-    public class DebugCameraComponent : BaseComponent
+    public class FreeLookCamera : CameraComponent
     {
+        #region Constant Init Data
         private const float YAW = -90.0f;
         private const float PITCH = 0.0f;
         private const float SPEED = 0.005f;
         private const float SENSITIVITY = 0.25f;
-        private const float ZOOM = 45.0f;
+        #endregion
 
-        public Matrix4 View
-        {
-            get
-            {
-                return Matrix4.LookAt(position, position + front, up);
-            }
-        }
-        public Matrix4 Projection
-        {
-            get
-            {
-                return Matrix4.Perspective(Math.Scalar.ToRadians(60.0f), 16.0f / 9.0f, 0.1f, 500.0f);
-            }
-        }
-
-        public Vector3 position = new Vector3();
-        public Vector3 front = new Vector3();
-        public Vector3 up = new Vector3();
-        public Vector3 right = new Vector3();
-        public Vector3 worldUp = new Vector3();
-
+        #region Data
         private float _yaw;
         private float _pitch;
         private float _movementSpeed;
         private float _mouseSensitivity;
-        private float _zoom;
         private bool _locked = true;
+        #endregion
 
-        public DebugCameraComponent(Vector3 position, Vector3 up, float yaw = YAW, float pitch = PITCH)
+        public FreeLookCamera(float FoV, float near, float far, float aspect)
         {
-            front = new Vector3(0, 0, -1);
+            _yaw = YAW;
+            _pitch = PITCH;
+            Orthographic = false;
+            FieldOfView = Math.Scalar.ToRadians(FoV);
+
+            NearClipPlane = near;
+            FarClipPlane = far;
+            Aspect = aspect;
+
             _movementSpeed = SPEED;
             _mouseSensitivity = SENSITIVITY;
-            _zoom = ZOOM;
+        }
 
-            this.position = position;
-            this.worldUp = up;
+        public override void OnInit()
+        {
+            base.OnInit();
 
+            Transform.Forward = new Vector3(0, 0, -1);
             UpdateCameraVectors();
         }
 
-        public void Update()
+        public override void OnUpdate()
         {
             ProcessKeyboard();
             ProcessMouseMovement();
@@ -91,22 +82,22 @@ namespace Cobalt.Entities.Components
         {
             if (Input.IsKeyDown(Bindings.GLFW.Keys.W))
             {
-                position += front * _movementSpeed;
+                Transform.Position += Transform.Forward * _movementSpeed;
             }
 
             if (Input.IsKeyDown(Bindings.GLFW.Keys.S))
             {
-                position -= front * _movementSpeed;
+                Transform.Position -= Transform.Forward * _movementSpeed;
             }
 
             if (Input.IsKeyDown(Bindings.GLFW.Keys.A))
             {
-                position += right * _movementSpeed;
+                Transform.Position += Transform.Right * _movementSpeed;
             }
 
             if (Input.IsKeyDown(Bindings.GLFW.Keys.D))
             {
-                position -= right * _movementSpeed;
+                Transform.Position -= Transform.Right * _movementSpeed;
             }
 
             if (Input.IsKeyUp(Bindings.GLFW.Keys.Tab))
@@ -124,10 +115,10 @@ namespace Cobalt.Entities.Components
                 z = MathF.Sin(Math.Scalar.ToRadians(_yaw)) * MathF.Cos(Math.Scalar.ToRadians(_pitch))
             };
 
-            front = Vector3.Normalize(f);
+            Transform.Forward = Vector3.Normalize(f);
 
-            right = Vector3.Cross(front, worldUp).Normalized();
-            up = Vector3.Cross(right, front).Normalized();
+            Transform.Right = Vector3.Cross(Transform.Forward, Vector3.UnitY).Normalized();
+            Transform.Up = Vector3.Cross(Transform.Right, Transform.Forward).Normalized();
         }
     }
 }

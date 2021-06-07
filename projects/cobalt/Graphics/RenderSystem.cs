@@ -34,13 +34,15 @@ namespace Cobalt.Graphics
         {
             ICommandBuffer cmdBuffer = _cmdBuffers[_currentFrame];
 
-            ComponentView<DebugCameraComponent> cameraView = _registry.GetView<DebugCameraComponent>();
+            ComponentView<CameraComponent> cameraView = _registry.GetView<CameraComponent>();
             cameraView.ForEach((camera) =>
             {
+                /// TODO: Move to ScriptableComponentSystem
+                camera.OnUpdate();
+
                 cmdBuffer.Record(new ICommandBuffer.RecordInfo());
                 _pipeline.Render(cmdBuffer, _currentFrame, camera);
 
-                camera.Update();
             });
 
             cmdBuffer.End();
@@ -176,7 +178,7 @@ namespace Cobalt.Graphics
             _BuildFrameData(framesInFlight, layout);
         }
 
-        public void Render(ICommandBuffer buffer, int frameInFlight, DebugCameraComponent camera)
+        public void Render(ICommandBuffer buffer, int frameInFlight, CameraComponent camera)
         {
             _Build(frameInFlight, camera);
 
@@ -236,7 +238,7 @@ namespace Cobalt.Graphics
             _screenResolvePass.Record(buffer, frameInfo, new DrawInfo());
         }
 
-        private void _Build(int frameInFlight, DebugCameraComponent camera)
+        private void _Build(int frameInFlight, CameraComponent camera)
         {
             List<DescriptorWriteInfo> writeInfos = new List<DescriptorWriteInfo>();
             DescriptorWriteInfo.Builder texArrayBuilder = new DescriptorWriteInfo.Builder();
@@ -326,12 +328,12 @@ namespace Cobalt.Graphics
             NativeBuffer<SceneData> nativeSceneData = new NativeBuffer<SceneData>(_frames[writeFrame].sceneBuffer.Map());
             SceneData data = new SceneData
             {
-                View = camera.View,
-                Projection = camera.Projection,
-                ViewProjection = camera.View * camera.Projection,
+                View = camera.ViewMatrix,
+                Projection = camera.ProjectionMatrix,
+                ViewProjection = camera.ViewMatrix * camera.ProjectionMatrix,
 
-                CameraPosition = camera.position,
-                CameraDirection = camera.front,
+                CameraPosition = camera.Transform.Position,
+                CameraDirection = camera.Transform.Forward,
 
                 SunDirection = new Vector3(0, -1, 0),
                 SunColor = new Vector3(1, 1, 1)

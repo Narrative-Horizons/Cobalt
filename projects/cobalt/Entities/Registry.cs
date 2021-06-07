@@ -43,6 +43,10 @@ namespace Cobalt.Entities
             MemoryPool<Component> pool = GetPool<Component>();
             pool.Assign(ent, ref value);
             value.Owner = ent;
+            value.Registry = this;
+            
+            (value as ScriptableComponent)?.OnInit();
+
             Events.Dispatch(new ComponentAddEvent<Component>(ent, this, value));
         }
 
@@ -107,6 +111,10 @@ namespace Cobalt.Entities
             MemoryPool<Component> pool = GetPool<Component>();
             pool.Replace(ent, value);
             value.Owner = ent;
+            value.Registry = this;
+
+            (value as ScriptableComponent)?.OnInit();
+
             Events.Dispatch(new ComponentReplaceEvent<Component>(ent, this, value));
         }
 

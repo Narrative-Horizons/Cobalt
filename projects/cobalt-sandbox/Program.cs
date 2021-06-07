@@ -59,13 +59,14 @@ namespace Cobalt.Sandbox
             Registry reg = new Registry();
             RenderSystem renderSystem = new RenderSystem(reg, device, swapchain);
 
-            AssetManager assetManager = new AssetManager();
+            AssetManager assetManager = new AssetManager(device);
 
             ICommandPool commandPool = device.CreateCommandPool(new ICommandPool.CreateInfo.Builder().Queue(graphicsQueue).ResetAllocations(true).TransientAllocations(true));
             List<ICommandBuffer> commandBuffers = commandPool.Allocate(new ICommandBuffer.AllocateInfo.Builder().Count(swapchain.GetImageCount()).Level(ECommandBufferLevel.Primary).Build());
 
             ICommandPool transferPool = device.CreateCommandPool(new ICommandPool.CreateInfo.Builder().Queue(transferQueue).ResetAllocations(false).TransientAllocations(true));
             ICommandBuffer transferCmdBuffer = transferPool.Allocate(new ICommandBuffer.AllocateInfo.Builder().Count(1).Level(ECommandBufferLevel.Primary))[0];
+            transferCmdBuffer.Record(new ICommandBuffer.RecordInfo());
 
             Core.ImageAsset assetAlbedo = assetManager.LoadImage("data/Dragon/T_MountainDragon_BaseColor.jpg");
             IImage albedoImage = device.CreateImage(new IImage.CreateInfo.Builder()
@@ -100,6 +101,8 @@ namespace Cobalt.Sandbox
             transferCmdBuffer.Copy(assetORM.AsBytes, ORMImage, new List<ICommandBuffer.BufferImageCopyRegion>(){new ICommandBuffer.BufferImageCopyRegion.Builder().ArrayLayer(0)
                 .BufferOffset(0).ColorAspect(true).Depth(1).Height((int) assetORM.Height).Width((int) assetORM.Width).MipLevel(0).Build() });
 
+            transferCmdBuffer.End();
+
             IQueue.SubmitInfo transferSubmission = new IQueue.SubmitInfo(transferCmdBuffer);
             transferQueue.Execute(transferSubmission);
 
@@ -118,12 +121,12 @@ namespace Cobalt.Sandbox
 
             RenderableManager renderableManager = new RenderableManager(device);
 
-            ModelAsset asset = assetManager.LoadModel("data/Dragon/Dragon.FBX");
+            ModelAsset asset = assetManager.LoadModel("data/SciFiHelmet/SciFiHelmet.gltf");
 
 
             Entity meshEntity = asset.AsEntity(reg, renderableManager);
 
-            renderableManager.QueueRenderable(asset);
+            /*renderableManager.QueueRenderable(asset);
 
             List<RenderableMesh> meshes = renderableManager.GetRenderables(asset);
             RenderableMesh box = meshes[0];
@@ -155,7 +158,7 @@ namespace Cobalt.Sandbox
                     Image = ORMImageView,
                     Sampler = albedoImageSampler
                 }
-            });
+            });*/
 
             Entity cameraEntity = reg.Create();
             reg.Assign(cameraEntity, new TransformComponent());
@@ -169,10 +172,10 @@ namespace Cobalt.Sandbox
 
             while (window.IsOpen())
             {
-                trans = Matrix4.Identity;
+                /*trans = Matrix4.Identity;
                 trans *= Matrix4.Scale(new Vector3(0.005f));
                 trans *= Matrix4.Rotate(new Vector3(90, angle, 0));
-                reg.Get<TransformComponent>(helmetEntity).TransformMatrix = trans;
+                reg.Get<TransformComponent>(helmetEntity).TransformMatrix = trans;*/
 
                 // angle = (angle + 0.01f) % 360.0f;
 

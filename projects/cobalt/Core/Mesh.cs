@@ -1,15 +1,34 @@
-﻿using Cobalt.Math;
+﻿using Cobalt.Graphics.API;
+using Cobalt.Math;
 using System;
 using System.Collections.Generic;
 
 namespace Cobalt.Core
 {
+    public class TextureData
+    {
+        public AssimpTextureData data;
+        public ImageAsset asset;
+
+        public IImage image;
+        public IImageView view;
+        public ISampler sampler;
+    }
+
+    public class MaterialData
+    {
+        public TextureData albedo;
+        public TextureData normal;
+        public TextureData emissive;
+        public TextureData ORM;
+    }
+
     public class MeshNode
     {
         public List<Mesh> meshes = new List<Mesh>();
         public MeshNode parent;
         public List<MeshNode> children = new List<MeshNode>();
-        //public Material material;
+        public MaterialData material;
         public Matrix4 transform;
     }
 

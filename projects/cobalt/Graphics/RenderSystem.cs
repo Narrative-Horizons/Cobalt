@@ -111,7 +111,7 @@ namespace Cobalt.Graphics
         private readonly ZPrePass _zPrePass;
         private readonly PbrRenderPass _pbrPass;
         private readonly ScreenResolvePass _screenResolvePass;
-        private readonly List<Entity> _renderables = new List<Entity>();
+        private readonly HashSet<Entity> _renderables = new HashSet<Entity>();
         private readonly Dictionary<PbrMaterialComponent, uint> _materialIndices = new Dictionary<PbrMaterialComponent, uint>();
         private readonly MaterialPayload[] _materials = new MaterialPayload[1024];
         private readonly List<Texture> _textures = new List<Texture>();
@@ -288,8 +288,7 @@ namespace Cobalt.Graphics
                 foreach (var (mesh, entities) in _framePayload)
                     entities.Clear();
 
-
-            _renderables.ForEach(renderable =>
+            foreach(var renderable in _renderables)
             {
                 PbrMaterialComponent matComponent = _registry.Get<PbrMaterialComponent>(renderable);
                 MeshComponent mesh = _registry.Get<MeshComponent>(renderable);
@@ -304,7 +303,12 @@ namespace Cobalt.Graphics
                     _framePayload[renderMesh.VAO].Add(renderMesh, new List<EntityData>());
                 }
                 _framePayload[renderMesh.VAO][renderMesh].Add(e);
-            });
+            }
+
+            /*_renderables.ForEach(renderable =>
+            {
+                
+            });*/
 
             int writeFrame = (frameInFlight + 1) % _frames.Count;
 

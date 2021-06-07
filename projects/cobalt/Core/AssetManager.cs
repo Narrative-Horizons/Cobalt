@@ -12,6 +12,17 @@ using static Cobalt.Bindings.Utils.Util;
 
 namespace Cobalt.Core
 {
+    public class AssimpTextureData
+    {
+        public string path;
+        public TextureMapping mapping = new TextureMapping();
+        public uint uvindex = 0;
+        public float blend = 0.0f;
+        public TextureOp op = new TextureOp();
+        public TextureMapMode mapMode = new TextureMapMode();
+        public uint flags = 0;
+    }
+
     public class ImageAsset
     {
         public uint Width { get; private set; }
@@ -60,7 +71,10 @@ namespace Cobalt.Core
     {
         private static ulong _uniqueCount = 0;
         public List<MeshNode> meshes = new List<MeshNode>();
+        public List<MaterialData> materials = new List<MaterialData>();
         public string Path { get; private set; }
+        public string RootPath { get; private set; }
+        internal AssetManager Manager { get; private set; }
 
         public MeshNode RootNode;
 
@@ -75,8 +89,16 @@ namespace Cobalt.Core
 
                 PbrMaterialComponent materialComponent = new PbrMaterialComponent
                 {
-                    Type = EMaterialType.Opaque
+                    Type = EMaterialType.Opaque,
+                    Albedo = new Graphics.Texture { Image = node.material.albedo.view, Sampler = node.material.albedo.sampler},
+                    Normal = new Graphics.Texture { Image = node.material.normal.view, Sampler = node.material.normal.sampler},
+                    OcclusionRoughnessMetallic = new Graphics.Texture { Image = node.material.ORM.view, Sampler = node.material.ORM.sampler}
                 };
+
+                if(node.material.emissive != null)
+                {
+                    materialComponent.Emission = new Graphics.Texture { Image = node.material.emissive.view, Sampler = node.material.emissive.sampler };
+                }
 
                 registry.Assign(parent, materialComponent);
             }
@@ -87,7 +109,7 @@ namespace Cobalt.Core
                 TransformComponent trans = new TransformComponent
                 {
                     Parent = parent,
-                    TransformMatrix = node.transform
+                    TransformMatrix = Matrix4.Identity
                 };
 
                 registry.Assign(childEntity, trans);
@@ -125,6 +147,8 @@ namespace Cobalt.Core
             {
                 Silk.NET.Assimp.Mesh* assMesh = scene->MMeshes[node->MMeshes[i]];
                 ProcessMesh(assMesh, scene, mNode, mat);
+
+                mNode.material = materials[(int)assMesh->MMaterialIndex];
             }
 
             for(int i = 0; i < node->MNumChildren; i++)
@@ -202,6 +226,60 @@ namespace Cobalt.Core
             meshNode.meshes.Add(mesh);
         }
 
+        internal unsafe AssimpTextureData GetTexture(Material* material, TextureType type, uint index)
+        {
+            Assimp assimp = Assimp.GetApi();
+
+            AssimpTextureData data = new AssimpTextureData();
+            AssimpString path = new AssimpString();
+
+            assimp.GetMaterialTexture(material, type, 0, ref path, ref data.mapping, ref data.uvindex, ref data.blend, ref data.op, ref data.mapMode, ref data.flags);
+
+            data.path = path.ToString();
+            return data;
+        }
+
+        internal unsafe TextureData CreateTextureData(AssimpTextureData data)
+        {
+            ImageAsset asset = Manager.LoadImage(RootPath + data.path);
+
+            IImage image = Manager.Device.CreateImage(new IImage.CreateInfo.Builder()
+                .Depth(1).Format(EDataFormat.R8G8B8A8).Height((int)asset.Height).Width((int)asset.Width)
+                .InitialLayout(EImageLayout.Undefined).LayerCount(1).MipCount(1).SampleCount(ESampleCount.Samples1)
+                .Type(EImageType.Image2D),
+            new IImage.MemoryInfo.Builder()
+                .AddRequiredProperty(EMemoryProperty.DeviceLocal).Usage(EMemoryUsage.GPUOnly));
+
+            Manager.TransferBuffer.Record(new ICommandBuffer.RecordInfo());
+
+            Manager.TransferBuffer.Copy(asset.AsBytes, image, new List<ICommandBuffer.BufferImageCopyRegion>(){new ICommandBuffer.BufferImageCopyRegion.Builder().ArrayLayer(0)
+                        .BufferOffset(0).ColorAspect(true).Depth(1).Height((int) asset.Height).Width((int) asset.Width).MipLevel(0).Build() });
+
+            Manager.TransferBuffer.End();
+
+            IQueue.SubmitInfo transferSubmission = new IQueue.SubmitInfo(Manager.TransferBuffer);
+            Manager.TransferQueue.Execute(transferSubmission);
+
+            IImageView imageView = image.CreateImageView(new IImageView.CreateInfo.Builder().ArrayLayerCount(1).BaseArrayLayer(0).BaseMipLevel(0).Format(EDataFormat.R8G8B8A8)
+                .MipLevelCount(1).ViewType(EImageViewType.ViewType2D));
+
+            /// TODO: Get this data from the TextureData from Assimp
+            ISampler imageSampler = Manager.Device.CreateSampler(new ISampler.CreateInfo.Builder().AddressModeU(EAddressMode.Repeat)
+                .AddressModeV(EAddressMode.Repeat).AddressModeW(EAddressMode.Repeat).MagFilter(EFilter.Linear).MinFilter(EFilter.Linear)
+                .MipmapMode(EMipmapMode.Linear));
+
+            TextureData texData = new TextureData
+            {
+                asset = asset,
+                image = image,
+                data = data,
+                sampler = imageSampler,
+                view = imageView
+            };
+
+            return texData;
+        }
+
         internal unsafe void ProcessMaterials(Node* node, Scene* scene)
         {
             uint numMaterials = scene->MNumMaterials;
@@ -213,19 +291,43 @@ namespace Cobalt.Core
 
             for (int i = 0; i < numMaterials; i++)
             {
+                MaterialData mat = new MaterialData();
                 Material* material = scene->MMaterials[i];
 
-                uint albedoTexCount = assimp.GetMaterialTextureCount(material, TextureType.TextureTypeDiffuse);
-                uint baseColorTexCount = assimp.GetMaterialTextureCount(material, TextureType.TextureTypeBaseColor);
-                uint normalTexCount = assimp.GetMaterialTextureCount(material, TextureType.TextureTypeNormals);
-                uint emissiveTexCount = assimp.GetMaterialTextureCount(material, TextureType.TextureTypeEmissive);
-                uint ORMTexCount = assimp.GetMaterialTextureCount(material, TextureType.TextureTypeUnknown);
+                bool hasAlbedo = assimp.GetMaterialTextureCount(material, TextureType.TextureTypeDiffuse) > 0;
+                bool hasNormal = assimp.GetMaterialTextureCount(material, TextureType.TextureTypeNormals) > 0;
+                bool hasEmissive = assimp.GetMaterialTextureCount(material, TextureType.TextureTypeEmissive) > 0;
+                bool hasORM = assimp.GetMaterialTextureCount(material, TextureType.TextureTypeUnknown) > 0;
+
+                if(hasAlbedo)
+                {
+                    mat.albedo = CreateTextureData(GetTexture(material, TextureType.TextureTypeDiffuse, 0));
+                }
+
+                if(hasNormal)
+                {
+                    mat.normal = CreateTextureData(GetTexture(material, TextureType.TextureTypeNormals, 0));
+                }
+
+                if(hasEmissive)
+                {
+                    mat.emissive = CreateTextureData(GetTexture(material, TextureType.TextureTypeEmissive, 0));
+                }
+
+                if(hasORM)
+                {
+                    mat.ORM = CreateTextureData(GetTexture(material, TextureType.TextureTypeUnknown, 0));
+                }
+
+                materials.Add(mat);
             }
         }
 
-        internal ModelAsset(string path)
+        internal ModelAsset(AssetManager manager, string path)
         {
             Path = path;
+            Manager = manager;
+            RootPath = path.Substring(0, path.LastIndexOf('/') + 1);
 
             unsafe
             {
@@ -247,8 +349,22 @@ namespace Cobalt.Core
         private readonly Dictionary<string, ImageAsset> _images = new Dictionary<string, ImageAsset>();
         private readonly Dictionary<string, ModelAsset> _models = new Dictionary<string, ModelAsset>();
 
-        public AssetManager()
+        internal IDevice Device { get; private set; }
+
+        internal ICommandPool TransferPool { get; private set; }
+        internal ICommandBuffer TransferBuffer { get; private set; }
+        internal IQueue TransferQueue { get; private set; }
+
+        public AssetManager(IDevice device)
         {
+            Device = device;
+
+            TransferQueue = device.Queues().Find(queue => queue.GetProperties().Transfer);
+
+            TransferPool = device.CreateCommandPool(new ICommandPool.CreateInfo.Builder().Queue(TransferQueue)
+                .ResetAllocations(true).TransientAllocations(true));
+
+            TransferBuffer = TransferPool.Allocate(new ICommandBuffer.AllocateInfo.Builder().Count(1).Level(ECommandBufferLevel.Primary))[0];
         }
 
         public void Dispose()
@@ -257,6 +373,9 @@ namespace Cobalt.Core
 
         public ImageAsset LoadImage(string path)
         {
+            if (_images.ContainsKey(path))
+                return _images[path];
+
             var asset = new ImageAsset(path);
             _images[path] = asset;
             return asset;
@@ -269,7 +388,10 @@ namespace Cobalt.Core
 
         public ModelAsset LoadModel(string path)
         {
-            var asset = new ModelAsset(path);
+            if (_models.ContainsKey(path))
+                return _models[path];
+
+            var asset = new ModelAsset(this, path);
             _models[path] = asset;
             return asset;
         }

@@ -55,7 +55,7 @@ void main()
 
     outData.position = iPosition;
     outData.texcoord0 = iTexCoord0;
-    outData.normal = iNormal;
+    outData.normal = mat3(myData.transform) * iNormal;
     outData.tangent = iTangent;
     outData.binormal = iBinormal;
     outData.worldPos = vec3(myData.transform * vec4(iPosition, 1.0));

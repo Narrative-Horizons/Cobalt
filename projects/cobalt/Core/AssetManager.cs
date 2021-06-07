@@ -115,12 +115,12 @@ namespace Cobalt.Core
                 registry.Assign(parent, materialComponent);
             }
 
-            foreach(MeshNode child in node.children)
+            foreach (MeshNode child in node.children)
             {
                 Entity childEntity = registry.Create();
                 TransformComponent trans = new TransformComponent
                 {
-                    Parent = parent,
+                    Parent = registry.TryGet<TransformComponent>(parent),
                     TransformMatrix = child.transform
                 };
 
@@ -128,7 +128,7 @@ namespace Cobalt.Core
 
                 ProcessMeshNode(childEntity, registry, child, renderableMeshes);
 
-                registry.Get<TransformComponent>(parent).Children.Add(childEntity);
+                registry.Get<TransformComponent>(parent).Children.Add(registry.TryGet<TransformComponent>(childEntity));
             }
         }
 
@@ -148,7 +148,7 @@ namespace Cobalt.Core
         {
             Assimp assimp = Assimp.GetApi();
 
-            Matrix4 mat = System.Numerics.Matrix4x4.Transpose(node->MTransformation) * parentMatrix;
+            Matrix4 mat = System.Numerics.Matrix4x4.Transpose(node->MTransformation);
 
             MeshNode mNode = new MeshNode
             {

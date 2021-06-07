@@ -181,7 +181,7 @@ namespace Cobalt.Sandbox
 
                 reg.Get<TransformComponent>(meshEntity).TransformMatrix = Matrix4.Rotate(new Vector3(0, angle, 0));
 
-                angle += 0.1f;
+                angle += 0.01f;
 
                 window.Poll();
                 if(Input.IsKeyPressed(Bindings.GLFW.Keys.Escape))

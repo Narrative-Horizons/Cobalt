@@ -252,6 +252,12 @@ namespace Cobalt.Bindings.GL
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_wait_sync", CallingConvention = CallingConvention.Cdecl)]
         public static extern void WaitSync(IntPtr sync);
 
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_delete_sync", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void DeleteSync(IntPtr sync);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_depth_func", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void DepthFunc(EDepthFunction func);
+
         public static void NamedBufferStorageTyped<T>(uint buffer, long size, [NotNull] [In, Out] T[] data, EBufferAccessMask flags) where T : unmanaged
         {
             unsafe

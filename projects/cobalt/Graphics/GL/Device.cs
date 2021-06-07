@@ -172,9 +172,9 @@ namespace Cobalt.Graphics.GL
             return sampler;
         }
 
-        public Shader CreateShader(Shader.CreateInfo info, IPipelineLayout layout, bool test)
+        public Shader CreateShader(Shader.CreateInfo info, IPipelineLayout layout)
         {
-            Shader shader = new Shader(info, this, layout, test);
+            Shader shader = new Shader(info, this, layout);
 
             return shader;
         }

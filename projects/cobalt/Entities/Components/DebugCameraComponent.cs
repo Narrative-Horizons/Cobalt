@@ -8,7 +8,7 @@ namespace Cobalt.Entities.Components
     {
         private const float YAW = -90.0f;
         private const float PITCH = 0.0f;
-        private const float SPEED = 0.2f;
+        private const float SPEED = 0.005f;
         private const float SENSITIVITY = 0.25f;
         private const float ZOOM = 45.0f;
 
@@ -23,7 +23,7 @@ namespace Cobalt.Entities.Components
         {
             get
             {
-                return Matrix4.Perspective(Math.Scalar.ToRadians(60.0f), 16.0f / 9.0f, 1f, 500.0f);
+                return Matrix4.Perspective(Math.Scalar.ToRadians(60.0f), 16.0f / 9.0f, 0.1f, 500.0f);
             }
         }
 

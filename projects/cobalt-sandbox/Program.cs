@@ -159,7 +159,7 @@ namespace Cobalt.Sandbox
 
             Entity cameraEntity = reg.Create();
             reg.Assign(cameraEntity, new TransformComponent());
-            reg.Assign(cameraEntity, new DebugCameraComponent(new Vector3(4, 0, 4), Vector3.UnitY));
+            reg.Assign(cameraEntity, new DebugCameraComponent(new Vector3(-5, 3, 0), Vector3.UnitY, 0.0f));
 
             Stopwatch sw = new Stopwatch();
 
@@ -174,7 +174,7 @@ namespace Cobalt.Sandbox
                 trans *= Matrix4.Rotate(new Vector3(90, angle, 0));
                 reg.Get<TransformComponent>(helmetEntity).TransformMatrix = trans;
 
-                angle = (angle + 0.01f) % 360.0f;
+                // angle = (angle + 0.01f) % 360.0f;
 
                 window.Poll();
                 if(Input.IsKeyPressed(Bindings.GLFW.Keys.Escape))

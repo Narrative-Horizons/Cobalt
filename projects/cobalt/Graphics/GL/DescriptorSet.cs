@@ -198,9 +198,20 @@ namespace Cobalt.Graphics.GL
             });
         }
 
-        public void Bind()
+        public void Bind(IPipelineLayout layout)
         {
-            _bindings.ForEach(binding => binding.Bind());
+            DescriptorSetLayout lay = layout.GetDescriptorSetLayouts()[0] as DescriptorSetLayout;
+
+            for (int i = 0; i < _bindings.Count; ++i)
+            {
+                var binding = (from bind in lay.Bindings
+                              where bind.BindingIndex == i
+                              select bind).FirstOrDefault();
+                if (binding != default)
+                {
+                    _bindings[i].Bind();
+                }
+            }
         }
 
         public void Bind(List<uint> offsets)

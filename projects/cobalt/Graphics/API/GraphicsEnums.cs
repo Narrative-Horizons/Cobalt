@@ -11,7 +11,8 @@ namespace Cobalt.Graphics.API
         R32G32_SFLOAT,
         R32G32B32_SFLOAT,
         R32G32B32A32_SFLOAT,
-        D24_SFLOAT_S8_UINT
+        D24_SFLOAT_S8_UINT,
+        D32_SFLOAT
     }
 
     public enum EImageType : uint
@@ -39,6 +40,7 @@ namespace Cobalt.Graphics.API
         Sampled,
         Storage,
         ColorAttachment,
+        DepthAttachment,
         DepthStencilAttachment,
         InputAttachment
     }

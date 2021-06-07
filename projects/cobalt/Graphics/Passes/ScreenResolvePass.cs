@@ -1,5 +1,4 @@
 ﻿using Cobalt.Core;
-using Cobalt.Entities;
 using Cobalt.Graphics.API;
 using System.Collections.Generic;
 
@@ -29,7 +28,14 @@ namespace Cobalt.Graphics.Passes
             string vsScreenSource = FileSystem.LoadFileToString("data/shaders/screenresolve/screen_vertex.glsl");
             string fsScreenSource = FileSystem.LoadFileToString("data/shaders/screenresolve/screen_fragment.glsl");
 
-            Shader = new Shader(new Shader.CreateInfo.Builder().VertexSource(vsScreenSource).FragmentSource(fsScreenSource).Build(), device, screenLayout, false);
+            Shader = new Shader(new Shader.CreateInfo.Builder()
+                .VertexSource(vsScreenSource)
+                .FragmentSource(fsScreenSource)
+                .DepthInfo(new IGraphicsPipeline.DepthStencilCreateInfo.Builder()
+                    .DepthWriteEnabled(false)
+                    .DepthTestEnabled(false)
+                    .Build())
+                .Build(), device, screenLayout);
 
             float[] screenVerts =
             {

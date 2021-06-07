@@ -8,9 +8,11 @@ namespace Cobalt.Graphics.GL.Commands
     internal class BindDescriptorSetsCommand : ICommand
     {
         public List<IDescriptorSet> Sets { get; private set; } = new List<IDescriptorSet>();
+        public IPipelineLayout Layout;
 
-        public BindDescriptorSetsCommand(List<IDescriptorSet> sets)
+        public BindDescriptorSetsCommand(IPipelineLayout layout, List<IDescriptorSet> sets)
         {
+            Layout = layout;
             Sets = sets;
         }
 
@@ -24,7 +26,7 @@ namespace Cobalt.Graphics.GL.Commands
             Sets.ForEach(iset =>
             {
                 DescriptorSet set = (DescriptorSet)iset;
-                set.Bind();
+                set.Bind(Layout);
             });
         }
     }

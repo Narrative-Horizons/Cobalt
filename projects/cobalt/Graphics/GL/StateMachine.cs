@@ -60,6 +60,11 @@ namespace Cobalt.Graphics.GL
             }
         }
 
+        internal static void DepthFunc(EDepthFunction func)
+        {
+            OpenGL.DepthFunc(func);
+        }
+
         internal static void CullFace(ECullFaceMode mode)
         {
             if (cullFace != mode)

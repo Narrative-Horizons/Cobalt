@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using static Cobalt.Graphics.API.IGraphicsPipeline;
 
 namespace Cobalt.Graphics
 {
@@ -55,6 +56,12 @@ namespace Cobalt.Graphics
                     return this;
                 }
 
+                public new Builder DepthInfo(DepthStencilCreateInfo depthInfo)
+                {
+                    base.DepthInfo = depthInfo;
+                    return this;
+                }
+
                 public CreateInfo Build()
                 {
                     return new CreateInfo()
@@ -64,7 +71,8 @@ namespace Cobalt.Graphics
                         GeometrySource = base.GeometrySource,
                         TessControlSource = base.TessControlSource,
                         TessEvalSource = base.TessEvalSource,
-                        ComputeSource = base.ComputeSource
+                        ComputeSource = base.ComputeSource,
+                        DepthInfo = base.DepthInfo
                     };
                 }
             }
@@ -75,10 +83,14 @@ namespace Cobalt.Graphics
             public string TessControlSource { get; private set; } = null;
             public string TessEvalSource { get; private set; } = null;
             public string ComputeSource { get; private set; } = null;
+            public DepthStencilCreateInfo DepthInfo { get; private set; } = new DepthStencilCreateInfo.Builder()
+                        .DepthTestEnabled(true)
+                        .DepthWriteEnabled(true)
+                        .DepthCompareOp(ECompareOp.Less).Build();
         }
 
         static bool first = true;
-        public Shader(CreateInfo createInfo, IDevice device, IPipelineLayout layout, bool depthTest)
+        public Shader(CreateInfo createInfo, IDevice device, IPipelineLayout layout)
         {
             if(createInfo.ComputeSource != null)
             {
@@ -141,14 +153,14 @@ namespace Cobalt.Graphics
 
                 IGraphicsPipeline.CreateInfo.Builder pipelineCreateInfo = new IGraphicsPipeline.CreateInfo.Builder()
                 .AddStageCreationInformation(
-                    new IGraphicsPipeline.ShaderStageCreateInfo.Builder()
+                    new ShaderStageCreateInfo.Builder()
                     .Module(vsShaderModule)
                     .EntryPoint("main").Build());
 
                 if(fsShaderModule != null)
                 {
                     pipelineCreateInfo.AddStageCreationInformation(
-                        new IGraphicsPipeline.ShaderStageCreateInfo.Builder()
+                        new ShaderStageCreateInfo.Builder()
                         .Module(fsShaderModule)
                         .EntryPoint("main").Build());
                 }
@@ -156,7 +168,7 @@ namespace Cobalt.Graphics
                 if (gsShaderModule != null)
                 {
                     pipelineCreateInfo.AddStageCreationInformation(
-                        new IGraphicsPipeline.ShaderStageCreateInfo.Builder()
+                        new ShaderStageCreateInfo.Builder()
                         .Module(gsShaderModule)
                         .EntryPoint("main").Build());
                 }
@@ -164,7 +176,7 @@ namespace Cobalt.Graphics
                 if (tcShaderModule != null)
                 {
                     pipelineCreateInfo.AddStageCreationInformation(
-                        new IGraphicsPipeline.ShaderStageCreateInfo.Builder()
+                        new ShaderStageCreateInfo.Builder()
                         .Module(tcShaderModule)
                         .EntryPoint("main").Build());
                 }
@@ -172,7 +184,7 @@ namespace Cobalt.Graphics
                 if (teShaderModule != null)
                 {
                     pipelineCreateInfo.AddStageCreationInformation(
-                        new IGraphicsPipeline.ShaderStageCreateInfo.Builder()
+                        new ShaderStageCreateInfo.Builder()
                         .Module(teShaderModule)
                         .EntryPoint("main").Build());
                 }
@@ -180,7 +192,7 @@ namespace Cobalt.Graphics
                 int sizeOfLayout = 18 * 4;
 
                 pipelineCreateInfo.VertexAttributeCreationInformation(
-                    new IGraphicsPipeline.VertexAttributeCreateInfo.Builder()
+                    new VertexAttributeCreateInfo.Builder()
                     .AddAttribute(
                         new VertexAttribute.Builder()
                             .Binding(0)
@@ -230,11 +242,11 @@ namespace Cobalt.Graphics
                             .Rate(EVertexInputRate.PerVertex)
                             .Stride(sizeOfLayout)).Build())
                 .InputAssemblyCreationInformation(
-                    new IGraphicsPipeline.InputAssemblyCreateInfo.Builder()
+                    new InputAssemblyCreateInfo.Builder()
                         .RestartEnabled(false)
                         .Topology(ETopology.TriangleList))
                 .ViewportCreationInformation(
-                    new IGraphicsPipeline.ViewportCreateInfo.Builder()
+                    new ViewportCreateInfo.Builder()
                         .Viewport(new Viewport()
                         {
                             LeftX = 0,
@@ -252,22 +264,18 @@ namespace Cobalt.Graphics
                             OffsetY = 0
                         }))
                 .RasterizerCreationInformation(
-                    new IGraphicsPipeline.RasterizerCreateInfo.Builder()
-                    .DepthClampEnabled(false)
-                    .PolygonMode(first ? EPolygonMode.Fill : EPolygonMode.Fill)
-                    .WindingOrder(EVertexWindingOrder.CounterClockwise)
-                    .CullFaces(EPolgyonFace.Back)
-                    .RasterizerDiscardEnabled(true).Build())
-                .DepthStencilCreationInformation(
-                    new IGraphicsPipeline.DepthStencilCreateInfo.Builder()
-                    .DepthTestEnabled(depthTest)
-                    .DepthWriteEnabled(depthTest)
-                    .DepthCompareOp(ECompareOp.Less).Build())
+                    new RasterizerCreateInfo.Builder()
+                        .DepthClampEnabled(false)
+                        .PolygonMode(first ? EPolygonMode.Fill : EPolygonMode.Fill)
+                        .WindingOrder(EVertexWindingOrder.CounterClockwise)
+                        .CullFaces(EPolgyonFace.Back)
+                        .RasterizerDiscardEnabled(true).Build())
+                .DepthStencilCreationInformation(createInfo.DepthInfo)
                 .MultisamplingCreationInformation(
-                    new IGraphicsPipeline.MultisampleCreateInfo.Builder()
-                    .AlphaToOneEnabled(false)
-                    .AlphaToCoverageEnabled(false)
-                    .Samples(ESampleCount.Samples1).Build())
+                    new MultisampleCreateInfo.Builder()
+                        .AlphaToOneEnabled(false)
+                        .AlphaToCoverageEnabled(false)
+                        .Samples(ESampleCount.Samples1).Build())
                 .PipelineLayout(layout).Build();
 
                 Pipeline = device.CreateGraphicsPipeline(pipelineCreateInfo);

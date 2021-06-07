@@ -160,7 +160,7 @@ namespace Cobalt.Graphics
 
             _device = device;
             _registry = registry;
-            _zPrePass = new ZPrePass(device, (int)swapchain.GetImageCount(), registry);
+            _zPrePass = new ZPrePass(device);
             _pbrPass = new PbrRenderPass(device, layout);
             _screenResolvePass = new ScreenResolvePass(swapchain, device, 1280, 720);
 
@@ -226,7 +226,8 @@ namespace Cobalt.Graphics
             };
 
             // Handle scene draw
-            _pbrPass.Camera = camera;
+            buffer.Sync();
+            _zPrePass.Record(buffer, sceneRenderInfo, drawInfo);
             _pbrPass.Record(buffer, sceneRenderInfo, drawInfo);
 
             // Handle screen resolution
@@ -272,7 +273,7 @@ namespace Cobalt.Graphics
             writeInfos.Add(new DescriptorWriteInfo.Builder().AddBufferInfo(
                 new DescriptorWriteInfo.DescriptorBufferInfo.Builder()
                     .Buffer(_frames[frameInFlight].sceneBuffer)
-                    .Range(44 * 4).Build())
+                    .Range(240).Build())
                     .BindingIndex(3)
                     .DescriptorSet(_frames[frameInFlight].descriptorSet)
                     .ArrayElement(0).Build());
@@ -332,7 +333,7 @@ namespace Cobalt.Graphics
                 CameraPosition = camera.position,
                 CameraDirection = camera.front,
 
-                SunDirection = new Vector3(-1, -1, -1),
+                SunDirection = new Vector3(0, -1, 0),
                 SunColor = new Vector3(1, 1, 1)
             };
             nativeSceneData.Set(data);
@@ -451,16 +452,16 @@ namespace Cobalt.Graphics
                 _colorAttachmentViews[i] = colorAttachments[i].CreateImageView(new IImageView.CreateInfo.Builder().ViewType(EImageViewType.ViewType2D).BaseArrayLayer(0)
                     .BaseMipLevel(0).ArrayLayerCount(1).MipLevelCount(1).Format(EDataFormat.R8G8B8A8));
 
-                depthAttachments[i] = _device.CreateImage(new IImage.CreateInfo.Builder().AddUsage(EImageUsage.ColorAttachment).Width(1280).Height(720).Type(EImageType.Image2D)
-                    .Format(EDataFormat.D24_SFLOAT_S8_UINT).MipCount(1).LayerCount(1),
+                depthAttachments[i] = _device.CreateImage(new IImage.CreateInfo.Builder().AddUsage(EImageUsage.DepthAttachment).Width(1280).Height(720).Type(EImageType.Image2D)
+                    .Format(EDataFormat.D32_SFLOAT).MipCount(1).LayerCount(1),
                     new IImage.MemoryInfo.Builder().Usage(EMemoryUsage.GPUOnly).AddRequiredProperty(EMemoryProperty.DeviceLocal));
 
                 depthAttachmentViews[i] = depthAttachments[i].CreateImageView(new IImageView.CreateInfo.Builder().ViewType(EImageViewType.ViewType2D).BaseArrayLayer(0)
-                    .BaseMipLevel(0).ArrayLayerCount(1).MipLevelCount(1).Format(EDataFormat.D24_SFLOAT_S8_UINT));
+                    .BaseMipLevel(0).ArrayLayerCount(1).MipLevelCount(1).Format(EDataFormat.D32_SFLOAT));
 
                 _frameBuffer[i] = _device.CreateFrameBuffer(new IFrameBuffer.CreateInfo.Builder()
                     .AddAttachment(new IFrameBuffer.CreateInfo.Attachment.Builder().ImageView(_colorAttachmentViews[i]).Usage(EImageUsage.ColorAttachment))
-                    .AddAttachment(new IFrameBuffer.CreateInfo.Attachment.Builder().ImageView(depthAttachmentViews[i]).Usage(EImageUsage.DepthStencilAttachment)));
+                    .AddAttachment(new IFrameBuffer.CreateInfo.Attachment.Builder().ImageView(depthAttachmentViews[i]).Usage(EImageUsage.DepthAttachment)));
             }
 
             _imageResolveSampler = _device.CreateSampler(new ISampler.CreateInfo.Builder().AddressModeU(EAddressMode.Repeat)

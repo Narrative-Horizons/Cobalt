@@ -383,6 +383,17 @@ GLAD_BINDING_EXPORT void* cobalt_gl_fence_sync() {
 	return sync;
 }
 
-GLAD_BINDING_EXPORT void cobalt_gl_wait_sync(void* sync) {
+GLAD_BINDING_EXPORT void cobalt_gl_wait_sync(void* sync)
+{
 	glWaitSync((GLsync)sync, 0, GL_TIMEOUT_IGNORED);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_delete_sync(void* sync)
+{
+	glDeleteSync(sync);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_depth_func(unsigned int func)
+{
+	glDepthFunc(func);
 }

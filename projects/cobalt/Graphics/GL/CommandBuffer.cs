@@ -46,7 +46,7 @@ namespace Cobalt.Graphics.GL
 
         public void Bind(IPipelineLayout layout, int firstSet, List<IDescriptorSet> sets)
         {
-            commands.Add(new BindDescriptorSetsCommand(sets));
+            commands.Add(new BindDescriptorSetsCommand(layout, sets));
         }
 
         public void Bind(IPipelineLayout layout, int firstSet, List<IDescriptorSet> sets, List<uint> offsets)

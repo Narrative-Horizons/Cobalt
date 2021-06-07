@@ -11,20 +11,31 @@ namespace Cobalt.Graphics.Passes
         private Shader _pbrShader;
         private IRenderPass _pass;
 
-        public DebugCameraComponent Camera { get; set; }
-
         public PbrRenderPass(IDevice device, IPipelineLayout layout) : base(device)
         {
-            _pbrShader = new Shader(new Shader.CreateInfo.Builder().VertexSource(FileSystem.LoadFileToString("data/shaders/pbr/pbr_vertex.glsl"))
-                .FragmentSource(FileSystem.LoadFileToString("data/shaders/pbr/pbr_fragment.glsl")).Build(), device, layout, true);
+            _pbrShader = new Shader(new Shader.CreateInfo.Builder()
+                .VertexSource(FileSystem.LoadFileToString("data/shaders/pbr/pbr_vertex.glsl"))
+                .FragmentSource(FileSystem.LoadFileToString("data/shaders/pbr/pbr_fragment.glsl"))
+                .DepthInfo(new IGraphicsPipeline.DepthStencilCreateInfo.Builder()
+                    .DepthCompareOp(ECompareOp.LessOrEqual)
+                    .DepthWriteEnabled(false)
+                    .DepthTestEnabled(true)
+                    .Build())
+                .Build(), device, layout);
 
             _pass = device.CreateRenderPass(new IRenderPass.CreateInfo.Builder()
                 .AddAttachment(new IRenderPass.AttachmentDescription.Builder()
                     .InitialLayout(EImageLayout.Undefined)
-                    .FinalLayout(EImageLayout.PresentSource)
+                    .FinalLayout(EImageLayout.ColorAttachment)
                     .LoadOp(EAttachmentLoad.Clear)
                     .StoreOp(EAttachmentStore.Store)
-                    .Format(EDataFormat.BGRA8_SRGB)));
+                    .Format(EDataFormat.BGRA8_SRGB))
+                .AddAttachment(new IRenderPass.AttachmentDescription.Builder()
+                    .InitialLayout(EImageLayout.DepthAttachment)
+                    .FinalLayout(EImageLayout.DepthAttachment)
+                    .LoadOp(EAttachmentLoad.Load)
+                    .StoreOp(EAttachmentStore.Store)
+                    .Format(EDataFormat.D32_SFLOAT)));
         }
 
         public override void Record(ICommandBuffer buffer, FrameInfo info, DrawInfo draw)
@@ -32,8 +43,8 @@ namespace Cobalt.Graphics.Passes
             buffer.BeginRenderPass(new ICommandBuffer.RenderPassBeginInfo
             {
                 ClearValues = new List<ClearValue>() { new ClearValue(new ClearValue.ClearColor(0, 0, 0, 1)), new ClearValue(1) },
-                Width = 1920,
-                Height = 1080,
+                Width = 1280,
+                Height = 720,
                 FrameBuffer = info.frameBuffer,
                 RenderPass = _pass
             });

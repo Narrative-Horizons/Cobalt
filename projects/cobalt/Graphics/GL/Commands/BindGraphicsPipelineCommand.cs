@@ -1,4 +1,6 @@
-﻿using OpenGL = Cobalt.Bindings.GL.GL;
+﻿using Cobalt.Bindings.GL;
+using Cobalt.Graphics.API;
+using OpenGL = Cobalt.Bindings.GL.GL;
 
 namespace Cobalt.Graphics.GL.Commands
 {
@@ -20,6 +22,10 @@ namespace Cobalt.Graphics.GL.Commands
         {
             StateMachine.UseProgram(Pipeline);
             StateMachine.Enable(Bindings.GL.EEnableCap.DepthTest, Pipeline.Info.DepthStencilCreationInformation.DepthTestEnabled);
+            if (Pipeline.Info.DepthStencilCreationInformation.DepthTestEnabled)
+            {
+                StateMachine.DepthFunc(convert(Pipeline.Info.DepthStencilCreationInformation.DepthCompareOp));
+            }
             StateMachine.SetDepthMask(Pipeline.Info.DepthStencilCreationInformation.DepthWriteEnabled);
 
 
@@ -69,6 +75,30 @@ namespace Cobalt.Graphics.GL.Commands
                         break;
                 }
             }
+        }
+
+        private static EDepthFunction convert(ECompareOp op) 
+        {
+            switch (op)
+            {
+                case ECompareOp.Never:
+                    return EDepthFunction.Never;
+                case ECompareOp.Less:
+                    return EDepthFunction.Less;
+                case ECompareOp.Equal:
+                    return EDepthFunction.Equal;
+                case ECompareOp.LessOrEqual:
+                    return EDepthFunction.Lequal;
+                case ECompareOp.Greater:
+                    return EDepthFunction.Greater;
+                case ECompareOp.NotEqual:
+                    return EDepthFunction.Notequal;
+                case ECompareOp.GreaterOrEqual:
+                    return EDepthFunction.Gequal;
+                case ECompareOp.Always:
+                    return EDepthFunction.Always;
+            }
+            return default;
         }
     }
 }

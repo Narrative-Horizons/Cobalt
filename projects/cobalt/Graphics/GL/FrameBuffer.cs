@@ -35,15 +35,15 @@ namespace Cobalt.Graphics.GL
                     attachmentCount[type] = 0;
                 }
 
-                var x = (Bindings.GL.EFramebufferAttachment)((int)ToInternalType(attachment.Usage) + attachmentCount[type]);
+                var attachmentPoint = (Bindings.GL.EFramebufferAttachment)((int)type + attachmentCount[type]);
 
-                OpenGL.NamedFramebufferTexture(Handle, x, image.Handle, 0);
+                OpenGL.NamedFramebufferTexture(Handle, attachmentPoint, image.Handle, 0);
             }
 
             uint status = OpenGL.CheckNamedFramebufferStatus(Handle, Bindings.GL.EFramebufferTarget.Framebuffer);
         }
 
-        private static Cobalt.Bindings.GL.EFramebufferAttachment ToInternalType(EImageUsage usage)
+        private static Bindings.GL.EFramebufferAttachment ToInternalType(EImageUsage usage)
         {
             switch (usage)
             {
@@ -57,6 +57,8 @@ namespace Cobalt.Graphics.GL
                     break;
                 case EImageUsage.ColorAttachment:
                     return Bindings.GL.EFramebufferAttachment.ColorAttachment0;
+                case EImageUsage.DepthAttachment:
+                    return Bindings.GL.EFramebufferAttachment.DepthAttachment;
                 case EImageUsage.DepthStencilAttachment:
                     return Bindings.GL.EFramebufferAttachment.DepthStencilAttachment;
                 case EImageUsage.InputAttachment:

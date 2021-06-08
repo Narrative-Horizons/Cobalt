@@ -65,6 +65,37 @@ namespace Cobalt.Core
 
             ReleaseImage(ref payload);
         }
+
+        internal ImageAsset(ImagePayload payload)
+        {
+            Width = (uint)payload.width;
+            Height = (uint)payload.height;
+            Components = (uint)payload.channels;
+            IsHdr = payload.hdr_f_image != IntPtr.Zero;
+
+            int count = (int)(Width * Height * Components);
+
+            if (payload.hdr_f_image != IntPtr.Zero)
+            {
+                BitsPerPixel = sizeof(float) * 8;
+                AsFloats = new float[count];
+                Marshal.Copy(payload.hdr_f_image, AsFloats, 0, count);
+            }
+            else if (payload.sdr_us_image != IntPtr.Zero)
+            {
+                BitsPerPixel = sizeof(ushort) * 8;
+                AsUnsignedShorts = new ushort[count];
+                Copy(payload.sdr_us_image, AsUnsignedShorts, 0, count);
+            }
+            else if (payload.sdr_ub_image != IntPtr.Zero)
+            {
+                BitsPerPixel = sizeof(byte) * 8;
+                AsBytes = new byte[count];
+                Marshal.Copy(payload.sdr_ub_image, AsBytes, 0, count);
+            }
+
+            ReleaseImage(ref payload);
+        }
     }
 
     public class ModelAsset
@@ -82,37 +113,42 @@ namespace Cobalt.Core
         {
             foreach(Mesh mesh in node.meshes)
             {
+                Entity meshEntity = registry.Create();
+                TransformComponent meshTransform = new TransformComponent();
+                meshTransform.Parent = registry.Get<TransformComponent>(parent);
+                registry.Assign(meshEntity, meshTransform);
+
                 RenderableMesh rMesh = renderableMeshes.Find(rMesh => rMesh.localMesh.GUID == mesh.GUID);
                 MeshComponent meshComp = new MeshComponent(rMesh);
 
-                registry.Assign(parent, meshComp);
+                registry.Assign(meshEntity, meshComp);
 
                 PbrMaterialComponent materialComponent = new PbrMaterialComponent
                 {
                     Type = EMaterialType.Opaque,
                 };
 
-                if(node.material.albedo != null)
+                if(mesh.material.albedo != null)
                 {
-                    materialComponent.Albedo = new Graphics.Texture { Image = node.material.albedo.view, Sampler = node.material.albedo.sampler };
+                    materialComponent.Albedo = new Graphics.Texture { Image = mesh.material.albedo.view, Sampler = mesh.material.albedo.sampler };
                 }
 
-                if(node.material.normal != null)
+                if(mesh.material.normal != null)
                 {
-                    materialComponent.Normal = new Graphics.Texture { Image = node.material.normal.view, Sampler = node.material.normal.sampler };
+                    materialComponent.Normal = new Graphics.Texture { Image = mesh.material.normal.view, Sampler = mesh.material.normal.sampler };
                 }
 
-                if(node.material.ORM != null)
+                if(mesh.material.ORM != null)
                 {
-                    materialComponent.OcclusionRoughnessMetallic = new Graphics.Texture { Image = node.material.ORM.view, Sampler = node.material.ORM.sampler };
+                    materialComponent.OcclusionRoughnessMetallic = new Graphics.Texture { Image = mesh.material.ORM.view, Sampler = mesh.material.ORM.sampler };
                 }
 
-                if(node.material.emissive != null)
+                if(mesh.material.emissive != null)
                 {
-                    materialComponent.Emission = new Graphics.Texture { Image = node.material.emissive.view, Sampler = node.material.emissive.sampler };
+                    materialComponent.Emission = new Graphics.Texture { Image = mesh.material.emissive.view, Sampler = mesh.material.emissive.sampler };
                 }
 
-                registry.Assign(parent, materialComponent);
+                registry.Assign(meshEntity, materialComponent);
             }
 
             foreach (MeshNode child in node.children)
@@ -162,8 +198,6 @@ namespace Cobalt.Core
             {
                 Silk.NET.Assimp.Mesh* assMesh = scene->MMeshes[node->MMeshes[i]];
                 ProcessMesh(assMesh, scene, mNode);
-
-                mNode.material = materials[(int)assMesh->MMaterialIndex];
             }
 
             for(int i = 0; i < node->MNumChildren; i++)
@@ -238,6 +272,7 @@ namespace Cobalt.Core
 
             Array.Reverse(mesh.triangles);
 
+            mesh.material = materials[(int)assMesh->MMaterialIndex];
             meshNode.meshes.Add(mesh);
         }
 
@@ -252,6 +287,48 @@ namespace Cobalt.Core
 
             data.path = path.ToString();
             return data;
+        }
+
+        internal unsafe TextureData CreateCombinedORMTextureData(AssimpTextureData RMData, AssimpTextureData OData)
+        {
+            ImagePayload combinedPayload = ImageConverter.ConvertToORM(RootPath + RMData.path, RootPath + OData.path);
+            ImageAsset combinedAsset = new ImageAsset(combinedPayload);
+
+            IImage image = Manager.Device.CreateImage(new IImage.CreateInfo.Builder()
+                .Depth(1).Format(EDataFormat.R8G8B8A8).Height((int)combinedAsset.Height).Width((int)combinedAsset.Width)
+                .InitialLayout(EImageLayout.Undefined).LayerCount(1).MipCount(1).SampleCount(ESampleCount.Samples1)
+                .Type(EImageType.Image2D),
+            new IImage.MemoryInfo.Builder()
+                .AddRequiredProperty(EMemoryProperty.DeviceLocal).Usage(EMemoryUsage.GPUOnly));
+
+            Manager.TransferBuffer.Record(new ICommandBuffer.RecordInfo());
+
+            Manager.TransferBuffer.Copy(combinedAsset.AsBytes, image, new List<ICommandBuffer.BufferImageCopyRegion>(){new ICommandBuffer.BufferImageCopyRegion.Builder().ArrayLayer(0)
+                        .BufferOffset(0).ColorAspect(true).Depth(1).Height((int) combinedAsset.Height).Width((int) combinedAsset.Width).MipLevel(0).Build() });
+
+            Manager.TransferBuffer.End();
+
+            IQueue.SubmitInfo transferSubmission = new IQueue.SubmitInfo(Manager.TransferBuffer);
+            Manager.TransferQueue.Execute(transferSubmission);
+
+            IImageView imageView = image.CreateImageView(new IImageView.CreateInfo.Builder().ArrayLayerCount(1).BaseArrayLayer(0).BaseMipLevel(0).Format(EDataFormat.R8G8B8A8)
+                .MipLevelCount(1).ViewType(EImageViewType.ViewType2D));
+
+            /// TODO: Get this data from the TextureData from Assimp
+            ISampler imageSampler = Manager.Device.CreateSampler(new ISampler.CreateInfo.Builder().AddressModeU(EAddressMode.Repeat)
+                .AddressModeV(EAddressMode.Repeat).AddressModeW(EAddressMode.Repeat).MagFilter(EFilter.Linear).MinFilter(EFilter.Linear)
+                .MipmapMode(EMipmapMode.Linear));
+
+            TextureData texData = new TextureData
+            {
+                asset = combinedAsset,
+                image = image,
+                data = RMData,
+                sampler = imageSampler,
+                view = imageView
+            };
+
+            return texData;
         }
 
         internal unsafe TextureData CreateTextureData(AssimpTextureData data)
@@ -313,7 +390,7 @@ namespace Cobalt.Core
                 bool hasNormal = assimp.GetMaterialTextureCount(material, TextureType.TextureTypeNormals) > 0;
                 bool hasEmissive = assimp.GetMaterialTextureCount(material, TextureType.TextureTypeEmissive) > 0;
                 bool hasORM = assimp.GetMaterialTextureCount(material, TextureType.TextureTypeUnknown) > 0;
-                bool hasAO = assimp.GetMaterialTextureCount(material, TextureType.TextureTypeAmbientOcclusion) > 0;
+                bool hasAO = assimp.GetMaterialTextureCount(material, TextureType.TextureTypeLightmap) > 0;
 
                 if(hasAlbedo)
                 {
@@ -333,6 +410,10 @@ namespace Cobalt.Core
                 if(hasAO && hasORM)
                 {
                     // Combine
+                    AssimpTextureData RMData = GetTexture(material, TextureType.TextureTypeUnknown, 0);
+                    AssimpTextureData OData = GetTexture(material, TextureType.TextureTypeLightmap, 0);
+
+                    mat.ORM = CreateCombinedORMTextureData(RMData, OData);
                 }
 
                 if(hasORM && !hasAO)
@@ -340,9 +421,9 @@ namespace Cobalt.Core
                     mat.ORM = CreateTextureData(GetTexture(material, TextureType.TextureTypeUnknown, 0));
                 }
 
-                if(hasAO)
+                if(hasAO && !hasORM)
                 {
-
+                    /// TODO: Generate texture with Red values for AO
                 }
 
                 materials.Add(mat);

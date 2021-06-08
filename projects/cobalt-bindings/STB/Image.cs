@@ -29,6 +29,9 @@ namespace Cobalt.Bindings.STB
         [DllImport(LIBRARY, EntryPoint = "cobalt_load_image", CallingConvention = CallingConvention.Cdecl)]
         private static extern bool LoadImage(string filename, out ImagePayload payload);
 
+        [DllImport(LIBRARY, EntryPoint = "cobalt_to_image", CallingConvention = CallingConvention.Cdecl)]
+        private static extern bool ToImage(ref ImagePayload payload);
+
         [DllImport(LIBRARY, EntryPoint = "cobalt_release_image", CallingConvention = CallingConvention.Cdecl)]
         public static extern void ReleaseImage(ref ImagePayload payload);
 

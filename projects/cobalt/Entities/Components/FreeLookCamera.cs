@@ -104,6 +104,15 @@ namespace Cobalt.Entities.Components
             {
                 _locked = !_locked;
             }
+
+            if(Input.IsKeyDown(Bindings.GLFW.Keys.LeftShift))
+            {
+                _movementSpeed = SPEED * 10;
+            }
+            else
+            {
+                _movementSpeed = SPEED;
+            }
         }
 
         private void UpdateCameraVectors()

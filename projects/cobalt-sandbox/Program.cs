@@ -121,7 +121,7 @@ namespace Cobalt.Sandbox
 
             RenderableManager renderableManager = new RenderableManager(device);
 
-            ModelAsset asset = assetManager.LoadModel("data/Lantern/Lantern.gltf");
+            ModelAsset asset = assetManager.LoadModel("data/Sponza/Sponza.gltf");
 
 
             Entity meshEntity = asset.AsEntity(reg, renderableManager);

@@ -28,7 +28,6 @@ namespace Cobalt.Core
         public List<Mesh> meshes = new List<Mesh>();
         public MeshNode parent;
         public List<MeshNode> children = new List<MeshNode>();
-        public MaterialData material;
         public Matrix4 transform;
     }
 
@@ -39,6 +38,8 @@ namespace Cobalt.Core
         public Vector3[] normals;
         public Vector3[] tangents;
         public Vector3[] binormals;
+
+        public MaterialData material;
 
         public uint[] triangles;
 

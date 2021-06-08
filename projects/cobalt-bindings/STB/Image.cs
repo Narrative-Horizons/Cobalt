@@ -32,6 +32,24 @@ namespace Cobalt.Bindings.STB
         [DllImport(LIBRARY, EntryPoint = "cobalt_release_image", CallingConvention = CallingConvention.Cdecl)]
         public static extern void ReleaseImage(ref ImagePayload payload);
 
+        [DllImport(LIBRARY, EntryPoint = "cobalt_combine_ORM_image", CallingConvention = CallingConvention.Cdecl)]
+        private static extern int CombineORMImage(string roughnessMetallicPath, string occlusionPath, out ImagePayload ORMPayload);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_save_image_as_png", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SaveImageAsPNG(string path, ImagePayload payload);
+
+        public static ImagePayload CombineORMImage(string roughnessMetallicPath, string occlusionPath)
+        {
+            ImagePayload payload;
+            int success = CombineORMImage(roughnessMetallicPath, occlusionPath, out payload);
+            if(success != 0)
+            {
+                Console.WriteLine("Failed to combine image: " + roughnessMetallicPath + ", " + occlusionPath);
+            }
+
+            return payload;
+        }
+
         public static ImagePayload LoadImage(string filename)
         {
             ImagePayload payload;
@@ -40,6 +58,7 @@ namespace Cobalt.Bindings.STB
             {
                 Console.WriteLine("Failed to load image: " + filename);
             }
+
             return payload;
         }
     }

@@ -313,6 +313,7 @@ namespace Cobalt.Core
                 bool hasNormal = assimp.GetMaterialTextureCount(material, TextureType.TextureTypeNormals) > 0;
                 bool hasEmissive = assimp.GetMaterialTextureCount(material, TextureType.TextureTypeEmissive) > 0;
                 bool hasORM = assimp.GetMaterialTextureCount(material, TextureType.TextureTypeUnknown) > 0;
+                bool hasAO = assimp.GetMaterialTextureCount(material, TextureType.TextureTypeAmbientOcclusion) > 0;
 
                 if(hasAlbedo)
                 {
@@ -328,10 +329,20 @@ namespace Cobalt.Core
                 {
                     mat.emissive = CreateTextureData(GetTexture(material, TextureType.TextureTypeEmissive, 0));
                 }
+                
+                if(hasAO && hasORM)
+                {
+                    // Combine
+                }
 
-                if(hasORM)
+                if(hasORM && !hasAO)
                 {
                     mat.ORM = CreateTextureData(GetTexture(material, TextureType.TextureTypeUnknown, 0));
+                }
+
+                if(hasAO)
+                {
+
                 }
 
                 materials.Add(mat);

@@ -18,6 +18,7 @@ project "Asset Converter"
     }
 
     links {
+        "Cobalt Bindings",
         "Cobalt Math"
     }
 

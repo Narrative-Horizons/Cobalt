@@ -5,6 +5,7 @@ using Cobalt.Graphics.API;
 using System;
 using System.Collections.Generic;
 using Cobalt.Core;
+using System.Runtime.InteropServices;
 
 namespace Cobalt.Graphics
 {
@@ -29,7 +30,6 @@ namespace Cobalt.Graphics
 
         static GraphicsContext()
         {
-            Logger.Construct();
 
             if (!GLFW.Init())
             {

@@ -100,7 +100,6 @@ namespace Cobalt.Core
 
     public class ModelAsset
     {
-        private static ulong _uniqueCount = 0;
         public List<MeshNode> meshes = new List<MeshNode>();
         public List<MaterialData> materials = new List<MaterialData>();
         public string Path { get; private set; }
@@ -294,9 +293,11 @@ namespace Cobalt.Core
             ImagePayload combinedPayload = ImageConverter.ConvertToORM(RootPath + RMData.path, RootPath + OData.path);
             ImageAsset combinedAsset = new ImageAsset(combinedPayload);
 
+            int mipCount = (int)MathF.Floor(MathF.Log2(MathF.Max((float)combinedAsset.Width, (float)combinedAsset.Height))) + 1;
+
             IImage image = Manager.Device.CreateImage(new IImage.CreateInfo.Builder()
                 .Depth(1).Format(EDataFormat.R8G8B8A8).Height((int)combinedAsset.Height).Width((int)combinedAsset.Width)
-                .InitialLayout(EImageLayout.Undefined).LayerCount(1).MipCount(1).SampleCount(ESampleCount.Samples1)
+                .InitialLayout(EImageLayout.Undefined).LayerCount(1).MipCount(mipCount).SampleCount(ESampleCount.Samples1)
                 .Type(EImageType.Image2D),
             new IImage.MemoryInfo.Builder()
                 .AddRequiredProperty(EMemoryProperty.DeviceLocal).Usage(EMemoryUsage.GPUOnly));
@@ -312,7 +313,7 @@ namespace Cobalt.Core
             Manager.TransferQueue.Execute(transferSubmission);
 
             IImageView imageView = image.CreateImageView(new IImageView.CreateInfo.Builder().ArrayLayerCount(1).BaseArrayLayer(0).BaseMipLevel(0).Format(EDataFormat.R8G8B8A8)
-                .MipLevelCount(1).ViewType(EImageViewType.ViewType2D));
+                .MipLevelCount(mipCount).ViewType(EImageViewType.ViewType2D));
 
             /// TODO: Get this data from the TextureData from Assimp
             ISampler imageSampler = Manager.Device.CreateSampler(new ISampler.CreateInfo.Builder().AddressModeU(EAddressMode.Repeat)
@@ -335,9 +336,11 @@ namespace Cobalt.Core
         {
             ImageAsset asset = Manager.LoadImage(RootPath + data.path);
 
+            int mipCount = (int)MathF.Floor(MathF.Log2(MathF.Max((float)asset.Width, (float)asset.Height))) + 1;
+
             IImage image = Manager.Device.CreateImage(new IImage.CreateInfo.Builder()
                 .Depth(1).Format(EDataFormat.R8G8B8A8).Height((int)asset.Height).Width((int)asset.Width)
-                .InitialLayout(EImageLayout.Undefined).LayerCount(1).MipCount(1).SampleCount(ESampleCount.Samples1)
+                .InitialLayout(EImageLayout.Undefined).LayerCount(1).MipCount(mipCount).SampleCount(ESampleCount.Samples1)
                 .Type(EImageType.Image2D),
             new IImage.MemoryInfo.Builder()
                 .AddRequiredProperty(EMemoryProperty.DeviceLocal).Usage(EMemoryUsage.GPUOnly));
@@ -353,7 +356,7 @@ namespace Cobalt.Core
             Manager.TransferQueue.Execute(transferSubmission);
 
             IImageView imageView = image.CreateImageView(new IImageView.CreateInfo.Builder().ArrayLayerCount(1).BaseArrayLayer(0).BaseMipLevel(0).Format(EDataFormat.R8G8B8A8)
-                .MipLevelCount(1).ViewType(EImageViewType.ViewType2D));
+                .MipLevelCount(mipCount).ViewType(EImageViewType.ViewType2D));
 
             /// TODO: Get this data from the TextureData from Assimp
             ISampler imageSampler = Manager.Device.CreateSampler(new ISampler.CreateInfo.Builder().AddressModeU(EAddressMode.Repeat)
@@ -481,7 +484,7 @@ namespace Cobalt.Core
         }
 
         public ImageAsset LoadImage(string path)
-        {
+        { 
             if (_images.ContainsKey(path))
                 return _images[path];
 

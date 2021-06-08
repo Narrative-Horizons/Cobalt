@@ -175,10 +175,10 @@ namespace Cobalt.Graphics.GL
 
         public static void BindVertexArray(VertexAttributeArray vao)
         {
-            uint handle = vao.Handle;
+            uint handle = vao.Handle; 
             if (handle != _currentVao)
             {
-                _currentVao = handle;
+                _currentVao = handle; 
                 OpenGL.BindVertexArray(handle);
             }
         }

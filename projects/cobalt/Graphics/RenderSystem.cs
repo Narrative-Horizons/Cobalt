@@ -334,13 +334,13 @@ namespace Cobalt.Graphics
                 CameraPosition = camera.Transform.Position,
                 CameraDirection = camera.Transform.Forward,
 
-                SunDirection = new Vector3(0, -1, 0),
+                SunDirection = new Vector3(0, -1, 0), 
                 SunColor = new Vector3(1, 1, 1)
-            };
+            }; 
             nativeSceneData.Set(data);
         }
 
-        private bool _AddComponent<T>(ComponentAddEvent<T> data)
+        private bool _AddComponent<T>(ComponentAddEvent<T> data) 
         {
             _AddEntity(data.Entity, data.Registry);
             return false;

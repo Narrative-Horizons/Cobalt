@@ -1,4 +1,5 @@
 ﻿using Cobalt.Bindings.Utils;
+using Cobalt.Core;
 using Cobalt.Graphics.API;
 using System;
 using System.Collections.Generic;
@@ -26,6 +27,9 @@ namespace Cobalt.Graphics.GL
         public List<CommandPool> CommandPools { get; private set; } = new List<CommandPool>();
         public List<Sampler> Samplers { get; private set; } = new List<Sampler>();
 
+        private static OpenGL.DebugCallback debugCallback;
+        private GCHandle debugHandle;
+
         public Device(IDevice.CreateInfo info)
         {
             info.QueueInformation.ForEach(info =>
@@ -34,10 +38,38 @@ namespace Cobalt.Graphics.GL
             });
 
             Debug = info.Debug;
+            debugCallback = DebugCallback;
+
+            debugHandle = GCHandle.Alloc(debugCallback);
+
+            OpenGL.DebugMessageCallback(debugCallback, IntPtr.Zero);
+        }
+
+        private static void DebugCallback(Bindings.GL.EDebugSource source, Bindings.GL.EDebugType type, uint id, Bindings.GL.EDebugSeverity severity, int length, IntPtr messagePtr, IntPtr userParam)
+        {
+            string debugMessage = source.ToString() + " (" + type.ToString() + "): " + Util.PtrToStringUTF8(messagePtr);
+
+            switch (severity)
+            {
+                case Bindings.GL.EDebugSeverity.High:
+                    Logger.Log.Fatal(debugMessage);
+                    break;
+                case Bindings.GL.EDebugSeverity.Medium:
+                    Logger.Log.Error(debugMessage);
+                    break;
+                case Bindings.GL.EDebugSeverity.Low:
+                    Logger.Log.Debug(debugMessage);
+                    break;
+                case Bindings.GL.EDebugSeverity.Notification:
+                    //Logger.Log.Info(debugMessage);
+                    break;
+            }
         }
 
         public void Dispose()
         {
+            debugHandle.Free();
+
             foreach (var pair in _surfaces)
             {
                 pair.Value.Dispose();

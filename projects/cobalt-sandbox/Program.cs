@@ -177,24 +177,21 @@ namespace Cobalt.Sandbox
                 /*trans = Matrix4.Identity;
                 trans *= Matrix4.Scale(new Vector3(0.005f));
                 trans *= Matrix4.Rotate(new Vector3(90, angle, 0));
-                */
+                */ 
 
-                reg.Get<TransformComponent>(meshEntity).TransformMatrix = Matrix4.Rotate(new Vector3(0, angle, 0));
 
-                angle += 0.01f;
-
-                window.Poll();
+                window.Poll(); 
                 if(Input.IsKeyPressed(Bindings.GLFW.Keys.Escape))
                 {
-                    window.Close();
+                    window.Close(); 
                 }
 
-                sw.Restart();
+                sw.Restart(); 
                 renderSystem.render();
                 sw.Stop();
 
                 swapchain.Present(new ISwapchain.PresentInfo());
-                Console.WriteLine(sw.Elapsed.TotalMilliseconds);
+                //Console.WriteLine(sw.Elapsed.TotalMilliseconds);
             }
 
             gfxContext.Dispose();

@@ -28,6 +28,8 @@ namespace Cobalt.Graphics.GL.Commands
             }
             StateMachine.SetDepthMask(Pipeline.Info.DepthStencilCreationInformation.DepthWriteEnabled);
 
+            StateMachine.Enable(EEnableCap.Blend, true);
+            OpenGL.BlendMode(EBlendingFactorSrc.SrcAlpha, EBlendingFactorDest.OneMinusSrcAlpha);
 
             if (Pipeline.Info.RasterizerCreationInformation != null)
             {
@@ -35,7 +37,7 @@ namespace Cobalt.Graphics.GL.Commands
 
                 switch (Pipeline.Info.RasterizerCreationInformation.CullFaces)
                 {
-                    case API.EPolgyonFace.None:
+                    case API.EPolgyonFace.None: 
                         StateMachine.Enable(Bindings.GL.EEnableCap.CullFace, false);
                         break;
                     case API.EPolgyonFace.Back:

@@ -137,21 +137,23 @@ void main()
     vec3 L = normalize(sunDirection);
     vec3 H = normalize(V + L);
 
-    float attenuation = 0;
-    vec3 radiance = vec3(0.5);
+    float attenuation = 1;
+    vec3 radiance = vec3(attenuation);
 
+    // cook-torrance brdf
     float NDF = DistributionGGX(N, H, roughness);
-    float G = GeometrySmith(N, V, L, roughness);
-    vec3 F = FresnelSchlick(max(dot(H, V), 0.0), F0);
-
-    vec3 numerator = NDF * G * F;
-    float denominator = max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.001;
-    vec3 specular = numerator / denominator;
+    float G   = GeometrySmith(N, V, L, roughness);
+    vec3 F    = FresnelSchlick(max(dot(H, V), 0.0), F0);
 
     vec3 kS = F;
     vec3 kD = vec3(1.0) - kS;
     kD *= 1.0 - metallic;
 
+    vec3 numerator    = NDF * G * F;
+    float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
+    vec3 specular     = numerator / max(denominator, 0.001);
+
+    // add to outgoing radiance Lo
     float NdotL = max(dot(N, L), 0.0);
     vec3 Light0 = (kD * albedo / PI + specular) * radiance * NdotL;
 
@@ -162,7 +164,5 @@ void main()
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0 / 2.2));
 
-    color *= 2;
-
-    FragColor = vec4(color, 1.0);
+    FragColor = vec4(color, 1);
 }

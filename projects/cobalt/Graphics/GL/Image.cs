@@ -14,13 +14,14 @@ namespace Cobalt.Graphics.GL
         public EDataFormat Format { get; private set; }
         public EImageType Type { get; private set; }
         public int LayerCount { get; private set; }
+        public int Levels { get; private set; }
 
         public Image(IImage.MemoryInfo memoryInfo, IImage.CreateInfo createInfo)
         {
             int width = createInfo.Width;
             int height = createInfo.Height;
             int depth = createInfo.Depth;
-            int levels = createInfo.MipCount;
+            this.Levels = createInfo.MipCount;
             int layers = createInfo.LayerCount;
             ETextureTarget target = ToTarget(createInfo.Type, layers);
             EPixelInternalFormat format = ToSizedFormat(createInfo.Format);
@@ -33,31 +34,31 @@ namespace Cobalt.Graphics.GL
 
             if (target == ETextureTarget.Texture1D)
             {
-                OpenGL.TextureStorage1D(Handle, levels, format, width);
+                OpenGL.TextureStorage1D(Handle, Levels, format, width);
             }
             else if (target == ETextureTarget.Texture1DArray)
             {
-                OpenGL.TextureStorage2D(Handle, levels, format, width, layers);
+                OpenGL.TextureStorage2D(Handle, Levels, format, width, layers);
             }
             else if (target == ETextureTarget.Texture2D)
             {
-                OpenGL.TextureStorage2D(Handle, levels, format, width, height);
+                OpenGL.TextureStorage2D(Handle, Levels, format, width, height);
             }
             else if (target == ETextureTarget.Texture2DArray)
             {
-                OpenGL.TextureStorage3D(Handle, levels, format, width, height, layers);
+                OpenGL.TextureStorage3D(Handle, Levels, format, width, height, layers);
             }
             else if(target == ETextureTarget.Texture3D)
             {
-                OpenGL.TextureStorage3D(Handle, levels, format, width, height, depth);
+                OpenGL.TextureStorage3D(Handle, Levels, format, width, height, depth);
             }
             else if(target == ETextureTarget.TextureCubeMap)
             {
-                OpenGL.TextureStorage2D(Handle, levels, format, width, height);
+                OpenGL.TextureStorage2D(Handle, Levels, format, width, height);
             }
             else if(target == ETextureTarget.TextureCubeMapArray)
             {
-                OpenGL.TextureStorage3D(Handle, levels, format, width, height, layers);
+                OpenGL.TextureStorage3D(Handle, Levels, format, width, height, layers);
             }
             else
             {

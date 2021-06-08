@@ -294,6 +294,34 @@ namespace Cobalt.Bindings.GL
         ClampReadColor = 0x891C,
     }
 
+    public enum EDebugSource : uint
+    {
+        API = 0x8246,
+        WindowSystem = 0x8247,
+        ShaderCompiler = 0x8248,
+        ThirdParty = 0x8249,
+        Application = 0x824A,
+        Other = 0x824B
+    }
+
+    public enum EDebugType : uint
+    {
+        Error = 0x824C,
+        DeprecatedBehaviour = 0x824D,
+        UndefinedBehaviour = 0x824E,
+        Portability = 0x824F,
+        Performance = 0x8250,
+        Other = 0x8251
+    }
+
+    public enum EDebugSeverity : uint
+    {
+        High = 0x9146,
+        Medium = 0x9147,
+        Low = 0x9148,
+        Notification = 0x826B
+    }
+
     public enum EClearBuffer : uint
     {
         Color = 0x1800,

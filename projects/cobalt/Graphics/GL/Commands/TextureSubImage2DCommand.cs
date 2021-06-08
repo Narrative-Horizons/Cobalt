@@ -53,6 +53,9 @@ namespace Cobalt.Graphics.GL.Commands
             }
 
             OpenGL.TextureSubImage2D(image.Handle, mipLevel, x, y, width, height, ePixelInternalFormat, ePixelType, offsetBuffer);
+            
+            if(image.Levels > 1)
+                OpenGL.GenerateTextureMipMap(image.Handle);
         }
     }
 }

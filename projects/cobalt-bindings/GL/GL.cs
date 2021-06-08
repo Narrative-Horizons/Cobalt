@@ -22,10 +22,9 @@ namespace Cobalt.Bindings.GL
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate IntPtr GLProcAddressLoader(IntPtr procname);
-
+        
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate void DebugCallback(uint type, uint id, uint severity, int length, IntPtr message, IntPtr userParam);
-
+        public delegate void DebugCallback(EDebugSource source, EDebugType type, uint id, EDebugSeverity severity, int length, IntPtr message, IntPtr userParam);
 
         #endregion
 
@@ -54,8 +53,14 @@ namespace Cobalt.Bindings.GL
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_front_face", CallingConvention = CallingConvention.Cdecl)]
         public static extern void FrontFace(EFrontFaceDirection mode);
 
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_blend_mode", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void BlendMode(EBlendingFactorSrc srcMode, EBlendingFactorDest dstMode);
+
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_enable", CallingConvention = CallingConvention.Cdecl)]
         public static extern void Enable(EEnableCap mask);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_generate_texture_mipmap", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void GenerateTextureMipMap(uint handle);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_depth_mask", CallingConvention = CallingConvention.Cdecl)]
         public static extern void DepthMask(bool flag);

@@ -5,19 +5,12 @@
 
 #define GLAD_BINDING_EXPORT __declspec(dllexport)
 
-static void debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
-{
-	//printf("%s\n", message);
-}
-
 GLAD_BINDING_EXPORT int cobalt_glad_load_gl_proc_address(GLADloadproc loader_func)
 {
 	int r = gladLoadGLLoader(loader_func);
 
 	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-
-	glDebugMessageCallback(debugCallback, NULL);
-
+	//glDebugMessageCallback(debugCallback, NULL);
 	glEnable(GL_DEBUG_OUTPUT);
 
 	return r;
@@ -36,6 +29,16 @@ GLAD_BINDING_EXPORT void cobalt_glad_gl_clear(unsigned int mask)
 GLAD_BINDING_EXPORT void cobalt_gl_enable(unsigned int mask)
 {
 	glEnable(mask);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_generate_texture_mipmap(unsigned int texture)
+{
+	glGenerateTextureMipmap(texture);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_blend_mode(unsigned int srcMode, unsigned int dstMode)
+{
+	glBlendFunc(srcMode, dstMode);
 }
 
 GLAD_BINDING_EXPORT void cobalt_gl_depth_mask(unsigned int flag)
@@ -68,9 +71,20 @@ GLAD_BINDING_EXPORT void cobalt_gl_draw_elements(unsigned int mode, unsigned int
 	glDrawElements(mode, count, type, indices);
 }
 
-GLAD_BINDING_EXPORT void cobalt_gl_debug_message_callback(GLDEBUGPROC callback, const void* userParam)
+typedef void(*DebugProc)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
+
+static DebugProc _internalProc;
+
+static void debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
 {
-	glDebugMessageCallback(callback, userParam);
+	_internalProc(source, type, id, severity, length, message, userParam);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_debug_message_callback(DebugProc callback, const void* userParam)
+{
+	_internalProc = callback;
+
+	glDebugMessageCallback(debugCallback, userParam);
 }
 
 GLAD_BINDING_EXPORT const unsigned char* cobalt_glad_gl_get_string(int name)

@@ -19,6 +19,7 @@ namespace Cobalt.Graphics
         private int _currentFrame = 0;
         private IQueue _submitQueue;
         private PbrPipeline _pipeline;
+        private List<IFence> _renderSync = new List<IFence>();
 
         public RenderSystem(Registry registry, IDevice device, ISwapchain swapchain)
         {
@@ -28,11 +29,21 @@ namespace Cobalt.Graphics
             _submitQueue = device.Queues().Find(queue => queue.GetProperties().Graphics);
             _cmdPool = device.CreateCommandPool(new ICommandPool.CreateInfo.Builder().ResetAllocations(true));
             _cmdBuffers = _cmdPool.Allocate(new ICommandBuffer.AllocateInfo.Builder().Count(_framesInFlight).Level(ECommandBufferLevel.Primary).Build());
+
+            for (uint i = 0; i < swapchain.GetImageCount(); ++i)
+            {
+                _renderSync.Add(device.CreateFence(new IFence.CreateInfo.Builder()
+                    .Signaled(true)
+                    .Build()));
+            }
         }
 
         public void render()
         {
             ICommandBuffer cmdBuffer = _cmdBuffers[_currentFrame];
+            IFence renderSync = _renderSync[_currentFrame];
+
+            renderSync.Wait();
 
             ComponentView<CameraComponent> cameraView = _registry.GetView<CameraComponent>();
             cameraView.ForEach((camera) =>
@@ -46,7 +57,10 @@ namespace Cobalt.Graphics
             });
 
             cmdBuffer.End();
-            _submitQueue.Execute(new IQueue.SubmitInfo(cmdBuffer));
+            _submitQueue.Execute(new IQueue.SubmitInfo.Builder()
+                .Buffer(cmdBuffer)
+                .Signal(renderSync)
+                .Build());
 
             // Compute visibility pass
 

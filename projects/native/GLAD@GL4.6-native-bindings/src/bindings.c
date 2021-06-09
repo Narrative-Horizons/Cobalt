@@ -397,6 +397,11 @@ GLAD_BINDING_EXPORT void* cobalt_gl_fence_sync() {
 	return sync;
 }
 
+GLAD_BINDING_EXPORT void cobalt_gl_client_wait_sync(void* sync)
+{
+	glClientWaitSync((GLsync)sync, GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
+}
+
 GLAD_BINDING_EXPORT void cobalt_gl_wait_sync(void* sync)
 {
 	glWaitSync((GLsync)sync, 0, GL_TIMEOUT_IGNORED);

@@ -309,7 +309,7 @@ namespace Cobalt.Core
 
             Manager.TransferBuffer.End();
 
-            IQueue.SubmitInfo transferSubmission = new IQueue.SubmitInfo(Manager.TransferBuffer);
+            IQueue.SubmitInfo transferSubmission = new IQueue.SubmitInfo.Builder().Buffer(Manager.TransferBuffer).Build();
             Manager.TransferQueue.Execute(transferSubmission);
 
             IImageView imageView = image.CreateImageView(new IImageView.CreateInfo.Builder().ArrayLayerCount(1).BaseArrayLayer(0).BaseMipLevel(0).Format(EDataFormat.R8G8B8A8)
@@ -352,7 +352,7 @@ namespace Cobalt.Core
 
             Manager.TransferBuffer.End();
 
-            IQueue.SubmitInfo transferSubmission = new IQueue.SubmitInfo(Manager.TransferBuffer);
+            IQueue.SubmitInfo transferSubmission = new IQueue.SubmitInfo.Builder().Buffer(Manager.TransferBuffer).Build();
             Manager.TransferQueue.Execute(transferSubmission);
 
             IImageView imageView = image.CreateImageView(new IImageView.CreateInfo.Builder().ArrayLayerCount(1).BaseArrayLayer(0).BaseMipLevel(0).Format(EDataFormat.R8G8B8A8)

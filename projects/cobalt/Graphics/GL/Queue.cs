@@ -24,6 +24,9 @@ namespace Cobalt.Graphics.GL
         {
             CommandBuffer buffer = info.Buffer as CommandBuffer;
             buffer.Execute();
+
+            Fence fence = info.Signal as Fence;
+            fence?.PlaceSync();
         }
 
         public uint GetFamilyIndex()

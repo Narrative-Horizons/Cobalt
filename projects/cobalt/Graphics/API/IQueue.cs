@@ -53,12 +53,32 @@ namespace Cobalt.Graphics.API
 
         public class SubmitInfo
         {
-            public ICommandBuffer Buffer { get; private set; }
-
-            public SubmitInfo(ICommandBuffer buffer)
+            public sealed class Builder : SubmitInfo
             {
-                Buffer = buffer;
+                public new Builder Buffer(ICommandBuffer buffer)
+                {
+                    base.Buffer = buffer;
+                    return this;
+                }
+
+                public new Builder Signal(IFence signal)
+                {
+                    base.Signal = signal;
+                    return this;
+                }
+
+                public SubmitInfo Build()
+                {
+                    return new SubmitInfo()
+                    {
+                        Buffer = base.Buffer,
+                        Signal = base.Signal
+                    };
+                }
             }
+
+            public ICommandBuffer Buffer { get; private set; }
+            public IFence Signal { get; private set; }
         }
 
         void Execute(SubmitInfo info);

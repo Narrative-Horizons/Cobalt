@@ -101,7 +101,7 @@ namespace Cobalt.Sandbox
 
             transferCmdBuffer.End();
 
-            IQueue.SubmitInfo transferSubmission = new IQueue.SubmitInfo(transferCmdBuffer);
+            IQueue.SubmitInfo transferSubmission = new IQueue.SubmitInfo.Builder().Buffer(transferCmdBuffer).Build();
             transferQueue.Execute(transferSubmission);
 
             IImageView albedoImageView = albedoImage.CreateImageView(new IImageView.CreateInfo.Builder().ArrayLayerCount(1).BaseArrayLayer(0).BaseMipLevel(0).Format(EDataFormat.R8G8B8A8)

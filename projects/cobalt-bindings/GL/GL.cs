@@ -257,6 +257,9 @@ namespace Cobalt.Bindings.GL
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_wait_sync", CallingConvention = CallingConvention.Cdecl)]
         public static extern void WaitSync(IntPtr sync);
 
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_client_wait_sync", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void ClientWaitSync(IntPtr sync);
+
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_delete_sync", CallingConvention = CallingConvention.Cdecl)]
         public static extern void DeleteSync(IntPtr sync);
 

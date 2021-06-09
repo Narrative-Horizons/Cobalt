@@ -13,7 +13,8 @@ project "Cobalt Bindings"
     dependson {
         "GLAD@GL4.6-native-bindings",
         "GLFW@3.3.3-native-bindings",
-        "stb@b42009b-native-bindings"
+        "stb@b42009b-native-bindings",
+        "phonon-native-bindings"
     }
 
     files {

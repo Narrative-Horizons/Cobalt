@@ -4,9 +4,7 @@ using Cobalt.Entities.Components;
 using Cobalt.Graphics;
 using Cobalt.Graphics.API;
 using Cobalt.Math;
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace Cobalt.Sandbox
@@ -121,77 +119,25 @@ namespace Cobalt.Sandbox
 
             RenderableManager renderableManager = new RenderableManager(device);
 
-            ModelAsset asset = assetManager.LoadModel("data/Sponza/Sponza.gltf");
-
-
+            ModelAsset asset = assetManager.LoadModel("data/Lantern/Lantern.gltf");
             Entity meshEntity = asset.AsEntity(reg, renderableManager);
-
-            /*renderableManager.QueueRenderable(asset);
-
-            List<RenderableMesh> meshes = renderableManager.GetRenderables(asset);
-            RenderableMesh box = meshes[0];
-
-            Matrix4 trans = Matrix4.Identity;
-            trans *= Matrix4.Scale(new Vector3(0.005f));
-            trans *= Matrix4.Rotate(new Vector3(90, 0, 0)); 
-
-            Entity helmetEntity = reg.Create();
-            reg.Assign(helmetEntity, new MeshComponent(box));
-            reg.Assign(helmetEntity, new TransformComponent
-            {
-                TransformMatrix = trans
-            });
-            reg.Assign(helmetEntity, new PbrMaterialComponent
-            {
-                Albedo = new Texture
-                {
-                    Image = albedoImageView,
-                    Sampler = albedoImageSampler
-                },
-                Normal = new Texture
-                {
-                    Image = normalImageView,
-                    Sampler = albedoImageSampler
-                },
-                OcclusionRoughnessMetallic = new Texture
-                {
-                    Image = ORMImageView,
-                    Sampler = albedoImageSampler
-                }
-            });*/
 
             Entity cameraEntity = reg.Create();
             reg.Assign(cameraEntity, new TransformComponent());
             reg.Assign<CameraComponent>(cameraEntity, new FreeLookCamera(65.0f, 0.01f, 1000.0f, 16.0f/9.0f));
-
             reg.Get<TransformComponent>(cameraEntity).Position = new Vector3(10, 20, 10);
-
-            Stopwatch sw = new Stopwatch();
-
-            Bindings.GL.GL.Finish();
-
-            float angle = 0.0f;
 
             while (window.IsOpen())
             {
-                /*trans = Matrix4.Identity;
-                trans *= Matrix4.Scale(new Vector3(0.005f));
-                trans *= Matrix4.Rotate(new Vector3(90, angle, 0));
-                */ 
-
-
                 window.Poll(); 
                 if(Input.IsKeyPressed(Bindings.GLFW.Keys.Escape))
                 {
                     window.Close(); 
                 }
 
-                sw.Restart(); 
                 renderSystem.render();
-                sw.Stop();
 
                 swapchain.Present(new ISwapchain.PresentInfo());
-                //Console.WriteLine(sw.Elapsed.TotalMilliseconds);
             }
 
             gfxContext.Dispose();

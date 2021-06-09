@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using OpenGL = Cobalt.Bindings.GL.GL;
+using Phonon = Cobalt.Bindings.Phonon.Phonon;
 
 namespace Cobalt.Graphics.GL
 {
@@ -43,6 +44,50 @@ namespace Cobalt.Graphics.GL
             debugHandle = GCHandle.Alloc(debugCallback);
 
             OpenGL.DebugMessageCallback(debugCallback, IntPtr.Zero);
+
+            Phonon.CreateContext(null, null, null, out IntPtr phononContext);
+
+            Phonon.RenderingSettings rSettings = new Phonon.RenderingSettings
+            {
+                samplingRate = 44100,
+                frameSize = 1024
+            };
+
+            Phonon.HrtfParams hrtfParams = new Phonon.HrtfParams
+            {
+                type = Phonon.HrtfDatabaseType.Default,
+                hrtfData = IntPtr.Zero,
+                sofaFileName = IntPtr.Zero
+            };
+
+            Phonon.CreateBinauralRenderer(phononContext, rSettings, hrtfParams, out IntPtr audioRenderer);
+
+            Phonon.AudioFormat stereo = new Phonon.AudioFormat
+            {
+                channelLayoutType = Phonon.ChannelLayoutType.Speakers,
+                channelLayout = Phonon.ChannelLayout.Stereo,
+                channelOrder = Phonon.ChannelOrder.Interleaved
+            };
+
+            Phonon.AudioFormat mono = new Phonon.AudioFormat
+            {
+                channelLayoutType = Phonon.ChannelLayoutType.Speakers,
+                channelLayout = Phonon.ChannelLayout.Mono,
+                channelOrder = Phonon.ChannelOrder.Interleaved
+            };
+
+            Phonon.CreateBinauralEffect(audioRenderer, mono, stereo, out IntPtr audioEffect);
+
+            Phonon.AudioBuffer inBuffer = new Phonon.AudioBuffer
+            {
+                format = mono,
+                numSamples = 1024,
+                interleavedBuffer = IntPtr.Zero
+            };
+
+            Phonon.DestroyBinauralEffect(ref audioEffect);
+            Phonon.DestroyBinauralRenderer(ref audioRenderer);
+            Phonon.DestroyContext(ref phononContext);
         }
 
         private static void DebugCallback(Bindings.GL.EDebugSource source, Bindings.GL.EDebugType type, uint id, Bindings.GL.EDebugSeverity severity, int length, IntPtr messagePtr, IntPtr userParam)

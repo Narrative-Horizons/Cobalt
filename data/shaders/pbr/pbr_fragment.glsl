@@ -4,6 +4,8 @@
 #define MAX_TEX_COUNT 500
 layout(location = 2, bindless_sampler) uniform sampler2D texArray[MAX_TEX_COUNT];
 
+const float PI = 3.14159265359;
+
 struct ObjectData
 {
     mat4 transform;
@@ -55,8 +57,6 @@ layout (location = 0) in VertexData
 } inData;
 
 layout(location = 0) out vec4 FragColor;
-
-const float PI = 3.14159265359;
 
 vec3 GetNormalFromMap(uint normalId)
 {

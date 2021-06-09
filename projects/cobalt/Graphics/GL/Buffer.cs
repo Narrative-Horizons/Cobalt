@@ -113,7 +113,7 @@ namespace Cobalt.Graphics.GL
 
         public void Unmap()
         {
-            if (!Persistent && Handle != default)
+            if (!Persistent && Mapping != default)
             {
                 OpenGL.UnmapNamedBuffer(Handle);
                 Mapping = default;

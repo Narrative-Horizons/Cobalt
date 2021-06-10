@@ -18,7 +18,7 @@ namespace Cobalt.Entities.Components
         
         public Matrix4 TransformMatrix 
         { 
-            get { return Parent != null ? _internalTransform * Parent.TransformMatrix : _internalTransform; }
+            get { return Parent != null ? Parent.TransformMatrix * _internalTransform : _internalTransform; }
             set
             {
                 _internalTransform = value;

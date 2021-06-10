@@ -299,6 +299,16 @@ namespace Cobalt.Math
             return HashCode.Combine(M11, M12, M13, M14) + HashCode.Combine(M21, M22, M23, M24) + HashCode.Combine(M31, M32, M33, M34) + HashCode.Combine(M41, M42, M43, M44);
         }
 
+        public Vector4 GetRow(int index)
+        {
+            return new Vector4(this[index, 0], this[index, 1], this[index, 2], this[index, 3]);
+        }
+
+        public Vector4 GetCol(int index)
+        {
+            return new Vector4(this[0, index], this[1, index], this[2, index], this[3, index]);
+        }
+
         public static Matrix4 operator +(Matrix4 left, Matrix4 right)
         {
             left.M11 += right.M11;
@@ -345,43 +355,27 @@ namespace Cobalt.Math
 
         public static Matrix4 operator *(Matrix4 left, Matrix4 right)
         {
-            float e00 = left[0, 0] * right[0, 0] + left[0, 1] * right[1, 0]
-                + left[0, 2] * right[2, 0] + left[0, 3] * right[3, 0];
-            float e01 = left[0, 0] * right[0, 1] + left[0, 1] * right[1, 1]
-                + left[0, 2] * right[2, 1] + left[0, 3] * right[3, 1];
-            float e02 = left[0, 0] * right[0, 2] + left[0, 1] * right[1, 2]
-                + left[0, 2] * right[2, 2] + left[0, 3] * right[3, 2];
-            float e03 = left[0, 0] * right[0, 3] + left[0, 1] * right[1, 3]
-                + left[0, 2] * right[2, 3] + left[0, 3] * right[3, 3];
+            Matrix4 ret = new Matrix4();
 
-            float e10 = left[1, 0] * right[0, 0] + left[1, 1] * right[1, 0]
-                + left[1, 2] * right[2, 0] + left[1, 3] * right[3, 0];
-            float e11 = left[1, 0] * right[0, 1] + left[1, 1] * right[1, 1]
-                + left[1, 2] * right[2, 1] + left[1, 3] * right[3, 1];
-            float e12 = left[1, 0] * right[0, 2] + left[1, 1] * right[1, 2]
-                + left[1, 2] * right[2, 2] + left[1, 3] * right[3, 2];
-            float e13 = left[1, 0] * right[0, 3] + left[1, 1] * right[1, 3]
-                + left[1, 2] * right[2, 3] + left[1, 3] * right[3, 3];
+            float e00 = Vector4.Dot(left.GetRow(0), right.GetCol(0));
+            float e01 = Vector4.Dot(left.GetRow(0), right.GetCol(1));
+            float e02 = Vector4.Dot(left.GetRow(0), right.GetCol(2));
+            float e03 = Vector4.Dot(left.GetRow(0), right.GetCol(3));
 
-            float e20 = left[2, 0] * right[0, 0] + left[2, 1] * right[1, 0]
-                + left[2, 2] * right[2, 0] + left[2, 3] * right[3, 0];
-            float e21 = left[2, 0] * right[0, 1] + left[2, 1] * right[1, 1]
-                + left[2, 2] * right[2, 1] + left[2, 3] * right[3, 1];
-            float e22 = left[2, 0] * right[0, 2] + left[2, 1] * right[1, 2]
-                + left[2, 2] * right[2, 2] + left[2, 3] * right[3, 2];
-            float e23 = left[2, 0] * right[0, 3] + left[2, 1] * right[1, 3]
-                + left[2, 2] * right[2, 3] + left[2, 3] * right[3, 3];
+            float e10 = Vector4.Dot(left.GetRow(1), right.GetCol(0));
+            float e11 = Vector4.Dot(left.GetRow(1), right.GetCol(1));
+            float e12 = Vector4.Dot(left.GetRow(1), right.GetCol(2));
+            float e13 = Vector4.Dot(left.GetRow(1), right.GetCol(3));
 
-            float e30 = left[3, 0] * right[0, 0] + left[3, 1] * right[1, 0]
-                + left[3, 2] * right[2, 0] + left[3, 3] * right[3, 0];
-            float e31 = left[3, 0] * right[0, 1] + left[3, 1] * right[1, 1]
-                + left[3, 2] * right[2, 1] + left[3, 3] * right[3, 1];
-            float e32 = left[3, 0] * right[0, 2] + left[3, 1] * right[1, 2]
-                + left[3, 2] * right[2, 2] + left[3, 3] * right[3, 2];
-            float e33 = left[3, 0] * right[0, 3] + left[3, 1] * right[1, 3]
-                + left[3, 2] * right[2, 3] + left[3, 3] * right[3, 3];
+            float e20 = Vector4.Dot(left.GetRow(2), right.GetCol(0));
+            float e21 = Vector4.Dot(left.GetRow(2), right.GetCol(1));
+            float e22 = Vector4.Dot(left.GetRow(2), right.GetCol(2));
+            float e23 = Vector4.Dot(left.GetRow(2), right.GetCol(3));
 
-            Matrix4 ret = Matrix4.Identity;
+            float e30 = Vector4.Dot(left.GetRow(3), right.GetCol(0));
+            float e31 = Vector4.Dot(left.GetRow(3), right.GetCol(1));
+            float e32 = Vector4.Dot(left.GetRow(3), right.GetCol(2));
+            float e33 = Vector4.Dot(left.GetRow(3), right.GetCol(3));
 
             ret[0, 0] = e00;
             ret[0, 1] = e01;

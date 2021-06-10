@@ -343,11 +343,11 @@ namespace Cobalt.Graphics
             {
                 View = camera.ViewMatrix,
                 Projection = camera.ProjectionMatrix,
-                ViewProjection = camera.ViewMatrix * camera.ProjectionMatrix,
+                ViewProjection = camera.ViewMatrix * camera.ProjectionMatrix, 
 
                 CameraPosition = camera.Transform.Position,
                 CameraDirection = camera.Transform.Forward,
-
+                 
                 SunDirection = new Vector3(0, -1, 0), 
                 SunColor = new Vector3(1, 1, 1)
             }; 

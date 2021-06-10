@@ -59,7 +59,7 @@ void main()
     outData.tangent = iTangent;
     outData.binormal = iBinormal;
     outData.worldPos = vec3(myData.transform * vec4(iPosition, 1.0));
-    gl_Position = viewProjection * myData.transform * vec4(iPosition, 1);
+    gl_Position = projection * view * myData.transform * vec4(iPosition, 1);
 
     outData.fragPosition = gl_Position.xyz;
 }

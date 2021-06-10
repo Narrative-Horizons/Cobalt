@@ -519,35 +519,20 @@ namespace Cobalt.Math
 
             Matrix4 ret = Matrix4.Identity;
 
-            ret[0,0] = s.x;
-            ret[1,0] = s.y;
-            ret[2,0] = s.z;
-            ret[0,1] = u.x;
-            ret[1,1] = u.y;
-            ret[2,1] = u.z;
-            ret[0,2] = f.x;
-            ret[1,2] = f.y;
-            ret[2,2] = f.z;
-            ret[3,0] = -Vector3.Dot(s, eye);
-            ret[3,1] = -Vector3.Dot(u, eye);
-            ret[3,2] = -Vector3.Dot(f, eye);
+            ret[0, 0] = s.x;
+            ret[1, 0] = s.y;
+            ret[2, 0] = s.z;
+            ret[0, 1] = u.x;
+            ret[1, 1] = u.y;
+            ret[2, 1] = u.z;
+            ret[0, 2] = f.x;
+            ret[1, 2] = f.y;
+            ret[2, 2] = f.z;
+            ret[3, 0] = -Vector3.Dot(s, eye);
+            ret[3, 1] = -Vector3.Dot(u, eye);
+            ret[3, 2] = -Vector3.Dot(f, eye);
 
             return ret;
-
-            /*Vector3 lookDir = (center - eye).Normalized();
-
-            Vector3 z = -lookDir;
-            Vector3 x = Vector3.Cross(up, z).Normalized();
-            Vector3 y = Vector3.Cross(z, x);
-
-            Matrix4 R = Matrix4.FromRowMajorElements(x.x, x.y, x.z, 0,
-                                                        y.x, y.y, y.z, 0,
-                                                        z.x, z.y, z.z, 0,
-                                                        0, 0, 0, 1);
-
-            Matrix4 T = Matrix4.Translate(-eye);
-
-            return R * T;*/
         }
 
         public static Matrix4 Frustum(float left, float right, float bottom, float top, float zNear, float zFar)

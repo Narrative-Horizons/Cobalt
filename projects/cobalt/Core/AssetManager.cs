@@ -183,16 +183,28 @@ namespace Cobalt.Core
         internal unsafe void ProcessNode(Node* node, MeshNode meshNode, Scene* scene, Matrix4 parentMatrix)
         {
             Assimp assimp = Assimp.GetApi();
+            Matrix4 mat = new Matrix4();
 
-            Matrix4 mat = System.Numerics.Matrix4x4.Transpose(node->MTransformation);
+            MeshNode mNode;
 
-            MeshNode mNode = new MeshNode
+            if (node == scene->MRootNode)
             {
-                transform = mat
-            };
+                mNode = meshNode = RootNode = new MeshNode();
+                meshNode.transform = parentMatrix;
+                meshes.Add(mNode);
+            }
+            else
+            { 
+                mat = System.Numerics.Matrix4x4.Transpose(node->MTransformation);
 
-            meshNode.children.Add(mNode);
-            meshes.Add(mNode);
+                mNode = new MeshNode
+                {
+                    transform = mat
+                };
+
+                meshNode.children.Add(mNode);
+                meshes.Add(mNode);
+            }
 
             for (int i = 0; i < node->MNumMeshes; i++)
             {
@@ -449,7 +461,6 @@ namespace Cobalt.Core
 
                 if(assScene != null)
                 {
-                    RootNode = new MeshNode();
                     ProcessMaterials(assScene->MRootNode, assScene);
                     ProcessNode(assScene->MRootNode, RootNode, assScene, System.Numerics.Matrix4x4.Transpose(assScene->MRootNode->MTransformation));
                 }

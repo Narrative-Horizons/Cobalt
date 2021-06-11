@@ -52,5 +52,7 @@ namespace Cobalt.Graphics.API
             public int BaseArrayLayer { get; private set; }
             public int ArrayLayerCount { get; private set; }
         }
+    
+        public IImage GetImage();
     }
 }

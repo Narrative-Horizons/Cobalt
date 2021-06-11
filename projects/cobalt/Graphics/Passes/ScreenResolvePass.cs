@@ -10,6 +10,7 @@ namespace Cobalt.Graphics.Passes
         public int Width { get; set; }
         public int Height { get; set; }
         public Shader Shader { get; private set; }
+        public IImage SourceImage { get; private set; }
         public IVertexAttributeArray VAO { get; private set; }
         public IDescriptorPool DescriptorPool { get; private set; }
         public List<IDescriptorSet> DescriptorSets { get; private set; }
@@ -76,11 +77,33 @@ namespace Cobalt.Graphics.Passes
                    .Sampler(input.Sampler).View(input.Image)).ArrayElement(0).BindingIndex(0).DescriptorSet(dest).Build();
 
             Device.UpdateDescriptorSets(new List<DescriptorWriteInfo>() { writeInfo });
+
+            SourceImage = input.Image.GetImage();
         }
 
         public override void Record(ICommandBuffer buffer, FrameInfo info, DrawInfo draw)
         {
             IFrameBuffer renderTo = swapchain.GetFrameBuffer(info.frameInFlight);
+
+            ICommandBuffer.ImageMemoryBarrier sourceImageBarrier = new ICommandBuffer.ImageMemoryBarrier.Builder()
+                .SrcAccess(EAccessFlag.ColorAttachmentWriteBit)
+                .DstAccess(EAccessFlag.ColorAttachmentReadBit)
+                .SrcLayout(EImageLayout.ColorAttachment)
+                .SrcLayout(EImageLayout.ShaderReadOnly)
+                .SrcQueueFamilyIndex(0)
+                .DstQueueFamilyIndex(0)
+                .Image(SourceImage)
+                .BaseMipLevel(0)
+                .MipLevelCount(1)
+                .BaseArrayLayer(0)
+                .ArrayLayerCount(1)
+                .Build();
+            
+            List<ICommandBuffer.BufferMemoryBarrier> bufferBarriers = new List<ICommandBuffer.BufferMemoryBarrier>();
+            List<ICommandBuffer.ImageMemoryBarrier> imageBarriers = new List<ICommandBuffer.ImageMemoryBarrier>();
+            imageBarriers.Add(sourceImageBarrier);
+
+            buffer.Barrier(bufferBarriers, imageBarriers);
 
             buffer.BeginRenderPass(new ICommandBuffer.RenderPassBeginInfo()
             {

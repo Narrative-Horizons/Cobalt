@@ -1,6 +1,7 @@
-﻿using Cobalt.Graphics.API;
+﻿using static Cobalt.Bindings.GL.EMemoryBarrier;
+
+using Cobalt.Graphics.API;
 using Cobalt.Graphics.GL.Commands;
-using Cobalt.Math;
 using System;
 using System.Collections.Generic;
 
@@ -8,7 +9,7 @@ namespace Cobalt.Graphics.GL
 {
     internal class CommandBuffer : ICommandBuffer
     {
-        public List<ICommand> commands { get; private set; } = new List<ICommand>();
+        public List<ICommand> Commands { get; private set; } = new List<ICommand>();
 
         private bool _recording = false;
         private bool _reset = false;
@@ -30,33 +31,33 @@ namespace Cobalt.Graphics.GL
                 }
             }
 
-            commands.Add(new BindFramebufferCommand((FrameBuffer)info.FrameBuffer));
-            commands.Add(new ClearFrameBufferCommand((FrameBuffer)info.FrameBuffer, clearValues));
+            Commands.Add(new BindFramebufferCommand((FrameBuffer)info.FrameBuffer));
+            Commands.Add(new ClearFrameBufferCommand((FrameBuffer)info.FrameBuffer, clearValues));
         }
 
         public void Bind(IGraphicsPipeline pipeline)
         {
-            commands.Add(new GL.Commands.BindGraphicsPipelineCommand(pipeline as GraphicsPipeline));
+            Commands.Add(new GL.Commands.BindGraphicsPipelineCommand(pipeline as GraphicsPipeline));
         }
 
         public void Bind(IVertexAttributeArray vao)
         {
-            commands.Add(new GL.Commands.BindVertexArrayObjectCommand(vao as VertexAttributeArray));
+            Commands.Add(new GL.Commands.BindVertexArrayObjectCommand(vao as VertexAttributeArray));
         }
 
         public void Bind(IPipelineLayout layout, int firstSet, List<IDescriptorSet> sets)
         {
-            commands.Add(new BindDescriptorSetsCommand(layout, sets));
+            Commands.Add(new BindDescriptorSetsCommand(layout, sets));
         }
 
         public void Bind(IPipelineLayout layout, int firstSet, List<IDescriptorSet> sets, List<uint> offsets)
         {
-            commands.Add(new BindDynamicDescriptorSetsCommand(sets, offsets));
+            Commands.Add(new BindDynamicDescriptorSetsCommand(sets, offsets));
         }
 
         public void Bind(EBufferUsage usage, IBuffer buffer)
         {
-            commands.Add(new BindBufferCommand(usage, buffer));
+            Commands.Add(new BindBufferCommand(usage, buffer));
         }
 
         public void Copy(IBuffer source, IBuffer destination, List<ICommandBuffer.BufferCopyRegion> regions)
@@ -66,12 +67,12 @@ namespace Cobalt.Graphics.GL
 
         public void Dispose()
         {
-            commands.Clear();
+            Commands.Clear();
         }
 
         public void Draw(int baseVertex, int vertexCount, int baseInstance, int instanceCount)
         {
-            commands.Add(new DrawArraysCommand(baseVertex, vertexCount, baseInstance, instanceCount));
+            Commands.Add(new DrawArraysCommand(baseVertex, vertexCount, baseInstance, instanceCount));
         }
 
         public void DrawElements(int elementCount, int baseVertex, int baseInstance, int instanceCount)
@@ -81,12 +82,12 @@ namespace Cobalt.Graphics.GL
 
         public void DrawElements(int elementCount, int baseVertex, int baseInstance, int instanceCount, long indexOffset)
         {
-            commands.Add(new DrawElementsCommand(baseVertex, elementCount, baseInstance, instanceCount, indexOffset));
+            Commands.Add(new DrawElementsCommand(baseVertex, elementCount, baseInstance, instanceCount, indexOffset));
         }
 
         public void DrawElementsMultiIndirect(DrawElementsIndirectCommand indirect, int offset, IBuffer indirectBuffer)
         {
-            commands.Add(new MultiDrawElementsIndirectCommand(indirect, offset, indirectBuffer));
+            Commands.Add(new MultiDrawElementsIndirectCommand(indirect, offset, indirectBuffer));
         }
 
         public void End()
@@ -96,7 +97,7 @@ namespace Cobalt.Graphics.GL
 
         public void Execute()
         {
-            foreach(ICommand com in commands)
+            foreach(ICommand com in Commands)
             {
                 com.Execute();
             }
@@ -112,7 +113,7 @@ namespace Cobalt.Graphics.GL
         {
             if (_reset)
             {
-                commands.Clear();
+                Commands.Clear();
             }
         }
 
@@ -128,7 +129,7 @@ namespace Cobalt.Graphics.GL
                     case EImageType.Image2D:
                         if(image.LayerCount == 1)
                         {
-                            commands.Add(new TextureSubImage2DCommand(image, source, region.MipLevel,
+                            Commands.Add(new TextureSubImage2DCommand(image, source, region.MipLevel,
                                 region.X, region.Y, region.Width, region.Height, ToInternalFormat(image.Format), ToType(image.Format),
                                 region.BufferOffset));
                         }
@@ -143,7 +144,23 @@ namespace Cobalt.Graphics.GL
 
         public void Sync()
         {
-            commands.Add(new WaitSyncCommand());
+            Commands.Add(new WaitSyncCommand());
+        }
+
+        public void Barrier(List<ICommandBuffer.BufferMemoryBarrier> memoryBarriers, List<ICommandBuffer.ImageMemoryBarrier> imageBarriers)
+        {
+            Bindings.GL.EMemoryBarrier barrierFlags = 0;
+            memoryBarriers.ForEach(barrier =>
+            {
+                barrierFlags |= ToBarrierBit(barrier.SrcAccess);
+            });
+
+            imageBarriers.ForEach(barrier =>
+            {
+                barrierFlags |= ToBarrierBit(barrier.SrcAccess);
+            });
+
+            Commands.Add(new MemoryBarrierCommand(barrierFlags));
         }
 
         private static Bindings.GL.EPixelInternalFormat ToInternalFormat(EDataFormat format)
@@ -186,7 +203,48 @@ namespace Cobalt.Graphics.GL
 
             throw new InvalidOperationException("Format unsupported");
         }
+    
+        private static Bindings.GL.EMemoryBarrier ToBarrierBit(EAccessFlag access)
+        {
+            switch (access)
+            {
+                case EAccessFlag.IndirectCommandReadBit:
+                    return CommandBit;
+                case EAccessFlag.IndexReadBit:
+                    return ElementArrayBit;
+                case EAccessFlag.VertexAttributeReadBit:
+                    return VertexAttribArrayBit;
+                case EAccessFlag.UniformReadBit:
+                    return UniformBit;
+                case EAccessFlag.InputAttachmentReadBit:
+                    return TextureFetchBit | ShaderImageAccessBit | PixelBufferBit | FramebufferBit;
+                case EAccessFlag.ShaderReadBit:
+                    return UniformBit | ShaderStorageBit | TextureFetchBit | ShaderImageAccessBit | PixelBufferBit | FramebufferBit | TransformFeedbackBit | QueryBufferBit | AtomicCounterBit;
+                case EAccessFlag.ShaderWriteBit:
+                    return UniformBit | ShaderStorageBit | TextureFetchBit | ShaderImageAccessBit | PixelBufferBit | FramebufferBit | TransformFeedbackBit | QueryBufferBit | AtomicCounterBit;
+                case EAccessFlag.ColorAttachmentReadBit:
+                    return TextureFetchBit | ShaderImageAccessBit | PixelBufferBit | FramebufferBit;
+                case EAccessFlag.ColorAttachmentWriteBit:
+                    return TextureFetchBit | ShaderImageAccessBit | PixelBufferBit | FramebufferBit;
+                case EAccessFlag.DepthStencilReadBit:
+                    return TextureFetchBit | ShaderImageAccessBit | PixelBufferBit | FramebufferBit;
+                case EAccessFlag.DepthStencilWriteBit:
+                    return TextureFetchBit | ShaderImageAccessBit | PixelBufferBit | FramebufferBit;
+                case EAccessFlag.TransferReadBit:
+                    return TextureUpdateBit | BufferUpdateBit;
+                case EAccessFlag.TransferWriteBit:
+                    return TextureUpdateBit | BufferUpdateBit;
+                case EAccessFlag.HostReadBit:
+                    return ClientMappedBufferBit | TextureUpdateBit | BufferUpdateBit;
+                case EAccessFlag.HostWriteBit:
+                    return ClientMappedBufferBit | TextureUpdateBit | BufferUpdateBit;
+                case EAccessFlag.MemoryReadBit:
+                    return AllBits;
+                case EAccessFlag.MemoryWriteBit:
+                    return AllBits;
+            }
 
-        
+            throw new InvalidOperationException("Access flag unsupported");
+        }
     }
 }

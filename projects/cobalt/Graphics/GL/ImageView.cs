@@ -26,6 +26,11 @@ namespace Cobalt.Graphics.GL
                 (uint)createInfo.MipLevelCount, (uint)createInfo.BaseArrayLayer, (uint)createInfo.ArrayLayerCount);
         }
 
+        public IImage GetImage()
+        {
+            return Image;
+        }
+
         public void Dispose()
         {
             OpenGL.DeleteTextures(Handle);

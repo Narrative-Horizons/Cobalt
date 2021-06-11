@@ -162,7 +162,7 @@ namespace Cobalt.Graphics
 
         public void Refresh()
         {
-            OpenGL.Finish();
+            // OpenGL.Finish();
             GLFW.SwapBuffers(_window);
         }
     }

@@ -57,6 +57,7 @@ namespace Cobalt.Graphics
             });
 
             cmdBuffer.End();
+
             _submitQueue.Execute(new IQueue.SubmitInfo.Builder()
                 .Buffer(cmdBuffer)
                 .Signal(renderSync)

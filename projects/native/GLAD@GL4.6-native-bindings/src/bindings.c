@@ -416,3 +416,8 @@ GLAD_BINDING_EXPORT void cobalt_gl_depth_func(unsigned int func)
 {
 	glDepthFunc(func);
 }
+
+GLAD_BINDING_EXPORT void cobalt_gl_memory_barrier(unsigned int barrier)
+{
+	glMemoryBarrier(barrier);
+}

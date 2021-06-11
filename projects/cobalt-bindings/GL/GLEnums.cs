@@ -1826,6 +1826,27 @@ namespace Cobalt.Bindings.GL
         FrontAndBack = 0x0408,
     }
 
+    [Flags]
+    public enum EMemoryBarrier : uint
+    {
+        VertexAttribArrayBit,
+        ElementArrayBit,
+        UniformBit,
+        TextureFetchBit,
+        ShaderImageAccessBit,
+        CommandBit,
+        PixelBufferBit,
+        TextureUpdateBit,
+        BufferUpdateBit,
+        ClientMappedBufferBit,
+        FramebufferBit,
+        TransformFeedbackBit,
+        AtomicCounterBit,
+        ShaderStorageBit,
+        QueryBufferBit,
+        AllBits
+    }
+    
     public enum ENvTransformFeedback2 : uint
     {
         TransformFeedbackNv = 0x8E22,

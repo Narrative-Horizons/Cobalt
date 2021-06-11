@@ -293,4 +293,26 @@ namespace Cobalt.Graphics.API
         ClampToEdge,
         MirroredClampToEdge
     }
+
+    [Flags]
+    public enum EAccessFlag : uint
+    {
+        IndirectCommandReadBit,
+        IndexReadBit,
+        VertexAttributeReadBit,
+        UniformReadBit,
+        InputAttachmentReadBit,
+        ShaderReadBit,
+        ShaderWriteBit,
+        ColorAttachmentReadBit,
+        ColorAttachmentWriteBit,
+        DepthStencilReadBit,
+        DepthStencilWriteBit,
+        TransferReadBit,
+        TransferWriteBit,
+        HostReadBit,
+        HostWriteBit,
+        MemoryReadBit,
+        MemoryWriteBit
+    }
 }

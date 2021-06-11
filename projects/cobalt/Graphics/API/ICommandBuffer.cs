@@ -195,6 +195,176 @@ namespace Cobalt.Graphics.API
             public int Depth { get; private set; }
         }
 
+        public class BufferMemoryBarrier
+        {
+            public sealed class Builder : BufferMemoryBarrier
+            {
+                public new Builder SrcAccess(EAccessFlag srcAccess)
+                {
+                    base.SrcAccess = srcAccess;
+                    return this;
+                }
+
+                public new Builder DstAccess(EAccessFlag dstAccess)
+                {
+                    base.DstAccess = dstAccess;
+                    return this;
+                }
+
+                public new Builder SrcQueueFamilyIndex(uint srcQueueFamilyIndex)
+                {
+                    base.SrcQueueFamilyIndex = srcQueueFamilyIndex;
+                    return this;
+                }
+
+                public new Builder DstQueueFamilyIndex(uint dstQueueFamilyIndex)
+                {
+                    base.DstQueueFamilyIndex = dstQueueFamilyIndex;
+                    return this;
+                }
+
+                public new Builder Buffer(IBuffer buffer)
+                {
+                    base.Buffer = buffer;
+                    return this;
+                }
+
+                public new Builder Offset(uint offset)
+                {
+                    base.Offset = offset;
+                    return this;
+                }
+
+                public new Builder Size(uint size)
+                {
+                    base.Size = size;
+                    return this;
+                }
+
+                public BufferMemoryBarrier Build()
+                {
+                    return new BufferMemoryBarrier()
+                    {
+                        SrcAccess = base.SrcAccess,
+                        DstAccess = base.DstAccess,
+                        SrcQueueFamilyIndex = base.SrcQueueFamilyIndex,
+                        DstQueueFamilyIndex = base.DstQueueFamilyIndex,
+                        Buffer = base.Buffer,
+                        Offset = base.Offset,
+                        Size = base.Size
+                    };
+                }
+            }
+
+            public EAccessFlag SrcAccess { get; private set; }
+            public EAccessFlag DstAccess { get; private set; }
+            public uint SrcQueueFamilyIndex { get; private set; }
+            public uint DstQueueFamilyIndex { get; private set; }
+            public IBuffer Buffer { get; private set; }
+            public uint Offset { get; private set; }
+            public uint Size { get; private set; }
+        }
+
+        public class ImageMemoryBarrier
+        {
+            public sealed class Builder : ImageMemoryBarrier
+            {
+                public new Builder SrcAccess(EAccessFlag srcAccess)
+                {
+                    base.SrcAccess = srcAccess;
+                    return this;
+                }
+
+                public new Builder DstAccess(EAccessFlag dstAccess)
+                {
+                    base.DstAccess = dstAccess;
+                    return this;
+                }
+
+                public new Builder SrcLayout(EImageLayout srcLayout)
+                {
+                    base.SrcLayout = srcLayout;
+                    return this;
+                }
+
+                public new Builder DstLayout(EImageLayout dstLayout)
+                {
+                    base.DstLayout = dstLayout;
+                    return this;
+                }
+
+                public new Builder SrcQueueFamilyIndex(uint srcQueueFamilyIndex)
+                {
+                    base.SrcQueueFamilyIndex = srcQueueFamilyIndex;
+                    return this;
+                }
+
+                public new Builder DstQueueFamilyIndex(uint dstQueueFamilyIndex)
+                {
+                    base.DstQueueFamilyIndex = dstQueueFamilyIndex;
+                    return this;
+                }
+
+                public new Builder Image(IImage image)
+                {
+                    base.Image = image;
+                    return this;
+                }
+
+                public new Builder BaseMipLevel(uint baseMipLevel)
+                {
+                    base.BaseMipLevel = baseMipLevel;
+                    return this;
+                }
+
+                public new Builder MipLevelCount(uint mipLevelCount)
+                {
+                    base.MipLevelCount = mipLevelCount;
+                    return this;
+                }
+
+                public new Builder BaseArrayLayer(uint baseArrayLayer)
+                {
+                    base.BaseArrayLayer = baseArrayLayer;
+                    return this;
+                }
+
+                public new Builder ArrayLayerCount(uint arrayLayerCount)
+                {
+                    base.ArrayLayerCount = arrayLayerCount;
+                    return this;
+                }
+
+                public ImageMemoryBarrier Build() {
+                    return new ImageMemoryBarrier() {
+                        SrcAccess = base.SrcAccess,
+                        DstAccess = base.DstAccess,
+                        SrcLayout = base.SrcLayout,
+                        DstLayout = base.DstLayout,
+                        SrcQueueFamilyIndex = base.SrcQueueFamilyIndex,
+                        DstQueueFamilyIndex = base.DstQueueFamilyIndex,
+                        Image = base.Image,
+                        BaseMipLevel = base.BaseMipLevel,
+                        MipLevelCount = base.MipLevelCount,
+                        BaseArrayLayer = base.BaseArrayLayer,
+                        ArrayLayerCount = base.ArrayLayerCount
+                    };
+                }
+            }
+
+            public EAccessFlag SrcAccess { get; private set; }
+            public EAccessFlag DstAccess { get; private set; }
+            public EImageLayout SrcLayout { get; private set; }
+            public EImageLayout DstLayout { get; private set; }
+            public uint SrcQueueFamilyIndex { get; private set; }
+            public uint DstQueueFamilyIndex { get; private set; }
+            public IImage Image { get; private set; }
+            public uint BaseMipLevel { get; private set; }
+            public uint MipLevelCount { get; private set; }
+            public uint BaseArrayLayer { get; private set; }
+            public uint ArrayLayerCount { get; private set; }
+        }
+
         void Reset();
 
         void Record(RecordInfo info);
@@ -224,5 +394,7 @@ namespace Cobalt.Graphics.API
         void Copy(byte[] source, IImage destination, List<BufferImageCopyRegion> regions);
 
         void Sync();
+
+        void Barrier(List<BufferMemoryBarrier> memoryBarriers, List<ImageMemoryBarrier> imageBarriers);
     }
 }

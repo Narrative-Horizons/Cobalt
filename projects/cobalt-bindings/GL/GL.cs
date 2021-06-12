@@ -269,6 +269,9 @@ namespace Cobalt.Bindings.GL
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_memory_barrier", CallingConvention = CallingConvention.Cdecl)]
         public static extern void MemoryBarrier(EMemoryBarrier barrier);
 
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_dispatch_compute", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void DispatchCompute(uint x, uint y, uint z);
+
         public static void NamedBufferStorageTyped<T>(uint buffer, long size, [NotNull] [In, Out] T[] data, EBufferAccessMask flags) where T : unmanaged
         {
             unsafe

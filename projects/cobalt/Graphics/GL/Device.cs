@@ -127,6 +127,7 @@ namespace Cobalt.Graphics.GL
 
         private static void DebugCallback(Bindings.GL.EDebugSource source, Bindings.GL.EDebugType type, uint id, Bindings.GL.EDebugSeverity severity, int length, IntPtr messagePtr, IntPtr userParam)
         {
+            return; 
             string debugMessage = source.ToString() + " (" + type.ToString() + "): " + Util.PtrToStringUTF8(messagePtr);
 
             switch (severity)
@@ -141,7 +142,7 @@ namespace Cobalt.Graphics.GL
                     Logger.Log.Debug(debugMessage);
                     break;
                 case Bindings.GL.EDebugSeverity.Notification:
-                    //Logger.Log.Info(debugMessage);
+                    Logger.Log.Info(debugMessage);
                     break;
             }
         }
@@ -293,6 +294,13 @@ namespace Cobalt.Graphics.GL
             return shader;
         }
 
+        public ComputeShader CreateComputeShader(string computeSource)
+        {
+            ComputeShader shader = new ComputeShader(this, computeSource);
+
+            return shader;
+        }
+
         public void UpdateDescriptorSets(List<DescriptorWriteInfo> writeInformation)
         {
             List<IDescriptorSet> sets = new List<IDescriptorSet>();
@@ -321,7 +329,8 @@ namespace Cobalt.Graphics.GL
 
         public IComputePipeline CreateComputePipeline(IComputePipeline.CreateInfo info)
         {
-            throw new NotImplementedException();
+            ComputePipeline pipeline = new ComputePipeline(info);
+            return pipeline;
         }
     }
 }

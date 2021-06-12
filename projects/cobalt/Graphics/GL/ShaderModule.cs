@@ -15,7 +15,7 @@ namespace Cobalt.Graphics.GL
         public ShaderModule(IShaderModule.CreateInfo info)
         {
             MemoryStream memoryStream = new MemoryStream();
-            info.ResourceStream.CopyTo(memoryStream);
+            info.ResourceStream.CopyTo(memoryStream); 
 
             string contents = Encoding.Default.GetString(memoryStream.ToArray());
 

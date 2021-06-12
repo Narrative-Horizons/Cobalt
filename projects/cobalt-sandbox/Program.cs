@@ -127,13 +127,14 @@ namespace Cobalt.Sandbox
             reg.Assign<CameraComponent>(cameraEntity, new FreeLookCamera(65.0f, 0.01f, 1000.0f, 16.0f/9.0f));
             reg.Get<TransformComponent>(cameraEntity).Position = new Vector3(1, 2, 1);
 
+
             while (window.IsOpen())
             {
                 reg.Get<TransformComponent>(meshEntity).TransformMatrix *= Matrix4.Rotate(new Vector3(0, 0.01f, 0));
-                window.Poll(); 
-                if(Input.IsKeyPressed(Bindings.GLFW.Keys.Escape))
+                window.Poll();
+                if (Input.IsKeyPressed(Bindings.GLFW.Keys.Escape))
                 {
-                    window.Close(); 
+                    window.Close();
                 }
 
                 renderSystem.render();

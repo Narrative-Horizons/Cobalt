@@ -30,8 +30,8 @@ namespace Cobalt.Graphics.GL
             if(memoryInfo.Usage != EMemoryUsage.GPUOnly && (memoryInfo.Required.Contains(EMemoryProperty.HostVisible) ||
                 memoryInfo.Preferred.Contains(EMemoryProperty.HostVisible)))
             {
-                if(!createInfo.Usage.Contains(EBufferUsage.IndirectBuffer))
-                    Flags |= EBufferAccessMask.MapPersistentBit;
+                //if(!createInfo.Usage.Contains(EBufferUsage.IndirectBuffer))
+                    //Flags |= EBufferAccessMask.MapPersistentBit;
 
                 Flags |= EBufferAccessMask.DynamicStorageBit;
                 Flags |= EBufferAccessMask.MapReadBit;
@@ -40,8 +40,8 @@ namespace Cobalt.Graphics.GL
 
             if(memoryInfo.Preferred.Contains(EMemoryProperty.HostCoherent) || memoryInfo.Required.Contains(EMemoryProperty.HostCoherent))
             {
-                if (!createInfo.Usage.Contains(EBufferUsage.IndirectBuffer))
-                    Flags |= EBufferAccessMask.MapCoherentBit;
+                //if (!createInfo.Usage.Contains(EBufferUsage.IndirectBuffer))
+                    //Flags |= EBufferAccessMask.MapCoherentBit;
             }
 
             if(memoryInfo.Usage == EMemoryUsage.CPUOnly)

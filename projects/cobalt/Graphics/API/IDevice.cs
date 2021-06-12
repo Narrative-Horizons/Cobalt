@@ -61,6 +61,7 @@ namespace Cobalt.Graphics.API
         public ISampler CreateSampler(ISampler.CreateInfo info);
         public IFence CreateFence(IFence.CreateInfo info);
         public Shader CreateShader(Shader.CreateInfo info, IPipelineLayout layout);
+        public ComputeShader CreateComputeShader(string computeSource);
         public IComputePipeline CreateComputePipeline(IComputePipeline.CreateInfo info);
         public void UpdateDescriptorSets(List<DescriptorWriteInfo> writeInformation);
     }

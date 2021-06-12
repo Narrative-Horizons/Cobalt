@@ -140,6 +140,8 @@ namespace Cobalt.Graphics
         private static readonly uint TEX_NOT_FOUND = uint.MaxValue;
         private static readonly uint MAX_TEX_COUNT = 500;
 
+        private ComputeShader cShader;
+
         public PbrPipeline(Registry registry, IDevice device, ISwapchain swapchain)
         {
             int framesInFlight = (int) swapchain.GetImageCount();
@@ -181,6 +183,8 @@ namespace Cobalt.Graphics
             _pbrPass = new PbrRenderPass(device, layout);
             _screenResolvePass = new ScreenResolvePass(swapchain, device, 1280, 720);
 
+            cShader = device.CreateComputeShader(FileSystem.LoadFileToString("data/shaders/computetest.glsl"));
+
             registry.Events.AddHandler<ComponentAddEvent<PbrMaterialComponent>>(_AddComponent);
             registry.Events.AddHandler<ComponentAddEvent<PbrMaterialComponent>>(_AddComponent);
             registry.Events.AddHandler<ComponentAddEvent<MeshComponent>>(_AddComponent);
@@ -196,6 +200,13 @@ namespace Cobalt.Graphics
         public void Render(ICommandBuffer buffer, int frameInFlight, CameraComponent camera)
         {
             _Build(frameInFlight, camera);
+
+            /*cShader.Update();
+
+            buffer.Bind(cShader._pipeline);
+            buffer.Dispatch(1, 0, 0);
+
+            buffer.Sync();*/
 
             int idx = 0;
 
@@ -328,6 +339,7 @@ namespace Cobalt.Graphics
             {
                 nativeMaterialData.Set(payload);
             }
+            _frames[writeFrame].materialData.Unmap();
 
             // Build uniform/shader storage buffers
             NativeBuffer<EntityData> nativeEntityData = new NativeBuffer<EntityData>(_frames[writeFrame].entityData.Map());
@@ -338,6 +350,7 @@ namespace Cobalt.Graphics
                     instances.ForEach(instance => nativeEntityData.Set(instance));
                 }
             }
+            _frames[writeFrame].entityData.Unmap();
 
             NativeBuffer<SceneData> nativeSceneData = new NativeBuffer<SceneData>(_frames[writeFrame].sceneBuffer.Map());
             SceneData data = new SceneData
@@ -353,6 +366,7 @@ namespace Cobalt.Graphics
                 SunColor = new Vector3(1, 1, 1)
             }; 
             nativeSceneData.Set(data);
+            _frames[writeFrame].sceneBuffer.Unmap();
         }
 
         private bool _AddComponent<T>(ComponentAddEvent<T> data) 

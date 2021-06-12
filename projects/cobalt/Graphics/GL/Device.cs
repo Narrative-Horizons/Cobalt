@@ -1,9 +1,12 @@
 ﻿using Cobalt.Bindings.Utils;
 using Cobalt.Core;
 using Cobalt.Graphics.API;
+using NAudio.Wave;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading;
 using OpenGL = Cobalt.Bindings.GL.GL;
 using Phonon = Cobalt.Bindings.Phonon.Phonon;
 
@@ -46,7 +49,8 @@ namespace Cobalt.Graphics.GL
 
             OpenGL.DebugMessageCallback(debugCallback, IntPtr.Zero);
 
-            Phonon.CreateContext(null, null, null, out IntPtr phononContext);
+            // TESTING CODE BELOW
+            /*Phonon.CreateContext(null, null, null, out IntPtr phononContext);
 
             Phonon.RenderingSettings rSettings = new Phonon.RenderingSettings
             {
@@ -79,16 +83,46 @@ namespace Cobalt.Graphics.GL
 
             Phonon.CreateBinauralEffect(audioRenderer, mono, stereo, out IntPtr audioEffect);
 
+            var audioFile = new AudioFileReader("data/sound.wav");
+            MemoryStream audioStream = new MemoryStream();
+            audioFile.CopyTo(audioStream);
+
+            byte[] audioData = audioStream.ToArray();
+
+            GCHandle audioHandle = GCHandle.Alloc(audioData, GCHandleType.Pinned);
+
             Phonon.AudioBuffer inBuffer = new Phonon.AudioBuffer
             {
                 format = mono,
                 numSamples = 1024,
-                interleavedBuffer = IntPtr.Zero
+                interleavedBuffer = audioHandle.AddrOfPinnedObject()
             };
+
+            //GCHandle h = GCHandle.FromIntPtr(inBuffer.interleavedBuffer);
+            //byte[] inBufferData = h.Target as byte[];
+
+            WaveFileReader wr = new WaveFileReader("data/sound.wav");
+            var x = wr.WaveFormat;
+
+            var soundStream = audioStream;
+            var rs = new RawSourceWaveStream(audioStream, x);
+
+            
+            using (var wo = new WaveOutEvent())
+            {
+                wo.Init(rs);
+                wo.Play();
+                while (wo.PlaybackState == PlaybackState.Playing)
+                {
+                    Thread.Sleep(500);
+                }
+            }
+
+            int jonathan = 0;
 
             Phonon.DestroyBinauralEffect(ref audioEffect);
             Phonon.DestroyBinauralRenderer(ref audioRenderer);
-            Phonon.DestroyContext(ref phononContext);
+            Phonon.DestroyContext(ref phononContext);*/
         }
 
         private static void DebugCallback(Bindings.GL.EDebugSource source, Bindings.GL.EDebugType type, uint id, Bindings.GL.EDebugSeverity severity, int length, IntPtr messagePtr, IntPtr userParam)

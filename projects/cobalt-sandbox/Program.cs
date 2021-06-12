@@ -129,6 +129,7 @@ namespace Cobalt.Sandbox
 
             while (window.IsOpen())
             {
+                reg.Get<TransformComponent>(meshEntity).TransformMatrix *= Matrix4.Rotate(new Vector3(0, 0.01f, 0));
                 window.Poll(); 
                 if(Input.IsKeyPressed(Bindings.GLFW.Keys.Escape))
                 {

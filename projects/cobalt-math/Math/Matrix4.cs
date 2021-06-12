@@ -560,6 +560,7 @@ namespace Cobalt.Math
             ret[2, 2] = m22;
             ret[2, 3] = 1.0f;
             ret[3, 2] = m32;
+            ret[3, 3] = 0.0f;
 
             return ret;
         }

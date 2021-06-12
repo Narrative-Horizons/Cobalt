@@ -113,9 +113,12 @@ namespace Cobalt.Core
             foreach(Mesh mesh in node.meshes)
             {
                 Entity meshEntity = registry.Create();
-                TransformComponent meshTransform = new TransformComponent();
-                meshTransform.Parent = registry.Get<TransformComponent>(parent);
-                meshTransform.TransformMatrix = Matrix4.Identity;
+                TransformComponent meshTransform = new TransformComponent
+                {
+                    Parent = registry.Get<TransformComponent>(parent),
+                    TransformMatrix = Matrix4.Identity
+                };
+
                 registry.Assign(meshEntity, meshTransform);
 
                 RenderableMesh rMesh = renderableMeshes.Find(rMesh => rMesh.localMesh.GUID == mesh.GUID);

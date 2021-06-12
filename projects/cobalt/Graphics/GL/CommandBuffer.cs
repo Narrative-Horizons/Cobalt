@@ -37,12 +37,17 @@ namespace Cobalt.Graphics.GL
 
         public void Bind(IGraphicsPipeline pipeline)
         {
-            Commands.Add(new GL.Commands.BindGraphicsPipelineCommand(pipeline as GraphicsPipeline));
+            Commands.Add(new BindGraphicsPipelineCommand(pipeline as GraphicsPipeline));
+        }
+
+        public void Bind(IComputePipeline pipeline)
+        {
+            Commands.Add(new BindComputePipelineCommand(pipeline as ComputePipeline));
         }
 
         public void Bind(IVertexAttributeArray vao)
         {
-            Commands.Add(new GL.Commands.BindVertexArrayObjectCommand(vao as VertexAttributeArray));
+            Commands.Add(new BindVertexArrayObjectCommand(vao as VertexAttributeArray));
         }
 
         public void Bind(IPipelineLayout layout, int firstSet, List<IDescriptorSet> sets)
@@ -88,6 +93,11 @@ namespace Cobalt.Graphics.GL
         public void DrawElementsMultiIndirect(DrawElementsIndirectCommand indirect, int offset, IBuffer indirectBuffer)
         {
             Commands.Add(new MultiDrawElementsIndirectCommand(indirect, offset, indirectBuffer));
+        }
+
+        public void Dispatch(uint x, uint y, uint z)
+        {
+            Commands.Add(new DispatchComputeCommand(x, y, z));
         }
 
         public void End()

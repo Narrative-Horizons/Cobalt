@@ -421,3 +421,8 @@ GLAD_BINDING_EXPORT void cobalt_gl_memory_barrier(unsigned int barrier)
 {
 	glMemoryBarrier(barrier);
 }
+
+GLAD_BINDING_EXPORT void cobalt_gl_dispatch_compute(unsigned int x, unsigned int y, unsigned int z)
+{
+	glDispatchCompute(x, y, z);
+}

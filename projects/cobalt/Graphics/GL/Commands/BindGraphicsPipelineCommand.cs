@@ -21,7 +21,7 @@ namespace Cobalt.Graphics.GL.Commands
         public void Execute()
         {
             StateMachine.UseProgram(Pipeline);
-            StateMachine.Enable(Bindings.GL.EEnableCap.DepthTest, Pipeline.Info.DepthStencilCreationInformation.DepthTestEnabled);
+            StateMachine.Enable(EEnableCap.DepthTest, Pipeline.Info.DepthStencilCreationInformation.DepthTestEnabled);
             if (Pipeline.Info.DepthStencilCreationInformation.DepthTestEnabled)
             {
                 StateMachine.DepthFunc(convert(Pipeline.Info.DepthStencilCreationInformation.DepthCompareOp));
@@ -33,34 +33,34 @@ namespace Cobalt.Graphics.GL.Commands
 
             if (Pipeline.Info.RasterizerCreationInformation != null)
             {
-                StateMachine.Enable(Bindings.GL.EEnableCap.DepthClamp, true);
+                StateMachine.Enable(EEnableCap.DepthClamp, true);
 
                 switch (Pipeline.Info.RasterizerCreationInformation.CullFaces)
                 {
-                    case API.EPolgyonFace.None: 
-                        StateMachine.Enable(Bindings.GL.EEnableCap.CullFace, false);
+                    case EPolgyonFace.None: 
+                        StateMachine.Enable(EEnableCap.CullFace, false);
                         break;
-                    case API.EPolgyonFace.Back:
-                        StateMachine.Enable(Bindings.GL.EEnableCap.CullFace, true);
-                        StateMachine.CullFace(Bindings.GL.ECullFaceMode.Back);
+                    case EPolgyonFace.Back:
+                        StateMachine.Enable(EEnableCap.CullFace, true);
+                        StateMachine.CullFace(ECullFaceMode.Back);
                         break;
-                    case API.EPolgyonFace.Front:
-                        StateMachine.Enable(Bindings.GL.EEnableCap.CullFace, true);
-                        StateMachine.CullFace(Bindings.GL.ECullFaceMode.Front);
+                    case EPolgyonFace.Front:
+                        StateMachine.Enable(EEnableCap.CullFace, true);
+                        StateMachine.CullFace(ECullFaceMode.Front);
                         break;
-                    case API.EPolgyonFace.FrontAndBack:
-                        StateMachine.Enable(Bindings.GL.EEnableCap.CullFace, true);
-                        StateMachine.CullFace(Bindings.GL.ECullFaceMode.FrontAndBack);
+                    case EPolgyonFace.FrontAndBack:
+                        StateMachine.Enable(EEnableCap.CullFace, true);
+                        StateMachine.CullFace(ECullFaceMode.FrontAndBack);
                         break;
                 }
 
                 switch (Pipeline.Info.RasterizerCreationInformation.WindingOrder)
                 {
-                    case API.EVertexWindingOrder.Clockwise:
-                        StateMachine.FrontFace(Bindings.GL.EFrontFaceDirection.Cw);
+                    case EVertexWindingOrder.Clockwise:
+                        StateMachine.FrontFace(EFrontFaceDirection.Cw);
                         break;
-                    case API.EVertexWindingOrder.CounterClockwise:
-                        StateMachine.FrontFace(Bindings.GL.EFrontFaceDirection.Ccw);
+                    case EVertexWindingOrder.CounterClockwise:
+                        StateMachine.FrontFace(EFrontFaceDirection.Ccw);
                         break;
                 }
 

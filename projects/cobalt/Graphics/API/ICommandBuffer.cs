@@ -1,5 +1,4 @@
-﻿using Cobalt.Math;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Cobalt.Graphics.API
@@ -335,8 +334,10 @@ namespace Cobalt.Graphics.API
                     return this;
                 }
 
-                public ImageMemoryBarrier Build() {
-                    return new ImageMemoryBarrier() {
+                public ImageMemoryBarrier Build()
+                {
+                    return new ImageMemoryBarrier()
+                    {
                         SrcAccess = base.SrcAccess,
                         DstAccess = base.DstAccess,
                         SrcLayout = base.SrcLayout,
@@ -375,7 +376,10 @@ namespace Cobalt.Graphics.API
 
         void Bind(IGraphicsPipeline pipeline);
 
+        void Bind(IComputePipeline pipeline);
+
         void Bind(IVertexAttributeArray vao);
+
         void Bind(EBufferUsage usage, IBuffer buffer);
 
         void Bind(IPipelineLayout layout, int firstSet, List<IDescriptorSet> sets);
@@ -389,6 +393,8 @@ namespace Cobalt.Graphics.API
         void DrawElements(int elementCount, int baseVertex, int baseInstance, int instanceCount, long indexOffset);
 
         void DrawElementsMultiIndirect(DrawElementsIndirectCommand indirect, int offset, IBuffer indirectBuffer);
+
+        void Dispatch(uint x, uint y, uint z);
 
         void Copy(IBuffer source, IBuffer destination, List<BufferCopyRegion> regions);
         void Copy(byte[] source, IImage destination, List<BufferImageCopyRegion> regions);

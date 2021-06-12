@@ -318,5 +318,10 @@ namespace Cobalt.Graphics.GL
             Fences.Add(fence);
             return fence;
         }
+
+        public IComputePipeline CreateComputePipeline(IComputePipeline.CreateInfo info)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

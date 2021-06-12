@@ -173,6 +173,16 @@ namespace Cobalt.Graphics.GL
             }
         }
 
+        public static void UseProgram(ComputePipeline pipeline)
+        {
+            uint handle = pipeline.Handle;
+            if (handle != _currentProgram)
+            {
+                _currentProgram = handle;
+                OpenGL.UseProgram(handle);
+            }
+        }
+
         public static void BindVertexArray(VertexAttributeArray vao)
         {
             uint handle = vao.Handle; 

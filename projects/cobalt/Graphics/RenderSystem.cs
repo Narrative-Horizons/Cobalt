@@ -201,12 +201,13 @@ namespace Cobalt.Graphics
         {
             _Build(frameInFlight, camera);
 
-            /*cShader.Update();
+            cShader.Update();
 
             buffer.Bind(cShader._pipeline);
-            buffer.Dispatch(1, 0, 0);
+            buffer.Bind(cShader._layout, 0, new List<IDescriptorSet>() { cShader.set });
+            buffer.Dispatch(1, 1, 1);
 
-            buffer.Sync();*/
+            buffer.Sync();
 
             int idx = 0;
 

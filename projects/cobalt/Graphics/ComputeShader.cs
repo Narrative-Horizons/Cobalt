@@ -21,12 +21,15 @@ namespace Cobalt.Graphics
         {
             public int amount;
             public int result;
-            public int number;
+            public unsafe fixed int numbers[16];
         }
 
         public IBuffer computeBuffer;
 
         private IDevice device;
+
+        public IDescriptorSet set;
+        public IPipelineLayout _layout;
 
         public ComputeShader(IDevice device, string computeSource)
         {
@@ -35,7 +38,7 @@ namespace Cobalt.Graphics
             IShaderModule computeModule = device.CreateShaderModule(new IShaderModule.CreateInfo.Builder().Type(EShaderType.Compute)
                 .ResourceStream(new MemoryStream(Encoding.UTF8.GetBytes(computeSource))));
 
-            IPipelineLayout layout = device.CreatePipelineLayout(new IPipelineLayout.CreateInfo.Builder().AddDescriptorSetLayout(device.CreateDescriptorSetLayout(
+            _layout = device.CreatePipelineLayout(new IPipelineLayout.CreateInfo.Builder().AddDescriptorSetLayout(device.CreateDescriptorSetLayout(
                     new IDescriptorSetLayout.CreateInfo.Builder()
                     .AddBinding(new IDescriptorSetLayout.DescriptorSetLayoutBinding.Builder()
                         .BindingIndex(0)
@@ -47,16 +50,16 @@ namespace Cobalt.Graphics
                 .Build());
 
             IDescriptorPool pool = device.CreateDescriptorPool(new IDescriptorPool.CreateInfo.Builder().AddPoolSize(EDescriptorType.StorageBuffer, 1).MaxSetCount(1).Build());
-            IDescriptorSetLayout lay = layout.GetDescriptorSetLayouts()[0];
-            IDescriptorSet set = pool.Allocate(new IDescriptorSet.CreateInfo.Builder().AddLayout(lay).Build())[0];
+            IDescriptorSetLayout lay = _layout.GetDescriptorSetLayouts()[0];
+            set = pool.Allocate(new IDescriptorSet.CreateInfo.Builder().AddLayout(lay).Build())[0];
 
-            _pipeline = device.CreateComputePipeline(new IComputePipeline.CreateInfo.Builder().Stage(new ShaderStageCreateInfo.Builder().EntryPoint("main").Module(computeModule).Build()).Layout(layout).Build());
+            _pipeline = device.CreateComputePipeline(new IComputePipeline.CreateInfo.Builder().Stage(new ShaderStageCreateInfo.Builder().EntryPoint("main").Module(computeModule).Build()).Layout(_layout).Build());
 
-            computeBuffer = device.CreateBuffer(new IBuffer.CreateInfo<ComputeBuffer>.Builder().AddUsage(EBufferUsage.StorageBuffer).Size(16), 
+            computeBuffer = device.CreateBuffer(new IBuffer.CreateInfo<ComputeBuffer>.Builder().AddUsage(EBufferUsage.StorageBuffer).Size(18 * 4), 
                 new IBuffer.MemoryInfo.Builder().Usage(EMemoryUsage.CPUToGPU).AddRequiredProperty(EMemoryProperty.HostCoherent).AddRequiredProperty(EMemoryProperty.HostVisible));
 
             DescriptorWriteInfo writeInfo = new DescriptorWriteInfo.Builder().BindingIndex(0).DescriptorSet(set).ArrayElement(0).AddBufferInfo(new DescriptorWriteInfo.DescriptorBufferInfo.Builder()
-                .Offset(0).Range(16).Buffer(computeBuffer).Build()).Build();
+                .Offset(0).Range(18 * 4).Buffer(computeBuffer).Build()).Build();
 
             device.UpdateDescriptorSets(new List<DescriptorWriteInfo>() { writeInfo });
         }
@@ -64,14 +67,19 @@ namespace Cobalt.Graphics
         public void Update()
         {
             ComputeBuffer data = new ComputeBuffer();
-            data.amount = 1;
+            data.amount = 16; 
             data.result = 0;
-            data.number = 244;
-
+            for (int i = 0; i < data.amount; i++)
+            {
+                unsafe
+                {
+                    data.numbers[i] = i;
+                }
+            }
             NativeBuffer<ComputeBuffer> nativeData = new NativeBuffer<ComputeBuffer>(computeBuffer.Map());
-            //ComputeBuffer compare = nativeData.Get();
-            nativeData.Set(data);
+            ComputeBuffer compare = nativeData.Get();
+            nativeData.Set(data, 0);
             computeBuffer.Unmap();
-        }
+        } 
     }
 }

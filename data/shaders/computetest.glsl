@@ -6,10 +6,16 @@ layout(std430, binding = 0) buffer ComputeData
 {
     int amount;
     int result;
-    int number;
+    int numbers[];
 };
 
 void main()
 {
-    result = number;
+    int r = 0;
+    for(int i = 0; i < amount; i++)
+    {
+        r += numbers[i];
+    }
+
+    result = r;
 }

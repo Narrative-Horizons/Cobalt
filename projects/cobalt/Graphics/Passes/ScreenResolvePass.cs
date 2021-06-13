@@ -81,7 +81,7 @@ namespace Cobalt.Graphics.Passes
             SourceImage = input.Image.GetImage();
         }
 
-        public override void Record(ICommandBuffer buffer, FrameInfo info, DrawInfo draw)
+        public override bool Record(ICommandBuffer buffer, FrameInfo info, DrawInfo draw)
         {
             IFrameBuffer renderTo = swapchain.GetFrameBuffer(info.frameInFlight);
 
@@ -118,6 +118,8 @@ namespace Cobalt.Graphics.Passes
             buffer.Bind(VAO);
             buffer.Bind(Shader.Layout, 0, new List<IDescriptorSet>() { DescriptorSets[info.frameInFlight] });
             buffer.Draw(0, 6, 0, 1);
+        
+            return true;
         }
     }
 }

@@ -65,7 +65,7 @@ namespace Cobalt.Graphics.Passes
                     .Format(EDataFormat.D32_SFLOAT)));
         }
 
-        public override void Record(ICommandBuffer buffer, FrameInfo info, DrawInfo draw)
+        public override bool Record(ICommandBuffer buffer, FrameInfo info, DrawInfo draw)
         {
             buffer.BeginRenderPass(new ICommandBuffer.RenderPassBeginInfo
             {
@@ -79,6 +79,8 @@ namespace Cobalt.Graphics.Passes
             buffer.Bind(_shader.Pipeline);
             buffer.Bind(_shader.Layout, 0, draw.descriptorSets);
             Draw(buffer, draw);
+
+            return false;
         }
     }
 }

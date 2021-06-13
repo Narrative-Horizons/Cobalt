@@ -131,6 +131,24 @@ namespace Cobalt.Graphics.GL
             OpenGL.BindBuffer(target, ((IHandledType)buffer).GetHandle());
         }
 
+        internal static void BlendFunc(uint i, EBlendFactor sourceColorFactor, EBlendFactor destinationColorFactor, EBlendFactor sourceAlphaFactor, EBlendFactor destinationAlphaFactor)
+        {
+            EBlendingFactorSrc colorSrc = _convertSrc(sourceColorFactor);
+            EBlendingFactorDest colorDst = _convertDst(destinationColorFactor);
+            EBlendingFactorSrc alphaSrc = _convertSrc(sourceAlphaFactor);
+            EBlendingFactorDest alphaDst = _convertDst(destinationAlphaFactor);
+
+            OpenGL.BlendFuncI(i, colorSrc, colorDst, alphaSrc, alphaDst);
+        }
+
+        internal static void BlendEquation(uint i, EBlendOp colorBlendOp, EBlendOp alphaBlendOp)
+        {
+            EBlendEquationMode alpha = _convert(alphaBlendOp);
+            EBlendEquationMode color = _convert(colorBlendOp);
+
+            OpenGL.BlendEquationI(i, color, alpha);
+        }
+
         internal static void BindStorageBufferRange(uint index, IBuffer buffer, int offset, int range)
         {
             OpenGL.BindBufferRange(EBufferTarget.ShaderStorageBuffer, index, ((IHandledType)buffer).GetHandle(), offset, range);
@@ -236,6 +254,101 @@ namespace Cobalt.Graphics.GL
             _cachedHandles.Add(wrapper, handle);
 
             return handle;
+        }
+
+        internal static EBlendEquationMode _convert(EBlendOp op)
+        {
+            switch (op)
+            {
+                case EBlendOp.Add:
+                    return EBlendEquationMode.FuncAdd;
+                case EBlendOp.Subtract:
+                    return EBlendEquationMode.FuncSubtract;
+                case EBlendOp.ReverseSubtract:
+                    return EBlendEquationMode.FuncReverseSubtract;
+                case EBlendOp.Minimum:
+                    return EBlendEquationMode.Min;
+                case EBlendOp.Maximum:
+                    return EBlendEquationMode.Max;
+            }
+
+            throw new InvalidOperationException("Cannot determine op mode.");
+        }
+
+        internal static EBlendingFactorDest _convertDst(EBlendFactor factor)
+        {
+            switch (factor)
+            {
+                case EBlendFactor.Zero:
+                    return EBlendingFactorDest.Zero;
+                case EBlendFactor.One:
+                    return EBlendingFactorDest.One;
+                case EBlendFactor.SrcColor:
+                    return EBlendingFactorDest.SrcColor;
+                case EBlendFactor.OneMinusSrcColor:
+                    return EBlendingFactorDest.OneMinusSrcColor;
+                case EBlendFactor.DstColor:
+                    return EBlendingFactorDest.DstColor;
+                case EBlendFactor.OneMinusDstColor:
+                    return EBlendingFactorDest.OneMinusDstColor;
+                case EBlendFactor.SrcAlpha:
+                    return EBlendingFactorDest.SrcAlpha;
+                case EBlendFactor.OneMinusSrcAlpha:
+                    return EBlendingFactorDest.OneMinusSrcAlpha;
+                case EBlendFactor.DstAlpha:
+                    return EBlendingFactorDest.DstAlpha;
+                case EBlendFactor.OneMinusDstAlpha:
+                    return EBlendingFactorDest.OneMinusDstAlpha;
+                case EBlendFactor.ConstantColor:
+                    return EBlendingFactorDest.ConstantColor;
+                case EBlendFactor.OneMinusConstantColor:
+                    return EBlendingFactorDest.OneMinusConstantColor;
+                case EBlendFactor.ConstantAlpha:
+                    return EBlendingFactorDest.ConstantAlpha;
+                case EBlendFactor.OneMinusConstantAlpha:
+                    return EBlendingFactorDest.OneMinusConstantAlpha;
+                case EBlendFactor.AlphaSaturate:
+                    break;
+            }
+            throw new InvalidOperationException("Cannot determine factor.");
+        }
+
+        internal static EBlendingFactorSrc _convertSrc(EBlendFactor factor)
+        {
+            switch (factor)
+            {
+                case EBlendFactor.Zero:
+                    return EBlendingFactorSrc.Zero;
+                case EBlendFactor.One:
+                    return EBlendingFactorSrc.One;
+                case EBlendFactor.SrcColor:
+                    break;
+                case EBlendFactor.OneMinusSrcColor:
+                    break;
+                case EBlendFactor.DstColor:
+                    return EBlendingFactorSrc.DstColor;
+                case EBlendFactor.OneMinusDstColor:
+                    return EBlendingFactorSrc.OneMinusDstColor;
+                case EBlendFactor.SrcAlpha:
+                    return EBlendingFactorSrc.SrcAlpha;
+                case EBlendFactor.OneMinusSrcAlpha:
+                    return EBlendingFactorSrc.OneMinusSrcAlpha;
+                case EBlendFactor.DstAlpha:
+                    return EBlendingFactorSrc.DstAlpha;
+                case EBlendFactor.OneMinusDstAlpha:
+                    return EBlendingFactorSrc.OneMinusDstAlpha;
+                case EBlendFactor.ConstantColor:
+                    return EBlendingFactorSrc.ConstantColor;
+                case EBlendFactor.OneMinusConstantColor:
+                    return EBlendingFactorSrc.OneMinusConstantColor;
+                case EBlendFactor.ConstantAlpha:
+                    return EBlendingFactorSrc.ConstantAlpha;
+                case EBlendFactor.OneMinusConstantAlpha:
+                    return EBlendingFactorSrc.OneMinusConstantAlpha;
+                case EBlendFactor.AlphaSaturate:
+                    return EBlendingFactorSrc.SrcAlphaSaturate;
+            }
+            throw new InvalidOperationException("Cannot determine factor.");
         }
     }
 }

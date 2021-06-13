@@ -127,7 +127,7 @@ namespace Cobalt.Graphics.GL
 
         private static void DebugCallback(Bindings.GL.EDebugSource source, Bindings.GL.EDebugType type, uint id, Bindings.GL.EDebugSeverity severity, int length, IntPtr messagePtr, IntPtr userParam)
         {
-            return; 
+#if !RELEASE
             string debugMessage = source.ToString() + " (" + type.ToString() + "): " + Util.PtrToStringUTF8(messagePtr);
 
             switch (severity)
@@ -145,6 +145,7 @@ namespace Cobalt.Graphics.GL
                     Logger.Log.Info(debugMessage);
                     break;
             }
+#endif
         }
 
         public void Dispose()

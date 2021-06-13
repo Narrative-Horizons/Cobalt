@@ -37,7 +37,7 @@ namespace Cobalt.Graphics
             Device = device;
         }
 
-        public abstract void Record(ICommandBuffer buffer, FrameInfo info, DrawInfo draw);
+        public abstract bool Record(ICommandBuffer buffer, FrameInfo info, DrawInfo draw);
 
         protected void Draw(ICommandBuffer buffer, DrawInfo draw)
         {

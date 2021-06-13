@@ -62,6 +62,12 @@ namespace Cobalt.Graphics
                     return this;
                 }
 
+                public new Builder ColorBlendInfo(ColorBlendCreateInfo blendInfo)
+                {
+                    base.ColorBlendInfo = blendInfo;
+                    return this;
+                }
+
                 public CreateInfo Build()
                 {
                     return new CreateInfo()
@@ -72,7 +78,8 @@ namespace Cobalt.Graphics
                         TessControlSource = base.TessControlSource,
                         TessEvalSource = base.TessEvalSource,
                         ComputeSource = base.ComputeSource,
-                        DepthInfo = base.DepthInfo
+                        DepthInfo = base.DepthInfo,
+                        ColorBlendInfo = base.ColorBlendInfo
                     };
                 }
             }
@@ -87,6 +94,7 @@ namespace Cobalt.Graphics
                         .DepthTestEnabled(true)
                         .DepthWriteEnabled(true)
                         .DepthCompareOp(ECompareOp.Less).Build();
+            public ColorBlendCreateInfo ColorBlendInfo { get; private set; }
         }
 
         static bool first = true;
@@ -276,6 +284,7 @@ namespace Cobalt.Graphics
                         .AlphaToOneEnabled(false)
                         .AlphaToCoverageEnabled(false)
                         .Samples(ESampleCount.Samples1).Build())
+                .ColorBlendCreationInformation(createInfo.ColorBlendInfo)
                 .PipelineLayout(layout).Build();
 
                 Pipeline = device.CreateGraphicsPipeline(pipelineCreateInfo);

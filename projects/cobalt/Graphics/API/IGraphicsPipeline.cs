@@ -705,6 +705,12 @@ namespace Cobalt.Graphics.API
                     return this;
                 }
 
+                public new Builder ColorBlendCreationInformation(ColorBlendCreateInfo info)
+                {
+                    base.ColorBlendCreationInformation = info;
+                    return this;
+                }
+
                 public CreateInfo Build()
                 {
                     return new CreateInfo()
@@ -731,6 +737,7 @@ namespace Cobalt.Graphics.API
             public ViewportCreateInfo ViewportCreationInformation { get; private set; }
             public RasterizerCreateInfo RasterizerCreationInformation { get; private set; }
             public MultisampleCreateInfo MultisamplingCreationInformation { get; private set; }
+            public ColorBlendCreateInfo ColorBlendCreationInformation { get; private set; }
             public DynamicStateCreateInfo DynamicStateCreationInformation { get; private set; }
             public DepthStencilCreateInfo DepthStencilCreationInformation { get; private set; }
             public IRenderPass RenderPass { get; private set; }

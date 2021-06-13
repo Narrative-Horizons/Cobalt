@@ -77,6 +77,22 @@ namespace Cobalt.Graphics.GL.Commands
                         break;
                 }
             }
+        
+            if (Pipeline.Info.ColorBlendCreationInformation != null)
+            {
+                StateMachine.Enable(EEnableCap.Blend, true);
+                uint i = 0;
+                foreach (var blendstate in Pipeline.Info.ColorBlendCreationInformation.Blend)
+                {
+                    StateMachine.BlendEquation(i, blendstate.ColorBlendOp, blendstate.AlphaBlendOp);
+                    StateMachine.BlendFunc(i, blendstate.SourceColorFactor, blendstate.DestinationColorFactor, blendstate.SourceAlphaFactor, blendstate.DestinationAlphaFactor);
+                    ++i;
+                }
+            }
+            else
+            {
+                StateMachine.Enable(EEnableCap.Blend, false);
+            }
         }
 
         private static EDepthFunction convert(ECompareOp op) 

@@ -294,7 +294,6 @@ namespace Cobalt.Core
         internal unsafe AssimpTextureData GetTexture(Material* material, TextureType type, uint index)
         {
             Assimp assimp = Assimp.GetApi();
-
             AssimpTextureData data = new AssimpTextureData();
             AssimpString path = new AssimpString();
 

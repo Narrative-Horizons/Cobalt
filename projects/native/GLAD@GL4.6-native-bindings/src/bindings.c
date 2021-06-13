@@ -426,3 +426,13 @@ GLAD_BINDING_EXPORT void cobalt_gl_dispatch_compute(unsigned int x, unsigned int
 {
 	glDispatchCompute(x, y, z);
 }
+
+GLAD_BINDING_EXPORT void cobalt_gl_blend_equation_i(unsigned int buffer, unsigned int color, unsigned int alpha)
+{
+	glBlendEquationSeparatei(buffer, color, alpha);
+}
+
+GLAD_BINDING_EXPORT void cobalt_gl_blend_func_i(unsigned int buffer, unsigned int colorSrc, unsigned int colorDst, unsigned int alphaSrc, unsigned int alphaDst)
+{
+	glBlendFuncSeparatei(buffer, colorSrc, colorDst, alphaSrc, alphaDst);
+}

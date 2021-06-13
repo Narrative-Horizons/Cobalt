@@ -11,7 +11,7 @@ namespace Cobalt.Entities.Components
 
     public class PbrMaterialComponent : BaseComponent
     {
-        public EMaterialType Type;
+        public EMaterialType Type = EMaterialType.Opaque;
         public Texture Albedo;
         public Texture Normal;
         public Texture Emission;

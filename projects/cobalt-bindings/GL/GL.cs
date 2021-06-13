@@ -272,6 +272,12 @@ namespace Cobalt.Bindings.GL
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_dispatch_compute", CallingConvention = CallingConvention.Cdecl)]
         public static extern void DispatchCompute(uint x, uint y, uint z);
 
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_blend_func_i", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void BlendFuncI(uint buffer, EBlendingFactorSrc colorSrc, EBlendingFactorDest colorDst, EBlendingFactorSrc alphaSrc, EBlendingFactorDest alphaDst);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_blend_equation_i", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void BlendEquationI(uint buffer, EBlendEquationMode color, EBlendEquationMode alpha);
+
         public static void NamedBufferStorageTyped<T>(uint buffer, long size, [NotNull] [In, Out] T[] data, EBufferAccessMask flags) where T : unmanaged
         {
             unsafe

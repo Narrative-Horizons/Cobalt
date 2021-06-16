@@ -1,5 +1,6 @@
 ﻿using Cobalt.Core;
 using Cobalt.Entities;
+using Cobalt.Entities.Components;
 using Cobalt.Graphics.API;
 using System.Collections.Generic;
 
@@ -78,7 +79,7 @@ namespace Cobalt.Graphics.Passes
 
             buffer.Bind(_shader.Pipeline);
             buffer.Bind(_shader.Layout, 0, draw.descriptorSets);
-            Draw(buffer, draw);
+            Draw(buffer, draw, EMaterialType.Opaque);
 
             return false;
         }

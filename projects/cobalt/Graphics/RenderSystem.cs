@@ -5,6 +5,7 @@ using Cobalt.Events;
 using Cobalt.Graphics.API;
 using Cobalt.Graphics.Passes;
 using Cobalt.Math;
+using System;
 using System.Collections.Generic;
 using static Cobalt.Graphics.RenderPass;
 
@@ -126,7 +127,7 @@ namespace Cobalt.Graphics
         private readonly ZPrePass _zPrePass;
         private readonly PbrRenderPass _pbrPass;
         private readonly ScreenResolvePass _screenResolvePass;
-        private readonly HashSet<Entity> _renderables = new HashSet<Entity>();
+        private readonly Dictionary<EMaterialType, HashSet<Entity>> _renderables = new Dictionary<EMaterialType, HashSet<Entity>>();
         private readonly Dictionary<PbrMaterialComponent, uint> _materialIndices = new Dictionary<PbrMaterialComponent, uint>();
         private readonly MaterialPayload[] _materials = new MaterialPayload[1024];
         private readonly List<Texture> _textures = new List<Texture>();
@@ -134,7 +135,7 @@ namespace Cobalt.Graphics
         private readonly IDevice _device;
         private readonly List<FrameData> _frames = new List<FrameData>();
         private readonly Registry _registry;
-        private readonly Dictionary<IVertexAttributeArray, Dictionary<RenderableMesh, List<EntityData>>> _framePayload = new Dictionary<IVertexAttributeArray, Dictionary<RenderableMesh, List<EntityData>>>();
+        private readonly Dictionary<EMaterialType, Dictionary<IVertexAttributeArray, Dictionary<RenderableMesh, List<EntityData>>>> _framePayload = new Dictionary<EMaterialType, Dictionary<IVertexAttributeArray, Dictionary<RenderableMesh, List<EntityData>>>>();
 
         private static readonly uint MAT_NOT_FOUND = uint.MaxValue;
         private static readonly uint TEX_NOT_FOUND = uint.MaxValue;
@@ -144,6 +145,12 @@ namespace Cobalt.Graphics
 
         public PbrPipeline(Registry registry, IDevice device, ISwapchain swapchain)
         {
+            foreach (EMaterialType type in Enum.GetValues(typeof(EMaterialType)))
+            {
+                _framePayload.Add(type, new Dictionary<IVertexAttributeArray, Dictionary<RenderableMesh, List<EntityData>>>());
+                _renderables.Add(type, new HashSet<Entity>());
+            }
+
             int framesInFlight = (int) swapchain.GetImageCount();
             
             IPipelineLayout layout = device.CreatePipelineLayout(new IPipelineLayout.CreateInfo.Builder().AddDescriptorSetLayout(device.CreateDescriptorSetLayout(
@@ -213,37 +220,43 @@ namespace Cobalt.Graphics
 
             DrawInfo drawInfo = new DrawInfo();
             drawInfo.indirectDrawBuffer = _frames[frameInFlight].indirectBuffer;
-            drawInfo.payload = new Dictionary<IVertexAttributeArray, DrawCommand>();
+            drawInfo.payload = new Dictionary<EMaterialType, Dictionary<IVertexAttributeArray, DrawCommand>>();
             drawInfo.descriptorSets = new List<IDescriptorSet>() { _frames[frameInFlight].descriptorSet };
 
             DrawElementsIndirectCommand drawData = new DrawElementsIndirectCommand();
             NativeBuffer<DrawElementsIndirectCommandPayload> nativeIndirectData = new NativeBuffer<DrawElementsIndirectCommandPayload>(_frames[frameInFlight].indirectBuffer.Map());
-            foreach (var obj in _framePayload)
+            
+            foreach (var (type, payload) in _framePayload)
             {
-                DrawCommand cmd = new DrawCommand();
-                cmd.bufferOffset = drawData.Data.Count * 20;
-                cmd.indirect = drawData;
-                drawInfo.payload.Add(obj.Key, cmd);
-
-                foreach (var child in obj.Value)
+                var items = new Dictionary<IVertexAttributeArray, DrawCommand>();
+                drawInfo.payload.Add(type, items);
+                foreach (var obj in payload)
                 {
-                    RenderableMesh mesh = child.Key;
-                    List<EntityData> instances = child.Value;
+                    DrawCommand cmd = new DrawCommand();
+                    cmd.bufferOffset = drawData.Data.Count * 20;
+                    cmd.indirect = drawData;
+                    items.Add(obj.Key, cmd);
 
-                    DrawElementsIndirectCommandPayload pay = new DrawElementsIndirectCommandPayload
+                    foreach (var child in obj.Value)
                     {
-                        BaseVertex = mesh.baseVertex,
-                        FirstIndex = mesh.baseIndex,
-                        BaseInstance = (uint)idx,
-                        Count = mesh.indexCount,
-                        InstanceCount = (uint)instances.Count
-                    };
+                        RenderableMesh mesh = child.Key;
+                        List<EntityData> instances = child.Value;
 
-                    drawData.Add(pay);
+                        DrawElementsIndirectCommandPayload pay = new DrawElementsIndirectCommandPayload
+                        {
+                            BaseVertex = mesh.baseVertex,
+                            FirstIndex = mesh.baseIndex,
+                            BaseInstance = (uint)idx,
+                            Count = mesh.indexCount,
+                            InstanceCount = (uint)instances.Count
+                        };
 
-                    nativeIndirectData.Set(pay);
+                        drawData.Add(pay);
 
-                    idx += instances.Count;
+                        nativeIndirectData.Set(pay);
+
+                        idx += instances.Count;
+                    }
                 }
             }
             _frames[frameInFlight].indirectBuffer.Unmap();
@@ -315,21 +328,25 @@ namespace Cobalt.Graphics
                 foreach (var (mesh, entities) in _framePayload)
                     entities.Clear();
 
-            foreach(var renderable in _renderables)
+            foreach (var (type, renderables) in _renderables)
             {
-                PbrMaterialComponent matComponent = _registry.Get<PbrMaterialComponent>(renderable);
-                MeshComponent mesh = _registry.Get<MeshComponent>(renderable);
-                EntityData e = new EntityData { MaterialId = _GetOrInsert(matComponent), Transformation = _registry.Get<TransformComponent>(renderable).TransformMatrix };
-                RenderableMesh renderMesh = mesh.Mesh;
-                if (!_framePayload.ContainsKey(renderMesh.VAO))
+                var payload = _framePayload[type];
+                foreach (var renderable in renderables)
                 {
-                    _framePayload.Add(renderMesh.VAO, new Dictionary<RenderableMesh, List<EntityData>>());
+                    PbrMaterialComponent matComponent = _registry.Get<PbrMaterialComponent>(renderable);
+                    MeshComponent mesh = _registry.Get<MeshComponent>(renderable);
+                    EntityData e = new EntityData { MaterialId = _GetOrInsert(matComponent), Transformation = _registry.Get<TransformComponent>(renderable).TransformMatrix };
+                    RenderableMesh renderMesh = mesh.Mesh;
+                    if (!payload.ContainsKey(renderMesh.VAO))
+                    {
+                        payload.Add(renderMesh.VAO, new Dictionary<RenderableMesh, List<EntityData>>());
+                    }
+                    if (!payload[renderMesh.VAO].ContainsKey(renderMesh))
+                    {
+                        payload[renderMesh.VAO].Add(renderMesh, new List<EntityData>());
+                    }
+                    payload[renderMesh.VAO][renderMesh].Add(e);
                 }
-                if (!_framePayload[renderMesh.VAO].ContainsKey(renderMesh))
-                {
-                    _framePayload[renderMesh.VAO].Add(renderMesh, new List<EntityData>());
-                }
-                _framePayload[renderMesh.VAO][renderMesh].Add(e);
             }
 
             int writeFrame = (frameInFlight + 1) % _frames.Count;
@@ -344,11 +361,14 @@ namespace Cobalt.Graphics
 
             // Build uniform/shader storage buffers
             NativeBuffer<EntityData> nativeEntityData = new NativeBuffer<EntityData>(_frames[writeFrame].entityData.Map());
-            foreach (var (vao, meshes) in _framePayload)
+            foreach (var (type, framePayload) in _framePayload)
             {
-                foreach (var (mesh, instances) in meshes)
+                foreach (var (vao, meshes) in framePayload)
                 {
-                    instances.ForEach(instance => nativeEntityData.Set(instance));
+                    foreach (var (mesh, instances) in meshes)
+                    {
+                        instances.ForEach(instance => nativeEntityData.Set(instance));
+                    }
                 }
             }
             _frames[writeFrame].entityData.Unmap();
@@ -385,20 +405,28 @@ namespace Cobalt.Graphics
                 if (matComponent != default)
                 {
                     _GetOrInsert(matComponent);
-                    _renderables.Add(ent);
+                    _renderables[matComponent.Type].Add(ent);
                 }
             }
         }
 
         private bool _RemoveComponent<T>(ComponentRemoveEvent<T> data)
         {
-            _renderables.Remove(data.Entity);
+            PbrMaterialComponent matComponent = data.Registry.Get<PbrMaterialComponent>(data.Entity);
+            if (matComponent != default)
+            {
+                _renderables[matComponent.Type].Remove(data.Entity);
+            }
             return false;
         }
 
         private bool _RemoveEntity(EntityReleaseEvent data)
         {
-            _renderables.Remove(data.SpawnedEntity);
+            PbrMaterialComponent matComponent = data.SpawningRegistry.Get<PbrMaterialComponent>(data.SpawnedEntity);
+            if (matComponent != default)
+            {
+                _renderables[matComponent.Type].Remove(data.SpawnedEntity);
+            }
             return false;
         }
 

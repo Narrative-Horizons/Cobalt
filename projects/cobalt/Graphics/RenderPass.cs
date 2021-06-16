@@ -1,4 +1,5 @@
 ﻿using Cobalt.Core;
+using Cobalt.Entities.Components;
 using Cobalt.Graphics.API;
 using System.Collections.Generic;
 
@@ -23,7 +24,7 @@ namespace Cobalt.Graphics
         public struct DrawInfo
         {
             public List<IDescriptorSet> descriptorSets;
-            public Dictionary<IVertexAttributeArray, DrawCommand> payload;
+            public Dictionary<EMaterialType, Dictionary<IVertexAttributeArray, DrawCommand>> payload;
             public IBuffer indirectDrawBuffer;
         }
 
@@ -39,9 +40,9 @@ namespace Cobalt.Graphics
 
         public abstract bool Record(ICommandBuffer buffer, FrameInfo info, DrawInfo draw);
 
-        protected void Draw(ICommandBuffer buffer, DrawInfo draw)
+        protected void Draw(ICommandBuffer buffer, DrawInfo draw, EMaterialType type)
         {
-            foreach (var (vao, command) in draw.payload)
+            foreach (var (vao, command) in draw.payload[type])
             {
                 buffer.Bind(vao);
                 buffer.DrawElementsMultiIndirect(command.indirect, command.bufferOffset, draw.indirectDrawBuffer);

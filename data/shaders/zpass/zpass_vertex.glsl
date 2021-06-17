@@ -20,7 +20,7 @@ layout(std430, binding = 0) buffer ObjectDataBuffer
     ObjectData objects[];
 };
 
-layout(std140, binding = 3) uniform SceneData
+layout(std140, binding = 2) uniform SceneData
 {
     mat4 view;
     mat4 projection;
@@ -31,6 +31,8 @@ layout(std140, binding = 3) uniform SceneData
 
     vec3 sunDirection;
     vec3 sunColor;
+
+    uint aBufferCapacity;
 };
 
 void main()

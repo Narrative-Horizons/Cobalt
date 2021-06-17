@@ -13,6 +13,8 @@ namespace Cobalt.Graphics.Passes
         private IRenderPass _pass;
         private IRenderPass _translucency;
 
+        private static readonly uint MAX_TEX_COUNT = 500;
+
         public PbrRenderPass(IDevice device, IPipelineLayout layout) : base(device)
         {
             _pbrShader = new Shader(new Shader.CreateInfo.Builder()
@@ -25,9 +27,65 @@ namespace Cobalt.Graphics.Passes
                     .Build())
                 .Build(), device, layout);
 
+            IPipelineLayout transparencyLayout = device.CreatePipelineLayout(new IPipelineLayout.CreateInfo.Builder().AddDescriptorSetLayout(device.CreateDescriptorSetLayout(
+                    new IDescriptorSetLayout.CreateInfo.Builder()
+                    .AddBinding(new IDescriptorSetLayout.DescriptorSetLayoutBinding.Builder()
+                        .BindingIndex(0)
+                        .Count(1)
+                        .DescriptorType(EDescriptorType.StorageBuffer)
+                        .Name("ObjectData")
+                        .AddAccessibleStage(EShaderType.Vertex)
+                        .AddAccessibleStage(EShaderType.Fragment)
+                        .Build())
+                    .AddBinding(new IDescriptorSetLayout.DescriptorSetLayoutBinding.Builder()
+                        .BindingIndex(1)
+                        .Count(1)
+                        .DescriptorType(EDescriptorType.StorageBuffer)
+                        .Name("Materials")
+                        .AddAccessibleStage(EShaderType.Fragment)
+                        .Build())
+                    .AddBinding(new IDescriptorSetLayout.DescriptorSetLayoutBinding.Builder()
+                        .BindingIndex(2)
+                        .Count(1)
+                        .DescriptorType(EDescriptorType.UniformBuffer)
+                        .Name("SceneData")
+                        .AddAccessibleStage(EShaderType.Vertex)
+                        .AddAccessibleStage(EShaderType.Fragment)
+                        .Build())
+                    .AddBinding(new IDescriptorSetLayout.DescriptorSetLayoutBinding.Builder()
+                        .BindingIndex(3)
+                        .Count(1)
+                        .DescriptorType(EDescriptorType.StorageBuffer)
+                        .Name("A-Buffer")
+                        .AddAccessibleStage(EShaderType.Fragment)
+                        .Build())
+                    .AddBinding(new IDescriptorSetLayout.DescriptorSetLayoutBinding.Builder()
+                        .BindingIndex(4)
+                        .Count(1)
+                        .DescriptorType(EDescriptorType.SampledImage)
+                        .Name("A-Buffer-Head")
+                        .AddAccessibleStage(EShaderType.Fragment)
+                        .Build())
+                    .AddBinding(new IDescriptorSetLayout.DescriptorSetLayoutBinding.Builder()
+                        .BindingIndex(5)
+                        .Count(1)
+                        .DescriptorType(EDescriptorType.SampledImage)
+                        .Name("A-Buffer-Counter")
+                        .AddAccessibleStage(EShaderType.Fragment)
+                        .Build())
+                    .AddBinding(new IDescriptorSetLayout.DescriptorSetLayoutBinding.Builder()
+                        .BindingIndex(6)
+                        .Count((int)MAX_TEX_COUNT)
+                        .DescriptorType(EDescriptorType.CombinedImageSampler)
+                        .Name("Textures")
+                        .AddAccessibleStage(EShaderType.Fragment)
+                        .Build())
+                    .Build()))
+                .Build());
+
             _pbrTranslucentShader = new Shader(new Shader.CreateInfo.Builder()
                 .VertexSource(FileSystem.LoadFileToString("data/shaders/pbr/pbr_vertex.glsl"))
-                .FragmentSource(FileSystem.LoadFileToString("data/shaders/pbr/pbr_fragment.glsl"))
+                .FragmentSource(FileSystem.LoadFileToString("data/shaders/pbr/oit_linkedlist_pbr_fragment_color.glsl"))
                 .DepthInfo(new IGraphicsPipeline.DepthStencilCreateInfo.Builder()
                     .DepthCompareOp(ECompareOp.LessOrEqual)
                     .DepthWriteEnabled(false)
@@ -47,7 +105,7 @@ namespace Cobalt.Graphics.Passes
                         .DestinationAlphaFactor(EBlendFactor.Zero)
                         .Build())
                     .Build())
-                .Build(), device, layout);
+                .Build(), device, transparencyLayout);
 
             _pass = device.CreateRenderPass(new IRenderPass.CreateInfo.Builder()
                 .AddAttachment(new IRenderPass.AttachmentDescription.Builder()
@@ -80,6 +138,7 @@ namespace Cobalt.Graphics.Passes
 
         public override bool Record(ICommandBuffer buffer, FrameInfo info, DrawInfo draw)
         {
+            // Handle opaque objects
             buffer.BeginRenderPass(new ICommandBuffer.RenderPassBeginInfo
             {
                 ClearValues = new List<ClearValue>() { new ClearValue(new ClearValue.ClearColor(100.0f / 255.0f, 149.0f / 255.0f, 237.0f / 255.0f, 1)), new ClearValue(1) },

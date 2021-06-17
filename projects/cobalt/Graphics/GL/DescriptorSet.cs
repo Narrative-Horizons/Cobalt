@@ -107,7 +107,7 @@ namespace Cobalt.Graphics.GL
         }
 
         private IDescriptorSetLayout _layout;
-        private List<IBinding> _bindings = new List<IBinding>();
+        private Dictionary<int, IBinding> _bindings = new Dictionary<int, IBinding>();
 
         public DescriptorSet(IDescriptorSetLayout layout)
         {
@@ -124,15 +124,15 @@ namespace Cobalt.Graphics.GL
                     case EDescriptorType.SampledImage:
                         break;
                     case EDescriptorType.CombinedImageSampler:
-                        _bindings.Add(new CombinedImageSamplerBinding(binding.BindingIndex, binding.Count));
+                        _bindings.Add(binding.BindingIndex, new CombinedImageSamplerBinding(binding.BindingIndex, binding.Count));
                         break;
                     case EDescriptorType.TextureBuffer:
                         break;
                     case EDescriptorType.UniformBuffer:
-                        _bindings.Add(new UniformBufferBinding((uint) binding.BindingIndex));
+                        _bindings.Add(binding.BindingIndex, new UniformBufferBinding((uint) binding.BindingIndex));
                         break;
                     case EDescriptorType.StorageBuffer:
-                        _bindings.Add(new StorageBufferBinding((uint)binding.BindingIndex));
+                        _bindings.Add(binding.BindingIndex, new StorageBufferBinding((uint)binding.BindingIndex));
                         break;
                 }
             });
@@ -202,22 +202,16 @@ namespace Cobalt.Graphics.GL
         {
             DescriptorSetLayout lay = layout.GetDescriptorSetLayouts()[0] as DescriptorSetLayout;
 
-            for (int i = 0; i < _bindings.Count; ++i)
+            foreach (var (index, binding) in _bindings)
             {
-                var binding = (from bind in lay.Bindings
-                              where bind.BindingIndex == i
-                              select bind).FirstOrDefault();
-                if (binding != default)
-                {
-                    _bindings[i].Bind();
-                }
+                binding.Bind();
             }
         }
 
         public void Bind(List<uint> offsets)
         {
             int offsetIdx = 0;
-            foreach (var binding in _bindings)
+            foreach (var (idx, binding) in _bindings)
             {
                 if (binding.IsDynamic())
                 {

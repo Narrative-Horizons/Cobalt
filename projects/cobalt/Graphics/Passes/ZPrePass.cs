@@ -29,7 +29,7 @@ namespace Cobalt.Graphics.Passes
                         .Name("Materials")
                         .AddAccessibleStage(EShaderType.Fragment).Build())
                     .AddBinding(new IDescriptorSetLayout.DescriptorSetLayoutBinding.Builder()
-                        .BindingIndex(3)
+                        .BindingIndex(2)
                         .Count(1)
                         .DescriptorType(EDescriptorType.UniformBuffer)
                         .Name("SceneData")

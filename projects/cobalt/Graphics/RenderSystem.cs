@@ -108,6 +108,8 @@ namespace Cobalt.Graphics
 
             public Vector3 SunDirection;
             public Vector3 SunColor;
+
+            public uint abufferCapacity;
         }
 
         private class FrameData
@@ -170,16 +172,16 @@ namespace Cobalt.Graphics
                         .AddAccessibleStage(EShaderType.Fragment).Build())
                     .AddBinding(new IDescriptorSetLayout.DescriptorSetLayoutBinding.Builder()
                         .BindingIndex(2)
-                        .Count((int)MAX_TEX_COUNT)
-                        .DescriptorType(EDescriptorType.CombinedImageSampler)
-                        .Name("Textures")
-                        .AddAccessibleStage(EShaderType.Fragment).Build())
-                    .AddBinding(new IDescriptorSetLayout.DescriptorSetLayoutBinding.Builder()
-                        .BindingIndex(3)
                         .Count(1)
                         .DescriptorType(EDescriptorType.UniformBuffer)
                         .Name("SceneData")
                         .AddAccessibleStage(EShaderType.Vertex)
+                        .AddAccessibleStage(EShaderType.Fragment).Build())
+                    .AddBinding(new IDescriptorSetLayout.DescriptorSetLayoutBinding.Builder()
+                        .BindingIndex(6)
+                        .Count((int)MAX_TEX_COUNT)
+                        .DescriptorType(EDescriptorType.CombinedImageSampler)
+                        .Name("Textures")
                         .AddAccessibleStage(EShaderType.Fragment).Build())
                     .Build()))
                 .Build());
@@ -213,8 +215,6 @@ namespace Cobalt.Graphics
             buffer.Bind(cShader._pipeline);
             buffer.Bind(cShader._layout, 0, new List<IDescriptorSet>() { cShader.set });
             buffer.Dispatch(1, 1, 1);
-
-            buffer.Sync();
 
             int idx = 0;
 
@@ -293,7 +293,7 @@ namespace Cobalt.Graphics
                     .Build());
             });
 
-            writeInfos.Add(texArrayBuilder.DescriptorSet(_frames[frameInFlight].descriptorSet).ArrayElement(0).BindingIndex(2)
+            writeInfos.Add(texArrayBuilder.DescriptorSet(_frames[frameInFlight].descriptorSet).ArrayElement(0).BindingIndex(6)
                 .Build());
 
             writeInfos.Add(new DescriptorWriteInfo.Builder().AddBufferInfo( 
@@ -315,8 +315,8 @@ namespace Cobalt.Graphics
             writeInfos.Add(new DescriptorWriteInfo.Builder().AddBufferInfo(
                 new DescriptorWriteInfo.DescriptorBufferInfo.Builder()
                     .Buffer(_frames[frameInFlight].sceneBuffer)
-                    .Range(240).Build())
-                    .BindingIndex(3)
+                    .Range(256).Build())
+                    .BindingIndex(2)
                     .DescriptorSet(_frames[frameInFlight].descriptorSet)
                     .ArrayElement(0).Build());
 

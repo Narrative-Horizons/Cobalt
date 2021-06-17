@@ -1,7 +1,11 @@
 #version 460
-#extension GL_ARB_bindless_texture : enable
 
-layout(early_fragment_tests) in;
+#extension GL_ARB_bindless_texture : enable
+#extension GL_ARB_post_depth_coverage : enable
+
+layout(post_depth_coverage) in;
+
+#define OIT_LAYERS 4
 
 #define MAX_TEX_COUNT 500
 layout(location = 6, bindless_sampler) uniform sampler2D texArray[MAX_TEX_COUNT];
@@ -46,6 +50,14 @@ layout(std140, binding = 2) uniform SceneData
 
     uint aBufferCapacity;
 };
+
+// OIT
+layout(std430, binding = 3) coherent buffer oitBuffer
+{
+    uvec4 aBuffer[];
+};
+layout(location = 4, r32ui, bindless_image) uniform coherent uimage2D imgAuxiliary;
+layout(location = 5, r32ui, bindless_image) uniform uimage2D imgCounter;
 
 layout (location = 0) in VertexData
 {
@@ -119,7 +131,7 @@ vec3 FresnelSchlick(float cosTheta, vec3 F0)
     return F0 + (1.0 - F0) * pow(max(1.0 - cosTheta, 0.0), 5.0);
 }
 
-void main()
+vec3 ComputeColor()
 {
     int instance = inData.instanceID;
 
@@ -168,5 +180,30 @@ void main()
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0 / 2.2));
 
-    FragColor = vec4(color, 1);
+    return color;
+}
+
+void main()
+{
+    const uint offset = imageAtomicAdd(imgCounter, ivec2(0), 1) + 1;
+    const vec4 toStore = vec4(ComputeColor(), 1);
+
+    if (offset >= aBufferCapacity)
+    {
+        // Tail blend multiply
+        FragColor = vec4(toStore.rgb * toStore.a, toStore.a);
+        return;
+    }
+
+    const uint oldOffset = imageAtomicExchange(imgAuxiliary, ivec2(gl_FragCoord.xy), offset);
+
+    const uint packedColor = packUnorm4x8(toStore);
+    const uint depth = floatBitsToUint(gl_FragCoord.z);
+    const uint store = 0;
+    
+    const uvec4 storedValue = uvec4(packedColor, depth, store, oldOffset);
+
+    aBuffer[offset] = storedValue;
+    
+    FragColor = vec4(0);
 }

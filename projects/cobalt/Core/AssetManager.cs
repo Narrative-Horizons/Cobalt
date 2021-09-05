@@ -132,14 +132,14 @@ namespace Cobalt.Core
                     Type = EMaterialType.Opaque,
                 };
 
-                if(mesh.material.albedo != null)
+                if(mesh.material.Albedo != null)
                 {
-                    materialComponent.Albedo = new Graphics.Texture { Image = mesh.material.albedo.view, Sampler = mesh.material.albedo.sampler };
+                    materialComponent.Albedo = new Graphics.Texture { Image = mesh.material.Albedo.view, Sampler = mesh.material.Albedo.sampler };
                 }
 
-                if(mesh.material.normal != null)
+                if(mesh.material.Normal != null)
                 {
-                    materialComponent.Normal = new Graphics.Texture { Image = mesh.material.normal.view, Sampler = mesh.material.normal.sampler };
+                    materialComponent.Normal = new Graphics.Texture { Image = mesh.material.Normal.view, Sampler = mesh.material.Normal.sampler };
                 }
 
                 if(mesh.material.ORM != null)
@@ -147,9 +147,9 @@ namespace Cobalt.Core
                     materialComponent.OcclusionRoughnessMetallic = new Graphics.Texture { Image = mesh.material.ORM.view, Sampler = mesh.material.ORM.sampler };
                 }
 
-                if(mesh.material.emissive != null)
+                if(mesh.material.Emissive != null)
                 {
-                    materialComponent.Emission = new Graphics.Texture { Image = mesh.material.emissive.view, Sampler = mesh.material.emissive.sampler };
+                    materialComponent.Emission = new Graphics.Texture { Image = mesh.material.Emissive.view, Sampler = mesh.material.Emissive.sampler };
                 }
 
                 registry.Assign(meshEntity, materialComponent);
@@ -412,17 +412,17 @@ namespace Cobalt.Core
 
                 if(hasAlbedo)
                 {
-                    mat.albedo = CreateTextureData(GetTexture(material, TextureType.TextureTypeDiffuse, 0));
+                    mat.Albedo = CreateTextureData(GetTexture(material, TextureType.TextureTypeDiffuse, 0));
                 }
 
                 if(hasNormal)
                 {
-                    mat.normal = CreateTextureData(GetTexture(material, TextureType.TextureTypeNormals, 0));
+                    mat.Normal = CreateTextureData(GetTexture(material, TextureType.TextureTypeNormals, 0));
                 }
 
                 if(hasEmissive)
                 {
-                    mat.emissive = CreateTextureData(GetTexture(material, TextureType.TextureTypeEmissive, 0));
+                    mat.Emissive = CreateTextureData(GetTexture(material, TextureType.TextureTypeEmissive, 0));
                 }
                 
                 if(hasAO && hasORM)

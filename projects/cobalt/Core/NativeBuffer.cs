@@ -4,8 +4,8 @@ namespace Cobalt.Core
 {
     public class NativeBuffer<T> where T : unmanaged
     {
-        private IntPtr _ptr;
-        private uint _index = 0;
+        private readonly IntPtr _ptr;
+        private uint _index;
 
         public NativeBuffer(IntPtr ptr)
         {

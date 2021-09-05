@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Cobalt.Entities;
 using Cobalt.Entities.Components;
@@ -15,24 +16,24 @@ namespace Cobalt.Core
     public class AssimpTextureData
     {
         public string path;
-        public TextureMapping mapping = new TextureMapping();
-        public uint uvindex = 0;
-        public float blend = 0.0f;
-        public TextureOp op = new TextureOp();
-        public TextureMapMode mapMode = new TextureMapMode();
-        public uint flags = 0;
+        public TextureMapping mapping;
+        public uint uvindex;
+        public float blend;
+        public TextureOp op;
+        public TextureMapMode mapMode;
+        public uint flags;
     }
 
     public class ImageAsset
     {
-        public uint Width { get; private set; }
-        public uint Height { get; private set; }
-        public uint Components { get; private set; }
-        public bool IsHdr { get; private set; }
-        public uint BitsPerPixel { get; private set; }
-        public byte[] AsBytes { get; private set; } = null;
-        public ushort[] AsUnsignedShorts { get; private set; } = null;
-        public float[] AsFloats { get; private set; } = null;
+        public uint Width { get; }
+        public uint Height { get; }
+        public uint Components { get; }
+        public bool IsHDR { get; }
+        public uint BitsPerPixel { get; }
+        public byte[] AsBytes { get; }
+        public ushort[] AsUnsignedShorts { get; }
+        public float[] AsFloats { get; }
 
         internal ImageAsset(string path)
         {
@@ -40,7 +41,7 @@ namespace Cobalt.Core
             Width = (uint)payload.width;
             Height = (uint)payload.height;
             Components = (uint)payload.channels;
-            IsHdr = payload.hdr_f_image != IntPtr.Zero;
+            IsHDR = payload.hdr_f_image != IntPtr.Zero;
 
             int count = (int) (Width * Height * Components);
 
@@ -71,7 +72,7 @@ namespace Cobalt.Core
             Width = (uint)payload.width;
             Height = (uint)payload.height;
             Components = (uint)payload.channels;
-            IsHdr = payload.hdr_f_image != IntPtr.Zero;
+            IsHDR = payload.hdr_f_image != IntPtr.Zero;
 
             int count = (int)(Width * Height * Components);
 
@@ -102,11 +103,11 @@ namespace Cobalt.Core
     {
         public List<MeshNode> meshes = new List<MeshNode>();
         public List<MaterialData> materials = new List<MaterialData>();
-        public string Path { get; private set; }
-        public string RootPath { get; private set; }
-        internal AssetManager Manager { get; private set; }
+        public string Path { get; }
+        public string RootPath { get; }
+        internal AssetManager Manager { get; }
 
-        public MeshNode RootNode;
+        public MeshNode rootNode;
 
         private void ProcessMeshNode(Entity parent, Registry registry, MeshNode node, List<RenderableMesh> renderableMeshes)
         {
@@ -121,7 +122,7 @@ namespace Cobalt.Core
 
                 registry.Assign(meshEntity, meshTransform);
 
-                RenderableMesh rMesh = renderableMeshes.Find(rMesh => rMesh.localMesh.GUID == mesh.GUID);
+                RenderableMesh rMesh = renderableMeshes.Find(m => m.localMesh.GUID == mesh.GUID);
                 MeshComponent meshComp = new MeshComponent(rMesh);
 
                 registry.Assign(meshEntity, meshComp);
@@ -174,31 +175,30 @@ namespace Cobalt.Core
         public Entity AsEntity(Registry registry, RenderableManager renderableManager)
         {
             renderableManager.QueueRenderable(this);
-            List<RenderableMesh> meshes = renderableManager.GetRenderables(this);
+            List<RenderableMesh> renderables = renderableManager.GetRenderables(this);
 
             Entity rootEntity = registry.Create();
             registry.Assign(rootEntity, new TransformComponent() { TransformMatrix = Matrix4.Identity });
-            ProcessMeshNode(rootEntity, registry, RootNode, meshes);
+            ProcessMeshNode(rootEntity, registry, rootNode, renderables);
 
             return rootEntity;
         }
 
         internal unsafe void ProcessNode(Node* node, MeshNode meshNode, Scene* scene, Matrix4 parentMatrix)
         {
-            Assimp assimp = Assimp.GetApi();
             Matrix4 mat = new Matrix4();
 
             MeshNode mNode;
 
             if (node == scene->MRootNode)
             {
-                mNode = meshNode = RootNode = new MeshNode();
+                mNode = meshNode = rootNode = new MeshNode();
                 meshNode.transform = parentMatrix;
                 meshes.Add(mNode);
             }
             else
             { 
-                mat = System.Numerics.Matrix4x4.Transpose(node->MTransformation);
+                mat= System.Numerics.Matrix4x4.Transpose(node->MTransformation);
 
                 mNode = new MeshNode
                 {
@@ -303,12 +303,12 @@ namespace Cobalt.Core
             return data;
         }
 
-        internal unsafe TextureData CreateCombinedORMTextureData(AssimpTextureData RMData, AssimpTextureData OData)
+        internal TextureData CreateCombinedOrmTextureData(AssimpTextureData rmData, AssimpTextureData oData)
         {
-            ImagePayload combinedPayload = ImageConverter.ConvertToORM(RootPath + RMData.path, RootPath + OData.path);
+            ImagePayload combinedPayload = ImageConverter.ConvertToORM(RootPath + rmData.path, RootPath + oData.path);
             ImageAsset combinedAsset = new ImageAsset(combinedPayload);
 
-            int mipCount = (int)MathF.Floor(MathF.Log2(MathF.Max((float)combinedAsset.Width, (float)combinedAsset.Height))) + 1;
+            int mipCount = (int)MathF.Floor(MathF.Log2(MathF.Max(combinedAsset.Width, combinedAsset.Height))) + 1;
 
             IImage image = Manager.Device.CreateImage(new IImage.CreateInfo.Builder()
                 .Depth(1).Format(EDataFormat.R8G8B8A8).Height((int)combinedAsset.Height).Width((int)combinedAsset.Width)
@@ -330,7 +330,7 @@ namespace Cobalt.Core
             IImageView imageView = image.CreateImageView(new IImageView.CreateInfo.Builder().ArrayLayerCount(1).BaseArrayLayer(0).BaseMipLevel(0).Format(EDataFormat.R8G8B8A8)
                 .MipLevelCount(mipCount).ViewType(EImageViewType.ViewType2D));
 
-            /// TODO: Get this data from the TextureData from Assimp
+            // TODO: Get this data from the TextureData from Assimp
             ISampler imageSampler = Manager.Device.CreateSampler(new ISampler.CreateInfo.Builder().AddressModeU(EAddressMode.Repeat)
                 .AddressModeV(EAddressMode.Repeat).AddressModeW(EAddressMode.Repeat).MagFilter(EFilter.Linear).MinFilter(EFilter.Linear)
                 .MipmapMode(EMipmapMode.Linear));
@@ -339,7 +339,7 @@ namespace Cobalt.Core
             {
                 asset = combinedAsset,
                 image = image,
-                data = RMData,
+                data = rmData,
                 sampler = imageSampler,
                 view = imageView
             };
@@ -347,11 +347,11 @@ namespace Cobalt.Core
             return texData;
         }
 
-        internal unsafe TextureData CreateTextureData(AssimpTextureData data)
+        internal TextureData CreateTextureData(AssimpTextureData data)
         {
             ImageAsset asset = Manager.LoadImage(RootPath + data.path);
 
-            int mipCount = (int)MathF.Floor(MathF.Log2(MathF.Max((float)asset.Width, (float)asset.Height))) + 1;
+            int mipCount = (int)MathF.Floor(MathF.Log2(MathF.Max(asset.Width, asset.Height))) + 1;
 
             IImage image = Manager.Device.CreateImage(new IImage.CreateInfo.Builder()
                 .Depth(1).Format(EDataFormat.R8G8B8A8).Height((int)asset.Height).Width((int)asset.Width)
@@ -373,7 +373,7 @@ namespace Cobalt.Core
             IImageView imageView = image.CreateImageView(new IImageView.CreateInfo.Builder().ArrayLayerCount(1).BaseArrayLayer(0).BaseMipLevel(0).Format(EDataFormat.R8G8B8A8)
                 .MipLevelCount(mipCount).ViewType(EImageViewType.ViewType2D));
 
-            /// TODO: Get this data from the TextureData from Assimp
+            // TODO: Get this data from the TextureData from Assimp
             ISampler imageSampler = Manager.Device.CreateSampler(new ISampler.CreateInfo.Builder().AddressModeU(EAddressMode.Repeat)
                 .AddressModeV(EAddressMode.Repeat).AddressModeW(EAddressMode.Repeat).MagFilter(EFilter.Linear).MinFilter(EFilter.Linear)
                 .MipmapMode(EMipmapMode.Linear));
@@ -428,10 +428,10 @@ namespace Cobalt.Core
                 if(hasAO && hasORM)
                 {
                     // Combine
-                    AssimpTextureData RMData = GetTexture(material, TextureType.TextureTypeUnknown, 0);
-                    AssimpTextureData OData = GetTexture(material, TextureType.TextureTypeLightmap, 0);
+                    AssimpTextureData rmData = GetTexture(material, TextureType.TextureTypeUnknown, 0);
+                    AssimpTextureData oData = GetTexture(material, TextureType.TextureTypeLightmap, 0);
 
-                    mat.ORM = CreateCombinedORMTextureData(RMData, OData);
+                    mat.ORM = CreateCombinedOrmTextureData(rmData, oData);
                 }
 
                 if(hasORM && !hasAO)
@@ -441,7 +441,7 @@ namespace Cobalt.Core
 
                 if(hasAO && !hasORM)
                 {
-                    /// TODO: Generate texture with Red values for AO
+                    // TODO: Generate texture with Red values for AO
                 }
 
                 materials.Add(mat);
@@ -452,20 +452,20 @@ namespace Cobalt.Core
         {
             Path = path;
             Manager = manager;
-            RootPath = path.Substring(0, path.LastIndexOf('/') + 1);
+            RootPath = path[..(path.LastIndexOf('/') + 1)];
 
             unsafe
             {
                 Assimp assimp = Assimp.GetApi();
                 Scene* assScene = assimp.ImportFile(path, (uint)PostProcessPreset.TargetRealTimeMaximumQuality);
 
-                Matrix4 offset = Matrix4.Rotate(new Vector3(0, 90, 0));
+                //Matrix4 offset = Matrix4.Rotate(new Vector3(0, 90, 0));
 
-                if(assScene != null)
-                {
-                    ProcessMaterials(assScene->MRootNode, assScene);
-                    ProcessNode(assScene->MRootNode, RootNode, assScene, System.Numerics.Matrix4x4.Transpose(assScene->MRootNode->MTransformation));
-                }
+                if (assScene == null) 
+                    return;
+
+                ProcessMaterials(assScene->MRootNode, assScene);
+                ProcessNode(assScene->MRootNode, rootNode, assScene, System.Numerics.Matrix4x4.Transpose(assScene->MRootNode->MTransformation));
             }
         }
     }
@@ -475,11 +475,11 @@ namespace Cobalt.Core
         private readonly Dictionary<string, ImageAsset> _images = new Dictionary<string, ImageAsset>();
         private readonly Dictionary<string, ModelAsset> _models = new Dictionary<string, ModelAsset>();
 
-        internal IDevice Device { get; private set; }
+        internal IDevice Device { get; }
 
-        internal ICommandPool TransferPool { get; private set; }
-        internal ICommandBuffer TransferBuffer { get; private set; }
-        internal IQueue TransferQueue { get; private set; }
+        internal ICommandPool TransferPool { get; }
+        internal ICommandBuffer TransferBuffer { get; }
+        internal IQueue TransferQueue { get; }
 
         public AssetManager(IDevice device)
         {
@@ -546,7 +546,7 @@ namespace Cobalt.Core
         public uint baseVertex;
         public uint baseIndex;
         public uint indexCount;
-        public IVertexAttributeArray VAO;
+        public IVertexAttributeArray vao;
 
         public override int GetHashCode()
         {
@@ -555,11 +555,11 @@ namespace Cobalt.Core
 
         public override bool Equals(object obj)
         {
-            RenderableMesh other = obj as RenderableMesh;
-            if (other != null)
+            if (obj is RenderableMesh other)
             {
                 return other.uuid == uuid;
             }
+
             return false;
         }
     }
@@ -567,8 +567,8 @@ namespace Cobalt.Core
     public class RenderableManager : IDisposable
     {
         private readonly Dictionary<ModelAsset, List<RenderableMesh>> _renderableMeshes = new Dictionary<ModelAsset, List<RenderableMesh>>();
-        private IDevice _device;
-        private uint _meshCount = 0;
+        private readonly IDevice _device;
+        private uint _meshCount;
 
         public RenderableManager(IDevice device)
         {
@@ -599,61 +599,42 @@ namespace Cobalt.Core
             List<RenderableMeshVertex> combinedVertices = new List<RenderableMeshVertex>();
             List<uint> combinedIndices = new List<uint>();
 
-            foreach (MeshNode meshNode in meshes)
+            foreach (var mesh in meshes.SelectMany(meshNode => meshNode.meshes))
             {
-                foreach (Mesh mesh in meshNode.meshes)
+                ++_meshCount;
+                RenderableMesh rMesh = new RenderableMesh
                 {
-                    ++_meshCount;
-                    RenderableMesh rMesh = new RenderableMesh
+                    localMesh = mesh,
+                    uuid = _meshCount
+                };
+
+                uint vertexCount = (uint)mesh.positions.Length;
+
+                rMesh.baseVertex = (uint)combinedVertices.Count;
+                rMesh.baseIndex = (uint)combinedIndices.Count;
+                rMesh.indexCount = (uint)mesh.triangles.Length;
+
+                rMesh.localVertices = new RenderableMeshVertex[vertexCount];
+
+                for (int i = 0; i < vertexCount; i++)
+                {
+                    RenderableMeshVertex vertex = new RenderableMeshVertex
                     {
-                        localMesh = mesh,
-                        uuid = _meshCount
+                        position = mesh.positions[i],
+                        uv = mesh.texcoords?[i] ?? Vector2.Zero,
+                        normal = mesh.normals?[i] ?? Vector3.UnitY,
+                        tangent = mesh.tangents?[i] ?? Vector3.UnitX,
+                        binormal = mesh.binormals?[i] ?? Vector3.UnitZ
                     };
 
-                    uint vertexCount = (uint)mesh.positions.Length;
+                    rMesh.localVertices[i] = vertex;
 
-                    rMesh.baseVertex = (uint)combinedVertices.Count;
-                    rMesh.baseIndex = (uint)combinedIndices.Count;
-                    rMesh.indexCount = (uint)mesh.triangles.Length;
-
-                    rMesh.localVertices = new RenderableMeshVertex[vertexCount];
-
-                    for (int i = 0; i < vertexCount; i++)
-                    {
-                        RenderableMeshVertex vertex = new RenderableMeshVertex
-                        {
-                            position = mesh.positions[i]
-                        };
-
-                        if (mesh.texcoords != null)
-                            vertex.uv = mesh.texcoords[i];
-                        else
-                            vertex.uv = Vector2.Zero;
-
-                        if (mesh.normals != null)
-                            vertex.normal = mesh.normals[i];
-                        else
-                            vertex.normal = Vector3.UnitY;
-
-                        if (mesh.tangents != null)
-                            vertex.tangent = mesh.tangents[i];
-                        else
-                            vertex.tangent = Vector3.UnitX;
-
-                        if (mesh.binormals != null)
-                            vertex.binormal = mesh.binormals[i];
-                        else
-                            vertex.binormal = Vector3.UnitZ;
-
-                        rMesh.localVertices[i] = vertex;
-
-                        combinedVertices.Add(vertex);
-                    }
-
-                    combinedIndices.AddRange(mesh.triangles);
-
-                    processingMeshes.Add(rMesh);
+                    combinedVertices.Add(vertex);
                 }
+
+                combinedIndices.AddRange(mesh.triangles);
+
+                processingMeshes.Add(rMesh);
             }
 
             IBuffer vertexBuffer = _device.CreateBuffer(
@@ -687,7 +668,7 @@ namespace Cobalt.Core
 
             foreach(RenderableMesh rM in processingMeshes)
             {
-                rM.VAO = vao;
+                rM.vao = vao;
             }
 
             _renderableMeshes.Add(asset, processingMeshes);

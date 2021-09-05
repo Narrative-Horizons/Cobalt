@@ -17,10 +17,10 @@ namespace Cobalt.Core
 
     public class MaterialData
     {
-        public TextureData albedo;
-        public TextureData normal;
-        public TextureData emissive;
-        public TextureData ORM;
+        public TextureData Albedo { get; set; }
+        public TextureData Normal { get; set; }
+        public TextureData Emissive { get; set; }
+        public TextureData ORM { get; set; }
     }
 
     public class MeshNode

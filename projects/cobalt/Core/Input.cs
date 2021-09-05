@@ -13,32 +13,26 @@ namespace Cobalt.Core
 
     public static class Input
     {
-        private static KeyState[] KeyStates;
-        private static KeyState[] LastKeyStates;
+        private static readonly KeyState[] _keyStates;
+        private static readonly KeyState[] _lastKeyStates;
 
-        private static KeyState[] MouseStates;
-        private static KeyState[] LastMouseStates;
+        private static readonly KeyState[] _mouseStates;
+        private static readonly KeyState[] _lastMouseStates;
 
         internal static Vector2 LastMousePosition { get; set; } = new Vector2();
         internal static GLFWWindow window;
 
         public static Vector2 MousePosition { get; internal set; } = new Vector2();
-        public static Vector2 MouseDelta
-        {
-            get
-            {
-                return LastMousePosition - MousePosition;
-            }
-        }
+        public static Vector2 MouseDelta => LastMousePosition - MousePosition;
 
         public static Vector2 ScrollDelta { get; internal set; } = new Vector2();
 
         static Input()
         {
-            KeyStates = new KeyState[(int)Keys.END_ENUM];
-            MouseStates = new KeyState[(int)MouseButton.END_ENUM];
-            LastKeyStates = new KeyState[(int)Keys.END_ENUM];
-            LastMouseStates = new KeyState[(int)MouseButton.END_ENUM];
+            _keyStates = new KeyState[(int)Keys.END_ENUM];
+            _mouseStates = new KeyState[(int)MouseButton.END_ENUM];
+            _lastKeyStates = new KeyState[(int)Keys.END_ENUM];
+            _lastMouseStates = new KeyState[(int)MouseButton.END_ENUM];
         }
 
         internal static void Init(GLFWWindow win)
@@ -50,63 +44,63 @@ namespace Cobalt.Core
         {
             for(int i = 0; i < (int)Keys.END_ENUM; i++)
             {
-                if (KeyStates[i] == KeyState.Pressed && LastKeyStates[i] == KeyState.Pressed)
+                if (_keyStates[i] == KeyState.Pressed && _lastKeyStates[i] == KeyState.Pressed)
                 {
-                    KeyStates[i] = KeyState.Down;
+                    _keyStates[i] = KeyState.Down;
                 }
 
-                if(KeyStates[i] == KeyState.Up && LastKeyStates[i] == KeyState.Up)
+                if(_keyStates[i] == KeyState.Up && _lastKeyStates[i] == KeyState.Up)
                 {
-                    KeyStates[i] = KeyState.None;
+                    _keyStates[i] = KeyState.None;
                 }
 
-                LastKeyStates[i] = KeyStates[i];
+                _lastKeyStates[i] = _keyStates[i];
             }
 
             for (int i = 0; i < (int)MouseButton.END_ENUM; i++)
             {
-                if (MouseStates[i] == KeyState.Pressed && LastMouseStates[i] == KeyState.Pressed)
+                if (_mouseStates[i] == KeyState.Pressed && _lastMouseStates[i] == KeyState.Pressed)
                 {
-                    MouseStates[i] = KeyState.Down;
+                    _mouseStates[i] = KeyState.Down;
                 }
 
-                if (MouseStates[i] == KeyState.Up && LastMouseStates[i] == KeyState.Up)
+                if (_mouseStates[i] == KeyState.Up && _lastMouseStates[i] == KeyState.Up)
                 {
-                    MouseStates[i] = KeyState.None;
+                    _mouseStates[i] = KeyState.None;
                 }
 
-                LastMouseStates[i] = MouseStates[i];
+                _lastMouseStates[i] = _mouseStates[i];
             }
         }
 
         public static bool IsKeyDown(Keys key)
         {
-            return KeyStates[(int)key] == KeyState.Down || KeyStates[(int)key] == KeyState.Pressed;
+            return _keyStates[(int)key] == KeyState.Down || _keyStates[(int)key] == KeyState.Pressed;
         }
 
         public static bool IsKeyPressed(Keys key)
         {
-            return KeyStates[(int)key] == KeyState.Pressed;
+            return _keyStates[(int)key] == KeyState.Pressed;
         }
 
         public static bool IsKeyUp(Keys key)
         {
-            return KeyStates[(int)key] == KeyState.Up;
+            return _keyStates[(int)key] == KeyState.Up;
         }
 
         public static bool IsMouseButtonDown(MouseButton button)
         {
-            return MouseStates[(int)button] == KeyState.Down || MouseStates[(int)button] == KeyState.Pressed;
+            return _mouseStates[(int)button] == KeyState.Down || _mouseStates[(int)button] == KeyState.Pressed;
         }
 
         public static bool IsMouseButtonPressed(MouseButton button)
         {
-            return MouseStates[(int)button] == KeyState.Pressed;
+            return _mouseStates[(int)button] == KeyState.Pressed;
         }
 
         public static bool IsMouseButtonUp(MouseButton button)
         {
-            return MouseStates[(int)button] == KeyState.Up;
+            return _mouseStates[(int)button] == KeyState.Up;
         }
 
         public static void SetMousePosition(Vector2 position)
@@ -116,28 +110,28 @@ namespace Cobalt.Core
 
         internal static void SetKeyPressed(Keys key)
         {
-            if (KeyStates[(int)key] == KeyState.Pressed || KeyStates[(int)key] == KeyState.Down)
+            if (_keyStates[(int)key] == KeyState.Pressed || _keyStates[(int)key] == KeyState.Down)
                 return;
 
-            KeyStates[(int)key] = KeyState.Pressed;
+            _keyStates[(int)key] = KeyState.Pressed;
         }
 
         internal static void SetKeyReleased(Keys key)
         {
-            KeyStates[(int)key] = KeyState.Up;
+            _keyStates[(int)key] = KeyState.Up;
         }
 
         internal static void SetMouseButtonPressed(MouseButton button)
         {
-            if (MouseStates[(int)button] == KeyState.Pressed || MouseStates[(int)button] == KeyState.Down)
+            if (_mouseStates[(int)button] == KeyState.Pressed || _mouseStates[(int)button] == KeyState.Down)
                 return;
 
-            MouseStates[(int)button] = KeyState.Pressed;
+            _mouseStates[(int)button] = KeyState.Pressed;
         }
 
         internal static void SetMouseButtonReleased(MouseButton button)
         {
-            MouseStates[(int)button] = KeyState.Up;
+            _mouseStates[(int)button] = KeyState.Up;
         }
     }
 }

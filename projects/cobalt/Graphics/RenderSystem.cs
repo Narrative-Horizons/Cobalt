@@ -337,15 +337,15 @@ namespace Cobalt.Graphics
                     MeshComponent mesh = _registry.Get<MeshComponent>(renderable);
                     EntityData e = new EntityData { MaterialId = _GetOrInsert(matComponent), Transformation = _registry.Get<TransformComponent>(renderable).TransformMatrix };
                     RenderableMesh renderMesh = mesh.Mesh;
-                    if (!payload.ContainsKey(renderMesh.VAO))
+                    if (!payload.ContainsKey(renderMesh.vao))
                     {
-                        payload.Add(renderMesh.VAO, new Dictionary<RenderableMesh, List<EntityData>>());
+                        payload.Add(renderMesh.vao, new Dictionary<RenderableMesh, List<EntityData>>());
                     }
-                    if (!payload[renderMesh.VAO].ContainsKey(renderMesh))
+                    if (!payload[renderMesh.vao].ContainsKey(renderMesh))
                     {
-                        payload[renderMesh.VAO].Add(renderMesh, new List<EntityData>());
+                        payload[renderMesh.vao].Add(renderMesh, new List<EntityData>());
                     }
-                    payload[renderMesh.VAO][renderMesh].Add(e);
+                    payload[renderMesh.vao][renderMesh].Add(e);
                 }
             }
 

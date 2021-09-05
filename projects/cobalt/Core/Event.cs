@@ -10,46 +10,43 @@ namespace Cobalt.Core
 
     public class EventManager
     {
-        public static EventManager Default = new EventManager();
+        public static EventManager main = new EventManager();
 
         private readonly Dictionary<string, List<Func<EventData, bool>>> _handlers = new Dictionary<string, List<Func<EventData, bool>>>();
 
         public void AddHandler<T>(Func<T, bool> handler) where T : EventData
         {
-            if (!_handlers.TryGetValue(typeof(T).FullName, out List<Func<EventData, bool>> eventHandlers))
+            if (!_handlers.TryGetValue(typeof(T).FullName ?? string.Empty, out List<Func<EventData, bool>> eventHandlers))
                 eventHandlers = new List<Func<EventData, bool>>();
 
-            eventHandlers.Add((EventData e) =>
-            {
-                return handler.Invoke((T)e);
-            });
+            eventHandlers.Add(e => handler.Invoke((T)e));
 
-            _handlers[typeof(T).FullName] = eventHandlers;
+            _handlers[typeof(T).FullName ?? string.Empty] = eventHandlers;
         }
 
         public void RemoveHandler<T>(Func<T, bool> handler) where T : EventData
         {
-            if (!_handlers.TryGetValue(typeof(T).FullName, out List<Func<EventData, bool>> eventHandlers))
+            if (!_handlers.TryGetValue(typeof(T).FullName ?? string.Empty, out List<Func<EventData, bool>> eventHandlers))
                 return;
 
             for(int i = 0; i < eventHandlers.Count; i++)
             {
-                if(eventHandlers[i] == handler)
-                {
-                    eventHandlers.RemoveAt(i);
-                    return;
-                }
+                if (eventHandlers[i] != handler) 
+                    continue;
+
+                eventHandlers.RemoveAt(i);
+                return;
             }
         }
 
         public void Dispatch<T>(T data = null) where T : EventData
         {
-            if (!_handlers.TryGetValue(typeof(T).FullName, out List<Func<EventData, bool>> eventHandlers))
+            if (!_handlers.TryGetValue(typeof(T).FullName ?? string.Empty, out List<Func<EventData, bool>> eventHandlers))
                 return;
 
-            for(int i = 0; i < eventHandlers.Count; i++)
+            foreach (var handler in eventHandlers)
             {
-                if(eventHandlers[i](data))
+                if(handler(data))
                 {
                     break;
                 }

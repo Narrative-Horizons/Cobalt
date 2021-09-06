@@ -5,6 +5,7 @@ using Cobalt.Graphics;
 using Cobalt.Graphics.API;
 using Cobalt.Math;
 using System.Runtime.InteropServices;
+using Cobalt.Bindings.PhysX;
 
 namespace Cobalt.Sandbox
 {
@@ -67,6 +68,8 @@ namespace Cobalt.Sandbox
             reg.Assign(cameraEntity, new TransformComponent());
             reg.Assign<CameraComponent>(cameraEntity, new FreeLookCamera(65.0f, 0.01f, 1000.0f, 16.0f/9.0f));
             reg.Get<TransformComponent>(cameraEntity).Position = new Vector3(1, 2, 1);
+
+            //PhysX.Test();
 
             while (window.IsOpen())
             {

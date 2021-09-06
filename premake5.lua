@@ -22,6 +22,7 @@ workspace "Cobalt"
     include "projects/native/GLFW@3.3.3-native-bindings"
     include "projects/native/stb@b42009b-native-bindings"
     include "projects/native/glsl-parser-native-bindings"
+    include "projects/native/PhysX@4.1.2-native-bindings"
     group ""
 
     group "Asset Management"
@@ -41,3 +42,10 @@ workspace "Cobalt"
     NativeIncludeDirs["stb"]  = "%{sln.location}/dependencies/stb@b42009b/include"
     NativeIncludeDirs["glslparser"]  = "%{sln.location}/dependencies/glsl-parser/include"
     NativeIncludeDirs["phonon"] = "%{sln.location}/dependencies/phonon/include/"
+
+    Dependencies = {}
+    Dependencies["PhysX"] = {
+        bin = "%{sln.location}/dependencies/physx@4.1.2/bin/%{cfg.buildcfg}/%{cfg.system}",
+        include = "%{sln.location}/dependencies/physx@4.1.2/include",
+        lib = "%{sln.location}/dependencies/physx@4.1.2/lib/%{cfg.buildcfg}/%{cfg.system}"
+    }

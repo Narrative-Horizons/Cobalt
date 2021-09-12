@@ -8,7 +8,7 @@ namespace Cobalt.Graphics.GL
 {
     internal class GraphicsApplication : IGraphicsApplication
     {
-        private List<IPhysicalDevice> _devices = new List<IPhysicalDevice>();
+        private readonly List<IPhysicalDevice> _devices = new List<IPhysicalDevice>();
         
         public GraphicsApplication(IGraphicsApplication.CreateInfo info)
         {

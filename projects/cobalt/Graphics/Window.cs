@@ -77,15 +77,15 @@ namespace Cobalt.Graphics
                 {
                     case InputState.Release:
                         Input.SetKeyReleased(key);
-                        EventManager.Default.Dispatch(new KeyReleasedEvent(key));
+                        EventManager.main.Dispatch(new KeyReleasedEvent(key));
                         break;
                     case InputState.Press:
                         Input.SetKeyPressed(key);
-                        EventManager.Default.Dispatch(new KeyPressEvent(key));
+                        EventManager.main.Dispatch(new KeyPressEvent(key));
                         break;
                     case InputState.Repeat:
                         Input.SetKeyPressed(key);
-                        EventManager.Default.Dispatch(new KeyRepeatEvent(key));
+                        EventManager.main.Dispatch(new KeyRepeatEvent(key));
                         break;
                 }
             });
@@ -96,22 +96,22 @@ namespace Cobalt.Graphics
                 {
                     case InputState.Release:
                         Input.SetMouseButtonReleased(button);
-                        EventManager.Default.Dispatch(new MouseReleasedEvent(button));
+                        EventManager.main.Dispatch(new MouseReleasedEvent(button));
                         break;
                     case InputState.Press:
                         Input.SetMouseButtonPressed(button);
-                        EventManager.Default.Dispatch(new MousePressEvent(button));
+                        EventManager.main.Dispatch(new MousePressEvent(button));
                         break;
                     case InputState.Repeat:
                         Input.SetMouseButtonPressed(button);
-                        EventManager.Default.Dispatch(new MouseRepeatEvent(button));
+                        EventManager.main.Dispatch(new MouseRepeatEvent(button));
                         break;
                 }
             });
 
             GLFW.SetCursorPositionCallback(_window, (GLFWWindow window, double x, double y) =>
             {
-                EventManager.Default.Dispatch(new CursorMovedEvent(x, y, _oldMouseX, _oldMouseY));
+                EventManager.main.Dispatch(new CursorMovedEvent(x, y, _oldMouseX, _oldMouseY));
 
                 Input.LastMousePosition = new Vector2((float)_oldMouseX, (float)_oldMouseY);
                 Input.MousePosition = new Vector2((float)x, (float)y);
@@ -122,7 +122,7 @@ namespace Cobalt.Graphics
 
             GLFW.SetMouseScrollCallback(_window, (GLFWWindow window, double x, double y) =>
             {
-                EventManager.Default.Dispatch(new MouseScrollEvent(x, y));
+                EventManager.main.Dispatch(new MouseScrollEvent(x, y));
 
                 Input.ScrollDelta = new Vector2((float)x, (float)y);
             });
@@ -137,7 +137,7 @@ namespace Cobalt.Graphics
 
         public void Close()
         {
-            EventManager.Default.Dispatch(new WindowCloseEvent());
+            EventManager.main.Dispatch(new WindowCloseEvent());
             GLFW.SetWindowShouldClose(_window, true);
         }
 
@@ -154,7 +154,7 @@ namespace Cobalt.Graphics
 
         private void Resize(GLFWWindow window, int width, int height)
         {
-            EventManager.Default.Dispatch(new WindowResizeEvent((uint)width, (uint)height, _oldWidth, _oldHeight));
+            EventManager.main.Dispatch(new WindowResizeEvent((uint)width, (uint)height, _oldWidth, _oldHeight));
 
             _oldWidth = (uint)width;
             _oldHeight = (uint)height;

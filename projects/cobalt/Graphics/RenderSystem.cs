@@ -120,6 +120,9 @@ namespace Cobalt.Graphics
             public IBuffer materialData;
             public IBuffer indirectBuffer;
             public IBuffer sceneBuffer;
+            public IBuffer oitBuffer;
+            public IImage oitAuxImage;
+            public IImage imgCounter;
         }
 
         private IFrameBuffer[] _frameBuffer;
@@ -296,6 +299,7 @@ namespace Cobalt.Graphics
             writeInfos.Add(texArrayBuilder.DescriptorSet(_frames[frameInFlight].descriptorSet).ArrayElement(0).BindingIndex(6)
                 .Build());
 
+            // Per-Material
             writeInfos.Add(new DescriptorWriteInfo.Builder().AddBufferInfo( 
                 new DescriptorWriteInfo.DescriptorBufferInfo.Builder()
                     .Buffer(_frames[frameInFlight].materialData)
@@ -304,6 +308,7 @@ namespace Cobalt.Graphics
                     .DescriptorSet(_frames[frameInFlight].descriptorSet)
                     .ArrayElement(0).Build());
 
+            // Per-Entity Data
             writeInfos.Add(new DescriptorWriteInfo.Builder().AddBufferInfo(
                 new DescriptorWriteInfo.DescriptorBufferInfo.Builder()
                     .Buffer(_frames[frameInFlight].entityData)
@@ -312,6 +317,7 @@ namespace Cobalt.Graphics
                     .DescriptorSet(_frames[frameInFlight].descriptorSet)
                     .ArrayElement(0).Build());
 
+            // Per-Scene Data
             writeInfos.Add(new DescriptorWriteInfo.Builder().AddBufferInfo(
                 new DescriptorWriteInfo.DescriptorBufferInfo.Builder()
                     .Buffer(_frames[frameInFlight].sceneBuffer)
@@ -493,6 +499,8 @@ namespace Cobalt.Graphics
 
                     _frames[frame].sceneBuffer = _device.CreateBuffer(IBuffer.FromPayload(new SceneData()).AddUsage(EBufferUsage.UniformBuffer),
                         new IBuffer.MemoryInfo.Builder().Usage(EMemoryUsage.CPUToGPU).AddRequiredProperty(EMemoryProperty.HostCoherent).AddRequiredProperty(EMemoryProperty.HostVisible));
+
+                    // TODO: Handle transparency information
                 }
             }
 

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Cobalt Sandbox": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}

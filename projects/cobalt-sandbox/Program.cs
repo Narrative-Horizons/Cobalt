@@ -1,3 +1,4 @@
+using System.Reflection;
 using Cobalt.Core;
 using Cobalt.Entities;
 using Cobalt.Entities.Components;
@@ -69,7 +70,7 @@ namespace Cobalt.Sandbox
             reg.Assign<CameraComponent>(cameraEntity, new FreeLookCamera(65.0f, 0.01f, 1000.0f, 16.0f/9.0f));
             reg.Get<TransformComponent>(cameraEntity).Position = new Vector3(1, 2, 1);
 
-            //PhysX.Test();
+            PhysX.Init();
 
             while (window.IsOpen())
             {
@@ -84,6 +85,8 @@ namespace Cobalt.Sandbox
 
                 swapchain.Present(new ISwapchain.PresentInfo());
             }
+
+            PhysX.Destroy();
 
             gfxContext.Dispose();
         }

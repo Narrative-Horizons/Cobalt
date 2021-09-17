@@ -1,3 +1,4 @@
+using System;
 using System.Reflection;
 using Cobalt.Core;
 using Cobalt.Entities;
@@ -71,6 +72,26 @@ namespace Cobalt.Sandbox
             reg.Get<TransformComponent>(cameraEntity).Position = new Vector3(1, 2, 1);
 
             PhysX.Init();
+            PhysX.MeshData pData = new PhysX.MeshData
+            {
+                uuid = 0, 
+                vertices = new PhysX.VertexData[3]
+            };
+
+            PhysX.VertexData v = new PhysX.VertexData {x = 0, y = 0, z = 0};
+            PhysX.VertexData v1 = new PhysX.VertexData {x = 1, y = 0, z = 0};
+            PhysX.VertexData v2 = new PhysX.VertexData {x = 1, y = 1, z = 0};
+            pData.vertices[0] = v;
+            pData.vertices[1] = v1;
+            pData.vertices[2] = v2;
+
+            pData.vertexCount = 3;
+            pData.indices = new uint[] {0, 1, 2};
+            pData.indexCount = 3;
+
+            PhysX.CreateMeshShape(pData);
+            PhysX.CreateMeshCollider(0, 0, 0, 0, 0);
+
             PhysX.Simulate();
 
             while (window.IsOpen())
@@ -83,6 +104,17 @@ namespace Cobalt.Sandbox
                 }
 
                 var results = PhysX.FetchResults();
+                if (results.count > 0)
+                {
+                    unsafe
+                    {
+                        PhysX.PhysicsTransform* transforms = results.transforms;
+                        int jonathan = 0;
+                    }
+                }
+
+
+
                 renderSystem.render();
                 PhysX.Simulate();
 

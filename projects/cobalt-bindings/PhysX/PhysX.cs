@@ -32,6 +32,24 @@ namespace Cobalt.Bindings.PhysX
         };
 
         [StructLayout(LayoutKind.Explicit)]
+        internal unsafe struct MeshDataImpl
+        {
+            [FieldOffset(0)]
+            internal VertexData* vertices;
+            [FieldOffset(8)]
+            internal uint vertexCount;
+            
+            [FieldOffset(12)]
+            internal uint* indices;
+
+            [FieldOffset(20)]
+            internal uint indexCount;
+
+            [FieldOffset(24)]
+            internal uint uuid;
+        }
+
+        [StructLayout(LayoutKind.Explicit)]
         public struct PhysicsTransform
         {
             [FieldOffset(0)]
@@ -44,22 +62,22 @@ namespace Cobalt.Bindings.PhysX
             public float rx;
             [FieldOffset(16)]
             public float ry;
-            [FieldOffset(24)]
+            [FieldOffset(20)]
             public float rz;
-            [FieldOffset(28)]
+            [FieldOffset(24)]
             public uint generation;
-            [FieldOffset(32)]
+            [FieldOffset(28)]
             public uint identifier;
         };
 
         [StructLayout(LayoutKind.Explicit)]
-        public struct SimulationResult
+        public unsafe struct SimulationResult
         {
             [FieldOffset(0)]
-            IntPtr transforms;
+            public PhysicsTransform* transforms;
 
             [FieldOffset(8)]
-            uint count;
+            public uint count;
         }
 
         [DllImport(LIBRARY, EntryPoint = "init", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
@@ -69,7 +87,7 @@ namespace Cobalt.Bindings.PhysX
         public static extern void Destroy();
 
         [DllImport(LIBRARY, EntryPoint = "create_mesh_shape", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void CreateMeshShape(MeshData meshData);
+        internal static extern void CreateMeshShapeImpl(MeshDataImpl meshData);
 
         [DllImport(LIBRARY, EntryPoint = "create_mesh_collider", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         public static extern void CreateMeshCollider(ulong id, uint shapeId, float x, float y, float z);
@@ -79,5 +97,31 @@ namespace Cobalt.Bindings.PhysX
 
         [DllImport(LIBRARY, EntryPoint = "fetch_results", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         public static extern SimulationResult FetchResults();
+
+        public static void CreateMeshShape(MeshData data)
+        {
+            MeshDataImpl impl = new MeshDataImpl
+            {
+                uuid = data.uuid,
+                vertexCount = data.vertexCount,
+                indexCount = data.indexCount
+            };
+
+            unsafe
+            {
+                fixed (VertexData* vertexPtr = &data.vertices[0])
+                {
+                    impl.vertices = vertexPtr;
+                }
+
+                fixed (uint* indexPtr = &data.indices[0])
+                {
+                    impl.indices = indexPtr;
+                }
+            }
+
+            CreateMeshShapeImpl(impl);
+        }
+
     }
 }

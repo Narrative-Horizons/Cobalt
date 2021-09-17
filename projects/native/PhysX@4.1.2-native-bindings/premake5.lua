@@ -1,7 +1,7 @@
 project "PhysX@4.1.2-native-bindings"
     kind "SharedLib"
-    language "C"
-    cdialect "C11"
+    language "C++"
+    cppdialect "C++17"
 
     architecture "x64"
 

@@ -71,6 +71,7 @@ namespace Cobalt.Sandbox
             reg.Get<TransformComponent>(cameraEntity).Position = new Vector3(1, 2, 1);
 
             PhysX.Init();
+            PhysX.Simulate();
 
             while (window.IsOpen())
             {
@@ -81,7 +82,9 @@ namespace Cobalt.Sandbox
                     window.Close();
                 }
 
+                var results = PhysX.FetchResults();
                 renderSystem.render();
+                PhysX.Simulate();
 
                 swapchain.Present(new ISwapchain.PresentInfo());
             }

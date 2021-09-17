@@ -1,5 +1,8 @@
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include <iostream>
 #include <unordered_map>
+#include <tuple>
 
 #include <PxPhysicsAPI.h>
 
@@ -9,6 +12,41 @@ bool IsCcdActive(physx::PxFilterData& filterData)
 {
 	return true;
 	//return filterData.word3 & CCD_FLAG ? true : false;
+}
+
+struct PhysicsTransform
+{
+	float x, y, z;
+	float rx, ry, rz;
+	uint32_t generation, identifier;
+
+	PhysicsTransform(float x, float y, float z, float rx, float ry, float rz, uint32_t generation, uint32_t identifier)
+		: x(x), y(y), z(z), rx(rx), ry(ry), rz(rz), generation(generation), identifier(identifier)
+	{
+	}
+};
+
+struct SimulationResults
+{
+	PhysicsTransform* data;
+	uint32_t size;
+};
+
+static std::tuple<float, float, float> to_euler(const physx::PxQuat& rotation)
+{
+	// TODO: Trig LUTs?
+	const float sinr_cosp = 2.0f * (rotation.w * rotation.x + rotation.y * rotation.z);
+	const float cosr_cosp = 1.0f - 2.0 * (rotation.x * rotation.x + rotation.y * rotation.y);
+	const float roll = std::atan2(sinr_cosp, cosr_cosp); // z
+
+	const float sinp = 2.0f * (rotation.w * rotation.y - rotation.z * rotation.x);
+	const float pitch = std::abs(sinp) >= 1.0 ? std::copysign(M_PI_2, sinp) : (float)std::asin(sinp); // x
+
+	const float siny_cosp = 2.0f * (rotation.w * rotation.z + rotation.x * rotation.y);
+	const float cosy_cosp = 1.0f - 2.0f * (rotation.y * rotation.y + rotation.z * rotation.z);
+	const float yaw = std::atan2(siny_cosp, cosy_cosp); // y
+
+	return std::make_tuple(pitch, yaw, roll);
 }
 
 static physx::PxFoundation* _foundation;
@@ -23,6 +61,9 @@ static physx::PxCudaContextManager* _cudaContext;
 
 static physx::PxDefaultErrorCallback defaultErrorCallback;
 static physx::PxDefaultAllocator defaultAllocatorCallback;
+
+static std::vector<PhysicsTransform> _transformScratchBuffer;
+static bool _simulationComplete = true;
 
 physx::PxFilterFlags gameCollisionFilterShader(
 	const physx::PxFilterObjectAttributes aAttributes0, const physx::PxFilterData aFilterData0,
@@ -188,7 +229,10 @@ PHYSX_BINDING_EXPORT void destroy()
 
 PHYSX_BINDING_EXPORT void simulate()
 {
-	_scene->simulate(1.0f / 60.0f);
+	if (_simulationComplete)
+	{
+		_scene->simulate(1.0f / 60.0f);
+	}
 }
 
 struct VertexData
@@ -250,7 +294,7 @@ PHYSX_BINDING_EXPORT void create_mesh_shape(MeshData* meshData)
 	physx::PxTriangleMesh* mesh = _physics->createTriangleMesh(readBuffer);*/
 }
 
-static std::unordered_map<uint64_t, physx::PxActor*> _actors;
+static std::unordered_map<uint64_t, physx::PxRigidBody*> _actors;
 PHYSX_BINDING_EXPORT void create_mesh_collider(uint64_t id, uint32_t shapeId, float x, float y, float z)
 {
 	if(_actors.find(id) != _actors.cend())
@@ -267,6 +311,36 @@ PHYSX_BINDING_EXPORT void create_mesh_collider(uint64_t id, uint32_t shapeId, fl
 	
 	physx::PxRigidDynamic* dyn = _physics->createRigidDynamic({ x, y, z });
 	dyn->attachShape(*_meshShapes[shapeId]);
+	dyn->userData = reinterpret_cast<void*>(id);
 
 	_actors[id] = dyn;
+}
+
+PHYSX_BINDING_EXPORT SimulationResults fetch_results()
+{
+	_simulationComplete = _scene->fetchResults();
+
+	if (_simulationComplete)
+	{
+		_transformScratchBuffer.clear();
+		_transformScratchBuffer.reserve(_actors.size());
+
+		// populate the results buffer
+		for (auto& [id, actor] : _actors)
+		{
+			uint32_t generation = id >> 32;
+			uint32_t identifier = (id & std::numeric_limits<uint32_t>::max());
+
+			const auto transform = actor->getGlobalPose();
+			const auto [rx, ry, rz] = to_euler(transform.q);
+
+			_transformScratchBuffer.emplace_back(transform.p.x, transform.p.y, transform.p.z, rx, ry, rz, generation, identifier);
+		}
+	}
+
+	return
+	{
+		_simulationComplete ? _transformScratchBuffer.data() : nullptr,
+		_simulationComplete ? static_cast<uint32_t>(_transformScratchBuffer.size()) : 0u
+	};
 }

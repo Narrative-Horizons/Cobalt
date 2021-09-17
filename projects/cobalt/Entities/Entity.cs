@@ -6,6 +6,13 @@ namespace Cobalt.Entities
     {
         public uint Generation { get; internal set; }
         public uint Identifier { get; internal set; }
+        public ulong UUID
+        {
+            get
+            {
+                return (ulong)Generation << 32 | Identifier;
+            }
+        }
 
         public static Entity Invalid = new Entity { Generation = ~0U, Identifier = ~0U };
 

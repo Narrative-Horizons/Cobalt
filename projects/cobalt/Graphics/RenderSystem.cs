@@ -7,6 +7,7 @@ using Cobalt.Graphics.Passes;
 using Cobalt.Math;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using static Cobalt.Graphics.RenderPass;
 
 namespace Cobalt.Graphics
@@ -97,19 +98,26 @@ namespace Cobalt.Graphics
             private uint padding2; // [76, 80)
         }
 
+        [StructLayout(LayoutKind.Explicit)]
         private struct SceneData
         {
+            [FieldOffset(0)]
             public Matrix4 View;
+
+            [FieldOffset(64)]
             public Matrix4 Projection;
+
+            [FieldOffset(128)]
             public Matrix4 ViewProjection;
 
+            [FieldOffset(192)]
             public Vector3 CameraPosition;
+
+            [FieldOffset(208)]
             public Vector3 CameraDirection;
 
-            public Vector3 SunDirection;
-            public Vector3 SunColor;
-
-            public uint abufferCapacity;
+            [FieldOffset(224)]
+            public DirectionalLightComponent Sun;
         }
 
         private class FrameData
@@ -145,8 +153,6 @@ namespace Cobalt.Graphics
         private static readonly uint MAT_NOT_FOUND = uint.MaxValue;
         private static readonly uint TEX_NOT_FOUND = uint.MaxValue;
         private static readonly uint MAX_TEX_COUNT = 500;
-
-        private ComputeShader cShader;
 
         public PbrPipeline(Registry registry, IDevice device, ISwapchain swapchain)
         {
@@ -192,10 +198,8 @@ namespace Cobalt.Graphics
             _device = device;
             _registry = registry;
             _zPrePass = new ZPrePass(device);
-            _pbrPass = new PbrRenderPass(device, layout);
+            _pbrPass = new PbrRenderPass(device, layout, EMaterialType.Opaque);
             _screenResolvePass = new ScreenResolvePass(swapchain, device, 1280, 720);
-
-            cShader = device.CreateComputeShader(FileSystem.LoadFileToString("data/shaders/computetest.glsl"));
 
             registry.Events.AddHandler<ComponentAddEvent<PbrMaterialComponent>>(_AddComponent);
             registry.Events.AddHandler<ComponentAddEvent<PbrMaterialComponent>>(_AddComponent);
@@ -212,12 +216,6 @@ namespace Cobalt.Graphics
         public void Render(ICommandBuffer buffer, int frameInFlight, CameraComponent camera)
         {
             _Build(frameInFlight, camera);
-
-            cShader.Update();
-
-            buffer.Bind(cShader._pipeline);
-            buffer.Bind(cShader._layout, 0, new List<IDescriptorSet>() { cShader.set });
-            buffer.Dispatch(1, 1, 1);
 
             int idx = 0;
 
@@ -267,7 +265,9 @@ namespace Cobalt.Graphics
             FrameInfo sceneRenderInfo = new FrameInfo
             {
                 frameBuffer = _frameBuffer[frameInFlight],
-                frameInFlight = frameInFlight
+                frameInFlight = frameInFlight,
+                width = 1280,
+                height = 720
             };
 
             // Handle scene draw
@@ -389,8 +389,14 @@ namespace Cobalt.Graphics
                 CameraPosition = camera.Transform.Position,
                 CameraDirection = camera.Transform.Forward,
                  
-                SunDirection = new Vector3(0, -1, 0), 
-                SunColor = new Vector3(1, 1, 1)
+                Sun = new DirectionalLightComponent
+                {
+                    Direction = new Vector3(0, -1, 0),
+                    Ambient = new Vector3(1),
+                    Diffuse = new Vector3(1),
+                    Specular = new Vector3(1),
+                    Intensity = 1
+                }
             }; 
             nativeSceneData.Set(data);
             _frames[writeFrame].sceneBuffer.Unmap();

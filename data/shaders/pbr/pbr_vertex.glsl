@@ -15,6 +15,16 @@ struct ObjectData
     uint materialID;
 };
 
+struct DirectionalLight
+{
+    vec3 direction;
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+    float _padding;
+    float intensity;
+};
+
 layout(std430, binding = 0) buffer ObjectDataBuffer
 {
     ObjectData objects[];
@@ -29,10 +39,7 @@ layout(std140, binding = 2) uniform SceneData
     vec3 cameraPosition;
     vec3 cameraDirection;
 
-    vec3 sunDirection;
-    vec3 sunColor;
-
-    uint aBufferCapacity;
+    DirectionalLight directionalLighting;
 };
 
 layout (location = 0) out VertexData

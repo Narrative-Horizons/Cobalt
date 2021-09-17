@@ -14,6 +14,16 @@ struct ObjectData
     uint materialID;
 };
 
+struct DirectionalLight
+{
+    vec3 direction;
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+    float _padding;
+    float intensity;
+};
+
 struct MaterialData
 {
     uint albedo;
@@ -41,10 +51,7 @@ layout(std140, binding = 2) uniform SceneData
     vec3 cameraPosition;
     vec3 cameraDirection;
 
-    vec3 sunDirection;
-    vec3 sunColor;
-
-    uint aBufferCapacity;
+    DirectionalLight directionalLighting;
 };
 
 layout (location = 0) in VertexData
@@ -138,10 +145,10 @@ void main()
     F0 = mix(F0, albedo, metallic);
 
     // TODO: Per light
-    vec3 L = normalize(sunDirection);
+    vec3 L = normalize(-directionalLighting.direction);
     vec3 H = normalize(V + L);
 
-    float attenuation = 1;
+    float attenuation = directionalLighting.intensity;
     vec3 radiance = vec3(attenuation);
 
     // cook-torrance brdf

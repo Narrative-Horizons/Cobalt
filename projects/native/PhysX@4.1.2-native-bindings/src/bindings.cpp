@@ -68,13 +68,15 @@ static std::tuple<float, float, float> to_euler(const physx::PxQuat& rotation)
 	const float roll = std::atan2(sinr_cosp, cosr_cosp); // z
 
 	const float sinp = 2.0f * (rotation.w * rotation.y - rotation.z * rotation.x);
-	const float pitch = std::abs(sinp) >= 1.0 ? std::copysign(M_PI_2, sinp) : (float)std::asin(sinp); // x
+	const float pitch = std::abs(sinp) >= 1.0 ? std::copysign(M_PI_2, sinp) : static_cast<float>(std::asin(sinp)); // x
 
 	const float siny_cosp = 2.0f * (rotation.w * rotation.z + rotation.x * rotation.y);
 	const float cosy_cosp = 1.0f - 2.0f * (rotation.y * rotation.y + rotation.z * rotation.z);
 	const float yaw = std::atan2(siny_cosp, cosy_cosp); // y
 
-	return std::make_tuple(pitch, yaw, roll);
+	const float radtodeg = 180.0f / M_PI;
+
+	return std::make_tuple(pitch * radtodeg, yaw * radtodeg, roll * radtodeg);
 }
 
 static physx::PxFoundation* foundation;
@@ -306,7 +308,7 @@ PHYSX_BINDING_EXPORT void create_mesh_collider(const uint64_t id, const uint32_t
 	physx::PxRigidDynamic* dyn = physx::PxCreateDynamic(*physics, { x, y, z }, *shapes[shapeId], 10.0f);
 	dyn->userData = reinterpret_cast<void*>(id);
 	dyn->setLinearVelocity({ 1, 0, 0 });
-	dyn->setAngularVelocity({ 0, 30, 0 });
+	dyn->setAngularVelocity({ 0, 0, 5 });
 	scene->addActor(*dyn);
 	
 	actors[id] = dyn;

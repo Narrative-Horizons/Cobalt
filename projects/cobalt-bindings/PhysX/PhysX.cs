@@ -28,7 +28,7 @@ namespace Cobalt.Bindings.PhysX
             public uint[] indices;
             public uint indexCount;
 
-            public uint uuid;
+            public uint UUID;
         };
 
         [StructLayout(LayoutKind.Explicit)]
@@ -102,22 +102,19 @@ namespace Cobalt.Bindings.PhysX
         {
             MeshDataImpl impl = new MeshDataImpl
             {
-                uuid = data.uuid,
+                uuid = data.UUID,
                 vertexCount = data.vertexCount,
                 indexCount = data.indexCount
             };
 
-            unsafe
+            fixed (VertexData* vertexPtr = &data.vertices[0])
             {
-                fixed (VertexData* vertexPtr = &data.vertices[0])
-                {
-                    impl.vertices = vertexPtr;
-                }
+                impl.vertices = vertexPtr;
+            }
 
-                fixed (uint* indexPtr = &data.indices[0])
-                {
-                    impl.indices = indexPtr;
-                }
+            fixed (uint* indexPtr = &data.indices[0])
+            {
+                impl.indices = indexPtr;
             }
 
             CreateMeshShapeImpl(impl);

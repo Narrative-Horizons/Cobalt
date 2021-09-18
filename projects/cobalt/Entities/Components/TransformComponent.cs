@@ -18,11 +18,8 @@ namespace Cobalt.Entities.Components
         
         public Matrix4 TransformMatrix 
         { 
-            get { return Parent != null ? _internalTransform * Parent.TransformMatrix : _internalTransform; }
-            set
-            {
-                _internalTransform = value;
-            }
+            get => Parent != null ? _internalTransform * Parent.TransformMatrix : _internalTransform;
+            set => _internalTransform = value;
         }
 
         public Matrix4 LocalTransform { get; set; }

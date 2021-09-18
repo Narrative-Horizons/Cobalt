@@ -8,6 +8,7 @@ using Cobalt.Graphics.API;
 using Cobalt.Math;
 using System.Runtime.InteropServices;
 using Cobalt.Bindings.PhysX;
+using Cobalt.Physics;
 
 namespace Cobalt.Sandbox
 {
@@ -59,6 +60,8 @@ namespace Cobalt.Sandbox
             Registry reg = new Registry();
             RenderSystem renderSystem = new RenderSystem(reg, device, swapchain);
 
+            PhysicsSystem physicsSystem = new PhysicsSystem(reg);
+
             AssetManager assetManager = new AssetManager(device);
 
             RenderableManager renderableManager = new RenderableManager(device);
@@ -74,7 +77,7 @@ namespace Cobalt.Sandbox
             PhysX.Init();
             PhysX.MeshData pData = new PhysX.MeshData
             {
-                uuid = 0, 
+                UUID = 0, 
                 vertices = new PhysX.VertexData[3]
             };
 
@@ -90,9 +93,9 @@ namespace Cobalt.Sandbox
             pData.indexCount = 3;
 
             PhysX.CreateMeshShape(pData);
-            PhysX.CreateMeshCollider(0, 0, 0, 0, 0);
+            PhysX.CreateMeshCollider(meshEntity.UUID, pData.UUID, 0, 0, 0);
 
-            PhysX.Simulate();
+            physicsSystem.Simulate();
 
             while (window.IsOpen())
             {
@@ -103,21 +106,10 @@ namespace Cobalt.Sandbox
                     window.Close();
                 }
 
-                var results = PhysX.FetchResults();
-                if (results.count > 0)
-                {
-                    unsafe
-                    {
-                        PhysX.PhysicsTransform* transforms = results.transforms;
-                        int jonathan = 0;
-                    }
-                }
-
-
+                physicsSystem.Update();
 
                 renderSystem.render();
-                PhysX.Simulate();
-
+                physicsSystem.Simulate();
                 swapchain.Present(new ISwapchain.PresentInfo());
             }
 

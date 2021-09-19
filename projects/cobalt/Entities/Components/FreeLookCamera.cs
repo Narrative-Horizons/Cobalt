@@ -107,7 +107,7 @@ namespace Cobalt.Entities.Components
 
             if(Input.IsKeyDown(Bindings.GLFW.Keys.LeftShift))
             {
-                _movementSpeed = SPEED * 10;
+                _movementSpeed = SPEED * 100;
             }
             else
             {

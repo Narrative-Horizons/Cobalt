@@ -24,8 +24,8 @@ namespace Cobalt.Graphics.Passes
                             .VertexSource(FileSystem.LoadFileToString("data/shaders/pbr/pbr_vertex.glsl"))
                             .FragmentSource(FileSystem.LoadFileToString("data/shaders/pbr/pbr_fragment.glsl"))
                             .DepthInfo(new IGraphicsPipeline.DepthStencilCreateInfo.Builder()
-                                .DepthCompareOp(ECompareOp.LessOrEqual)
-                                .DepthWriteEnabled(false)
+                                .DepthCompareOp(ECompareOp.Less)
+                                .DepthWriteEnabled(true)
                                 .DepthTestEnabled(true)
                                 .Build())
                             .Build(), device, layout);
@@ -40,7 +40,7 @@ namespace Cobalt.Graphics.Passes
                             .AddAttachment(new IRenderPass.AttachmentDescription.Builder()
                                 .InitialLayout(EImageLayout.DepthAttachment)
                                 .FinalLayout(EImageLayout.DepthAttachment)
-                                .LoadOp(EAttachmentLoad.Load)
+                                .LoadOp(EAttachmentLoad.Clear)
                                 .StoreOp(EAttachmentStore.Store)
                                 .Format(EDataFormat.D32_SFLOAT)));
 

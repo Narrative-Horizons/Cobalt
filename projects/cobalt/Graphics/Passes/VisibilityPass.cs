@@ -36,7 +36,7 @@ namespace Cobalt.Graphics.Passes
                 .FragmentSource(FileSystem.LoadFileToString("data/shaders/visibility/fragment.glsl"))
                 .DepthInfo(new IGraphicsPipeline.DepthStencilCreateInfo.Builder()
                                 .DepthCompareOp(ECompareOp.LessOrEqual)
-                                .DepthWriteEnabled(false)
+                                .DepthWriteEnabled(true)
                                 .DepthTestEnabled(true)
                                 .Build())
                 .Build(), device, layout);

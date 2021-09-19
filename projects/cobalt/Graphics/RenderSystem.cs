@@ -40,7 +40,7 @@ namespace Cobalt.Graphics
             }
         }
 
-        public void render()
+        public void Render()
         {
             ICommandBuffer cmdBuffer = _cmdBuffers[_currentFrame];
             IFence renderSync = _renderSync[_currentFrame];
@@ -128,11 +128,16 @@ namespace Cobalt.Graphics
             public IBuffer materialData;
             public IBuffer indirectBuffer;
             public IBuffer sceneBuffer;
-            public IBuffer oitBuffer;
-            public IImage oitAuxImage;
-            public IImage imgCounter;
         }
 
+        private class FrameImages
+        {
+            public IImageView visibility;
+            public IImageView depth;
+            public IImageView color;
+        }
+
+        private IFrameBuffer[] _forwardBuffers;
         private IFrameBuffer[] _frameBuffer;
         private IImageView[] _colorAttachmentViews;
         private ISampler _imageResolveSampler;
@@ -140,6 +145,9 @@ namespace Cobalt.Graphics
         private readonly ZPrePass _zPrePass;
         private readonly PbrRenderPass _pbrPass;
         private readonly ScreenResolvePass _screenResolvePass;
+
+        private readonly VisibilityPass _visibilityPass;
+
         private readonly Dictionary<EMaterialType, HashSet<Entity>> _renderables = new Dictionary<EMaterialType, HashSet<Entity>>();
         private readonly Dictionary<PbrMaterialComponent, uint> _materialIndices = new Dictionary<PbrMaterialComponent, uint>();
         private readonly MaterialPayload[] _materials = new MaterialPayload[1024];
@@ -200,6 +208,7 @@ namespace Cobalt.Graphics
             _zPrePass = new ZPrePass(device);
             _pbrPass = new PbrRenderPass(device, layout, EMaterialType.Opaque);
             _screenResolvePass = new ScreenResolvePass(swapchain, device, 1280, 720);
+            _visibilityPass = new VisibilityPass(device);
 
             registry.Events.AddHandler<ComponentAddEvent<PbrMaterialComponent>>(_AddComponent);
             registry.Events.AddHandler<ComponentAddEvent<PbrMaterialComponent>>(_AddComponent);
@@ -270,8 +279,19 @@ namespace Cobalt.Graphics
                 height = 720
             };
 
+            FrameInfo pbrVisRenderInfo = new FrameInfo
+            {
+                frameBuffer = _forwardBuffers[frameInFlight],
+                frameInFlight = frameInFlight,
+                width = 1280,
+                height = 720
+            };
+
             // Handle scene draw
             buffer.Sync();
+
+            _visibilityPass.Record(buffer, pbrVisRenderInfo, drawInfo);
+
             _zPrePass.Record(buffer, sceneRenderInfo, drawInfo);
             _pbrPass.Record(buffer, sceneRenderInfo, drawInfo);
 
@@ -511,6 +531,8 @@ namespace Cobalt.Graphics
             }
 
             _frameBuffer = new IFrameBuffer[framesInFlight];
+            _forwardBuffers = new IFrameBuffer[framesInFlight];
+
             IImage[] colorAttachments = new IImage[framesInFlight];
             IImage[] depthAttachments = new IImage[framesInFlight];
             _colorAttachmentViews = new IImageView[framesInFlight];
@@ -535,6 +557,34 @@ namespace Cobalt.Graphics
                 _frameBuffer[i] = _device.CreateFrameBuffer(new IFrameBuffer.CreateInfo.Builder()
                     .AddAttachment(new IFrameBuffer.CreateInfo.Attachment.Builder().ImageView(_colorAttachmentViews[i]).Usage(EImageUsage.ColorAttachment))
                     .AddAttachment(new IFrameBuffer.CreateInfo.Attachment.Builder().ImageView(depthAttachmentViews[i]).Usage(EImageUsage.DepthAttachment)));
+
+                var visibility = _device.CreateImage(new IImage.CreateInfo.Builder().AddUsage(EImageUsage.ColorAttachment).Width(1280).Height(720).Type(EImageType.Image2D)
+                    .Format(EDataFormat.R32G32_UINT).SampleCount(ESampleCount.Samples1).MipCount(1).LayerCount(1),
+                    new IImage.MemoryInfo.Builder().Usage(EMemoryUsage.GPUOnly).AddRequiredProperty(EMemoryProperty.DeviceLocal));
+
+                var depthAttachment = _device.CreateImage(new IImage.CreateInfo.Builder().AddUsage(EImageUsage.DepthAttachment).Width(1280).Height(720).Type(EImageType.Image2D)
+                    .Format(EDataFormat.D32_SFLOAT).MipCount(1).LayerCount(1),
+                    new IImage.MemoryInfo.Builder().Usage(EMemoryUsage.GPUOnly).AddRequiredProperty(EMemoryProperty.DeviceLocal));
+
+                _forwardBuffers[i] = _device.CreateFrameBuffer(new IFrameBuffer.CreateInfo.Builder()
+                    .AddAttachment(new IFrameBuffer.CreateInfo.Attachment.Builder()
+                        .ImageView(visibility.CreateImageView(new IImageView.CreateInfo.Builder()
+                            .ViewType(EImageViewType.ViewType2D)
+                            .BaseArrayLayer(0)
+                            .BaseMipLevel(0)
+                            .ArrayLayerCount(1)
+                            .MipLevelCount(1)
+                            .Format(EDataFormat.R32G32_UINT)))
+                        .Usage(EImageUsage.ColorAttachment))
+                    .AddAttachment(new IFrameBuffer.CreateInfo.Attachment.Builder()
+                        .ImageView(depthAttachment.CreateImageView(new IImageView.CreateInfo.Builder()
+                            .ViewType(EImageViewType.ViewType2D)
+                            .BaseArrayLayer(0)
+                            .BaseMipLevel(0)
+                            .ArrayLayerCount(1)
+                            .MipLevelCount(1)
+                            .Format(EDataFormat.D32_SFLOAT)))
+                        .Usage(EImageUsage.DepthAttachment)));
             }
 
             _imageResolveSampler = _device.CreateSampler(new ISampler.CreateInfo.Builder().AddressModeU(EAddressMode.Repeat)

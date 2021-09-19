@@ -22,6 +22,22 @@ namespace Cobalt.Graphics
             }
         }
 
+        public sealed class ClearColorUi
+        {
+            public uint Red { get; set; } = 0;
+            public uint Green { get; set; } = 0;
+            public uint Blue { get; set; } = 0;
+            public uint Alpha { get; set; } = 0;
+
+            public ClearColorUi(uint red, uint green, uint blue, uint alpha)
+            {
+                Red = red;
+                Green = green;
+                Blue = blue;
+                Alpha = alpha;
+            }
+        }
+
         public ClearValue(ClearColor color)
         {
             Color = color;
@@ -32,8 +48,15 @@ namespace Cobalt.Graphics
             Depth = depth;
         }
 
+        public ClearValue(ClearColorUi color)
+        {
+            ColorUi = color;
+        }
+
         public float? Depth { get; set; } = null;
 
         public ClearColor Color { get; set; } = null;
+
+        public ClearColorUi ColorUi { get; set; } = null;
     }
 }

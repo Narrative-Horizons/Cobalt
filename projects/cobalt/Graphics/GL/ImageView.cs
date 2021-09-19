@@ -75,6 +75,8 @@ namespace Cobalt.Graphics.GL
                     return (int)EPixelInternalFormat.Rgba8;
                 case EDataFormat.R32G32_SFLOAT:
                     break;
+                case EDataFormat.R32G32_UINT:
+                    return (int)EPixelInternalFormat.Rg32ui;
                 case EDataFormat.R32G32B32_SFLOAT:
                     break;
                 case EDataFormat.R32G32B32A32_SFLOAT:

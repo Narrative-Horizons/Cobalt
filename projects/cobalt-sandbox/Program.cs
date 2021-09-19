@@ -19,14 +19,6 @@ namespace Cobalt.Sandbox
         public Vector2 uv;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    public struct UniformBufferData
-    {
-        public Matrix4 projection;
-        public Matrix4 view;
-        public Matrix4 model;
-    }
-
     public class Program
     {
         public static void Main(string[] args)
@@ -66,7 +58,7 @@ namespace Cobalt.Sandbox
 
             RenderableManager renderableManager = new RenderableManager(device);
 
-            ModelAsset asset = assetManager.LoadModel("data/Lantern/Lantern.gltf");
+            ModelAsset asset = assetManager.LoadModel("data/Sponza/Sponza.gltf");
             Entity meshEntity = asset.AsEntity(reg, renderableManager);
 
             Entity cameraEntity = reg.Create();
@@ -93,13 +85,13 @@ namespace Cobalt.Sandbox
             pData.indexCount = 3;
 
             PhysX.CreateMeshShape(pData);
-            PhysX.CreateMeshCollider(meshEntity.UUID, pData.UUID, 0, 0, 0);
+            // PhysX.CreateMeshCollider(meshEntity.UUID, pData.UUID, 0, 0, 0);
 
             physicsSystem.Simulate();
 
             while (window.IsOpen())
             {
-                reg.Get<TransformComponent>(meshEntity).TransformMatrix *= Matrix4.Rotate(new Vector3(0, 0.01f, 0));
+                // reg.Get<TransformComponent>(meshEntity).TransformMatrix *= Matrix4.Rotate(new Vector3(0, 0.01f, 0));
                 window.Poll();
                 if (Input.IsKeyPressed(Bindings.GLFW.Keys.Escape))
                 {
@@ -108,7 +100,7 @@ namespace Cobalt.Sandbox
 
                 physicsSystem.Update();
 
-                renderSystem.render();
+                renderSystem.Render();
                 physicsSystem.Simulate();
                 swapchain.Present(new ISwapchain.PresentInfo());
             }

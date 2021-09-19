@@ -204,7 +204,13 @@ namespace Cobalt.Graphics.GL
 
             foreach (var (index, binding) in _bindings)
             {
-                binding.Bind();
+                foreach (var bnd in lay.Bindings)
+                {
+                    if (bnd.BindingIndex == index)
+                    {
+                        binding.Bind();
+                    }
+                }
             }
         }
 

@@ -1,9 +1,6 @@
 ﻿using OpenGL = Cobalt.Bindings.GL.GL;
 
-using Cobalt.Math;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System;
 
 namespace Cobalt.Graphics.GL.Commands
 {
@@ -30,11 +27,15 @@ namespace Cobalt.Graphics.GL.Commands
                 if (clear == null)
                     continue;
 
-                if(clear.Color != null)
-                { 
+                if (clear.Color != null)
+                {
                     OpenGL.ClearNamedFramebufferfv(_fbo.Handle, Bindings.GL.EClearBuffer.Color, i, new float[] { clear.Color.Red, clear.Color.Green, clear.Color.Blue, clear.Color.Alpha });
                 }
-                if(clear.Depth != null)
+                else if (clear.ColorUi != null)
+                {
+                    OpenGL.ClearNamedFramebufferfuiv(_fbo.Handle, Bindings.GL.EClearBuffer.Color, i, new uint[] { clear.ColorUi.Red, clear.ColorUi.Green, clear.ColorUi.Alpha });
+                }
+                else if (clear.Depth != null)
                 {
                     StateMachine.SetDepthMask(true);
                     OpenGL.ClearNamedFramebufferfi(_fbo.Handle, Bindings.GL.EClearBuffer.DepthStencil, 0, clear.Depth ?? 1, 0);

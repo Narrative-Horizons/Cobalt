@@ -218,6 +218,9 @@ namespace Cobalt.Bindings.GL
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_clear_named_framebuffer_fv", CallingConvention = CallingConvention.Cdecl)]
         public static extern void ClearNamedFramebufferfv(uint framebuffer, EClearBuffer buffer, int drawbuffer, float[] value);
 
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_clear_named_framebuffer_uiv", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void ClearNamedFramebufferfuiv(uint handle, EClearBuffer color, int i, uint[] values);
+
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_clear_named_framebuffer_fi", CallingConvention = CallingConvention.Cdecl)]
         public static extern void ClearNamedFramebufferfi(uint framebuffer, EClearBuffer buffer, int drawbuffer, float depth, int stencil);
 

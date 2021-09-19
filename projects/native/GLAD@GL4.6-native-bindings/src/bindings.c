@@ -317,6 +317,11 @@ GLAD_BINDING_EXPORT void cobalt_gl_clear_named_framebuffer_fv(unsigned int frame
 	glClearNamedFramebufferfv(framebuffer, buffer, drawbuffer, value);
 }
 
+GLAD_BINDING_EXPORT void cobalt_gl_clear_named_framebuffer_uiv(unsigned int framebuffer, unsigned int buffer, int drawbuffer, const unsigned int* value)
+{
+	glClearNamedFramebufferuiv(framebuffer, buffer, drawbuffer, value);
+}
+
 GLAD_BINDING_EXPORT void cobalt_gl_clear_named_framebuffer_fi(unsigned int framebuffer, unsigned int buffer, int drawbuffer, const float depth, const float stencil)
 {
 	glClearNamedFramebufferfi(framebuffer, buffer, drawbuffer, depth, stencil);

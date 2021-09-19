@@ -8,6 +8,7 @@ namespace Cobalt.Graphics.API
         BGRA8_SRGB,
         R8G8B8A8_SRGB,
         R8G8B8A8,
+        R32G32_UINT,
         R32G32_SFLOAT,
         R32G32B32_SFLOAT,
         R32G32B32A32_SFLOAT,

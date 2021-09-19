@@ -130,8 +130,6 @@ namespace Cobalt.Graphics.GL
 #if !RELEASE
             string debugMessage = source.ToString() + " (" + type.ToString() + "): " + Util.PtrToStringUTF8(messagePtr);
 
-            return;
-
             switch (severity)
             {
                 case Bindings.GL.EDebugSeverity.High:

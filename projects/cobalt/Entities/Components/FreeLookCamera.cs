@@ -50,7 +50,7 @@ namespace Cobalt.Entities.Components
             ProcessMouseMovement();
         }
 
-        private Vector2 oldMouse = new Vector2();
+        private Vector2 _oldMouse;
 
         private void ProcessMouseMovement()
         {
@@ -60,7 +60,7 @@ namespace Cobalt.Entities.Components
             }
 
             Vector2 mouse = Input.MousePosition;
-            Vector2 delta = mouse - oldMouse;
+            Vector2 delta = mouse - _oldMouse;
 
             delta *= _mouseSensitivity;
 
@@ -75,7 +75,7 @@ namespace Cobalt.Entities.Components
             UpdateCameraVectors();
 
             Input.SetMousePosition(new Vector2(1280.0f / 2.0f, 720.0f / 2.0f));
-            oldMouse = new Vector2(1280.0f / 2.0f, 720.0f / 2.0f);
+            _oldMouse = new Vector2(1280.0f / 2.0f, 720.0f / 2.0f);
         }
 
         private void ProcessKeyboard()
@@ -92,12 +92,12 @@ namespace Cobalt.Entities.Components
 
             if (Input.IsKeyDown(Bindings.GLFW.Keys.A))
             {
-                Transform.Position += Transform.Right * _movementSpeed;
+                Transform.Position -= Transform.Right * _movementSpeed;
             }
 
             if (Input.IsKeyDown(Bindings.GLFW.Keys.D))
             {
-                Transform.Position -= Transform.Right * _movementSpeed;
+                Transform.Position += Transform.Right * _movementSpeed;
             }
 
             if (Input.IsKeyUp(Bindings.GLFW.Keys.Tab))
@@ -125,9 +125,6 @@ namespace Cobalt.Entities.Components
             };
 
             Transform.Forward = Vector3.Normalize(f);
-
-            Transform.Right = Vector3.Cross(Transform.Forward, Vector3.UnitY).Normalized();
-            Transform.Up = Vector3.Cross(Transform.Right, Transform.Forward).Normalized();
         }
     }
 }

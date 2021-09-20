@@ -43,9 +43,9 @@ namespace Cobalt.Physics
 
                         TransformComponent comp = _registry.Get<TransformComponent>(e);
                         comp.Position = new Vector3(transforms->x, transforms->y, transforms->z);
-                        comp.Rotation = new Vector3(transforms->rx, transforms->ry, transforms->rz);
+                        comp.Rotation = Quaternion.Euler(transforms->rx, transforms->ry, transforms->rz);
 
-                        comp.TransformMatrix = Matrix4.Rotate(comp.Rotation) * Matrix4.Translate(comp.Position);
+                        //comp.TransformMatrix = Matrix4.Rotate(comp.Rotation.EulerAngles) * Matrix4.Translate(comp.Position);
                     }
                 }
             }

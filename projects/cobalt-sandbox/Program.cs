@@ -63,7 +63,7 @@ namespace Cobalt.Sandbox
 
             Entity cameraEntity = reg.Create();
             reg.Assign(cameraEntity, new TransformComponent());
-            reg.Assign<CameraComponent>(cameraEntity, new FreeLookCamera(65.0f, 0.01f, 5000.0f, 16.0f/9.0f));
+            reg.Assign<CameraComponent>(cameraEntity, new FreeLookCamera(65.0f, 0.1f, 5000.0f, 16.0f/9.0f));
             reg.Get<TransformComponent>(cameraEntity).Position = new Vector3(1, 2, 1);
 
             PhysX.Init();

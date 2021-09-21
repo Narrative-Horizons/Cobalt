@@ -344,3 +344,32 @@ PHYSX_BINDING_EXPORT SimulationResults fetch_results()
 
 	return x;
 }
+
+PHYSX_BINDING_EXPORT SimulationResults get_results()
+{
+	if (_simulationComplete)
+	{
+		_transformScratchBuffer.reserve(actors.size());
+	}
+	
+	SimulationResults x =
+	{
+		_simulationComplete ? _transformScratchBuffer.data() : nullptr,
+		_simulationComplete ? static_cast<uint32_t>(_transformScratchBuffer.size()) : 0u
+	};
+
+	return x;
+}
+
+PHYSX_BINDING_EXPORT void sync()
+{
+	if (_simulationComplete)
+	{
+		for (PhysicsTransform trans : _transformScratchBuffer)
+		{
+			uint64_t id = static_cast<uint64_t>(trans.generation) << 32 | trans.identifier;
+
+			actors[id]->setGlobalPose({ trans.x, trans.y, trans.z, {0, 0, 0, 1} });
+		}
+	}
+}

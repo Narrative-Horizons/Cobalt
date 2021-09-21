@@ -77,6 +77,8 @@ namespace Cobalt.Core
                     application.Update();
                     application.Render();
 
+                    Physics.Sync();
+
                     Physics.Simulate();
                     SwapChain.Present(new ISwapchain.PresentInfo());
                 }

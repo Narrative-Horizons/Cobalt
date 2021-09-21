@@ -3,6 +3,7 @@ using Cobalt.Entities.Components;
 using Cobalt.Events;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace Cobalt.Entities
 {
@@ -77,6 +78,12 @@ namespace Cobalt.Entities
         public bool Has<Component>(Entity ent) where Component : BaseComponent
         {
             MemoryPool<Component> pool = GetPool<Component>();
+            return pool.Contains(ent);
+        }
+
+        public bool Has(Entity ent, Type type)
+        {
+            IMemoryPool pool = GetPool(type);
             return pool.Contains(ent);
         }
 

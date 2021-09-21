@@ -1,6 +1,8 @@
 ﻿using Cobalt.Entities.Components;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net.Sockets;
 
 namespace Cobalt.Entities
 {
@@ -35,8 +37,10 @@ namespace Cobalt.Entities
     public class EntityView
     {
         private readonly Registry _reg;
+        private List<Type> _types = new List<Type>();
 
         public delegate void EntityOperation(Entity ent, Registry reg);
+
 
         public EntityView(Registry reg)
         {
@@ -45,12 +49,26 @@ namespace Cobalt.Entities
 
         public void ForEach(EntityOperation op)
         {
-            foreach (Entity ent in _reg.GetEntities())
+            if (_types.Count == 0)
             {
-                op.Invoke(ent, _reg);
+                foreach (Entity ent in _reg.GetEntities())
+                {
+                    op.Invoke(ent, _reg);
+                }
+            }
+            else
+            {
+                foreach (var ent in _reg.GetEntities().Where(ent => _types.Count == (from t in _types where _reg.Has(ent, t) select ent).Count()))
+                {
+                    op.Invoke(ent, _reg);
+                }
             }
         }
 
-        // TODO: Filtering
+        public EntityView Requires<Component>()
+        {
+            _types.Add(typeof(Component));
+            return this;
+        }
     }
 }

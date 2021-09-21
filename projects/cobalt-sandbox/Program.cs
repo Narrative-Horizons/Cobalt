@@ -81,8 +81,10 @@ namespace Cobalt.Sandbox
             pData.indices = new uint[] { 0, 1, 2 };
             pData.indexCount = 3;
 
-            PhysX.CreateMeshShape(pData);
-            // PhysX.CreateMeshCollider(meshEntity.UUID, pData.UUID, 0, 0, 0);
+            //PhysX.CreateMeshShape(pData);
+            //PhysX.CreateMeshCollider(meshEntity.UUID, pData.UUID, 0, 0, 0);
+
+            //engine.Registry.Assign<RigidBodyComponent>(meshEntity, new RigidBodyComponent());
         }
 
         public override void Update()

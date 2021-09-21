@@ -98,6 +98,12 @@ namespace Cobalt.Bindings.PhysX
         [DllImport(LIBRARY, EntryPoint = "fetch_results", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         public static extern SimulationResult FetchResults();
 
+        [DllImport(LIBRARY, EntryPoint = "get_results", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        public static extern SimulationResult GetResults();
+
+        [DllImport(LIBRARY, EntryPoint = "sync", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Sync();
+
         public static void CreateMeshShape(MeshData data)
         {
             MeshDataImpl impl = new MeshDataImpl

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography.Xml;
 using System.Text;
 using Cobalt.Bindings.PhysX;
@@ -12,10 +13,12 @@ namespace Cobalt.Physics
     public class PhysicsSystem
     {
         private readonly Registry _registry;
+        private readonly EntityView _physicsView;
 
         public PhysicsSystem(Registry registry)
         {
             _registry = registry;
+            _physicsView = _registry.GetView().Requires<TransformComponent>().Requires<RigidBodyComponent>();
         }
 
         public void Simulate()
@@ -44,11 +47,43 @@ namespace Cobalt.Physics
                         TransformComponent comp = _registry.Get<TransformComponent>(e);
                         comp.Position = new Vector3(transforms->x, transforms->y, transforms->z);
                         comp.Rotation = Quaternion.Euler(transforms->rx, transforms->ry, transforms->rz);
-
-                        //comp.TransformMatrix = Matrix4.Rotate(comp.Rotation.EulerAngles) * Matrix4.Translate(comp.Position);
+                        comp.isDirty = false;
                     }
                 }
             }
+        }
+
+        internal void Sync()
+        {
+            var results = PhysX.GetResults();
+            if (results.count == 0)
+                return;
+
+            int index = 0;
+            _physicsView.ForEach((ent, reg) =>
+            {
+                TransformComponent transform = reg.Get<TransformComponent>(ent);
+                if (transform.isDirty)
+                {
+                    unsafe
+                    {
+                        PhysX.PhysicsTransform* transforms = results.transforms;
+                        transforms[index++] = new PhysX.PhysicsTransform()
+                        {
+                            generation = ent.Generation,
+                            identifier = ent.Identifier,
+                            x = transform.Position.x,
+                            y = transform.Position.y,
+                            z = transform.Position.z,
+                            rx = transform.EulerAngles.x,
+                            ry = transform.EulerAngles.y,
+                            rz = transform.EulerAngles.z
+                        };
+                    }
+                }
+            });
+
+            PhysX.Sync();
         }
     }
 }

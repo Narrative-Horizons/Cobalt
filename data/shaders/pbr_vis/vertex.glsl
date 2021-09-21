@@ -12,6 +12,6 @@ layout (location = 0) out VertexData
 
 void main()
 {
-    output.uv = uv;
+    o.uv = uv;
     gl_Position = vec4(position, 1);
 }

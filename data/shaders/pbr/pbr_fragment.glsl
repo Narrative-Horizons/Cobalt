@@ -4,7 +4,7 @@
 layout(early_fragment_tests) in;
 
 #define MAX_TEX_COUNT 500
-layout(location = 6, bindless_sampler) uniform sampler2D texArray[MAX_TEX_COUNT];
+layout(location = 8, bindless_sampler) uniform sampler2D texArray[MAX_TEX_COUNT];
 
 const float PI = 3.14159265359;
 

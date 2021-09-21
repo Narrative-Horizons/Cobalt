@@ -572,7 +572,6 @@ namespace Cobalt.Graphics
 
             _frameBuffer = new IFrameBuffer[framesInFlight];
             _visibility = new FrameImages[framesInFlight];
-
             IImage[] colorAttachments = new IImage[framesInFlight];
             IImage[] depthAttachments = new IImage[framesInFlight];
             _colorAttachmentViews = new IImageView[framesInFlight];
@@ -610,13 +609,16 @@ namespace Cobalt.Graphics
                     new IImage.MemoryInfo.Builder()
                         .Usage(EMemoryUsage.GPUOnly)
                         .AddRequiredProperty(EMemoryProperty.DeviceLocal));
-                _visibility[i].visibility = visibility.CreateImageView(new IImageView.CreateInfo.Builder()
-                            .ViewType(EImageViewType.ViewType2D)
-                            .BaseArrayLayer(0)
-                            .BaseMipLevel(0)
-                            .ArrayLayerCount(1)
-                            .MipLevelCount(1)
-                            .Format(EDataFormat.R32G32_UINT));
+                _visibility[i] = new FrameImages
+                {
+                    visibility = visibility.CreateImageView(new IImageView.CreateInfo.Builder()
+                        .ViewType(EImageViewType.ViewType2D)
+                        .BaseArrayLayer(0)
+                        .BaseMipLevel(0)
+                        .ArrayLayerCount(1)
+                        .MipLevelCount(1)
+                        .Format(EDataFormat.R32G32_UINT))
+                };
 
 
                 var depthAttachment = _device.CreateImage(new IImage.CreateInfo.Builder()

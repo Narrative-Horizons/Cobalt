@@ -17,95 +17,95 @@ namespace Cobalt.Sandbox
         public Vector2 uv;
     }
 
-    public class Program
+    public class Sandbox : BaseApplication
     {
-        public static void Main(string[] args)
-        {
-            GraphicsContext gfxContext = GraphicsContext.GetInstance(GraphicsContext.API.OpenGL_4);
+        public RenderSystem RenderSystem { get; internal set; }
 
-            Window window = gfxContext.CreateWindow(new Window.CreateInfo.Builder()
+        public override void Setup()
+        {
+            var engine = Engine<Sandbox>.Instance();
+
+            engine.CreateGraphicsContext(GraphicsContext.API.OpenGL_4);
+            engine.CreateWindow(new Window.CreateInfo.Builder()
                 .Width(1280)
                 .Height(720)
                 .Name("Cobalt Sandbox")
                 .Build());
-            IGraphicsApplication gfxApplication = gfxContext.CreateApplication(new IGraphicsApplication.CreateInfo.Builder()
+
+            engine.CreateGraphicsApplication(new IGraphicsApplication.CreateInfo.Builder()
                 .Debug(true)
                 .Name("Sandbox")
                 .Build());
 
-            IPhysicalDevice physicalDevice = gfxApplication.GetPhysicalDevices()
-                .Find(gpu => gpu.SupportsGraphics() && gpu.SupportsPresent() && gpu.SupportsCompute() && gpu.SupportsTransfer());
+            engine.CreatePhysicalDevice(null);
 
-            if (physicalDevice == null)
+            if (engine.GPU == null)
                 return;
 
-            IDevice device = physicalDevice.Create(new IDevice.CreateInfo.Builder()
-                .Debug(physicalDevice.Debug())
-                .QueueInformation(physicalDevice.QueueInfos())
+            engine.CreateDevice(new IDevice.CreateInfo.Builder()
+                .Debug(engine.GPU.Debug())
+                .QueueInformation(engine.GPU.QueueInfos())
                 .Build());
 
-            IRenderSurface surface = device.GetSurface(window);
-            ISwapchain swapchain = surface.CreateSwapchain(new ISwapchain.CreateInfo.Builder().Width(1280).Height(720).ImageCount(2).Layers(1).Build());
+            engine.CreateSwapChain(new ISwapchain.CreateInfo.Builder().Width(1280).Height(720).ImageCount(2).Layers(1)
+                .Build());
+        }
 
-            Registry reg = new Registry();
-            RenderSystem renderSystem = new RenderSystem(reg, device, swapchain);
+        public override void Initialize()
+        {
+            var engine = Engine<Sandbox>.Instance();
 
-            PhysicsSystem physicsSystem = new PhysicsSystem(reg);
+            RenderSystem = new RenderSystem(engine.Registry, engine.Device, engine.SwapChain);
+            ModelAsset asset = engine.Assets.LoadModel("data/Sponza/Sponza.gltf");
+            Entity meshEntity = asset.AsEntity(engine.Registry, engine.RenderableManager);
 
-            AssetManager assetManager = new AssetManager(device);
+            Entity cameraEntity = engine.Registry.Create();
+            engine.Registry.Assign(cameraEntity, new TransformComponent());
+            engine.Registry.Assign<CameraComponent>(cameraEntity, new FreeLookCamera(65.0f, 0.1f, 5000.0f, 16.0f / 9.0f));
+            engine.Registry.Get<TransformComponent>(cameraEntity).Position = new Vector3(1, 2, 1);
 
-            RenderableManager renderableManager = new RenderableManager(device);
-
-            ModelAsset asset = assetManager.LoadModel("data/Sponza/Sponza.gltf");
-            Entity meshEntity = asset.AsEntity(reg, renderableManager);
-
-            Entity cameraEntity = reg.Create();
-            reg.Assign(cameraEntity, new TransformComponent());
-            reg.Assign<CameraComponent>(cameraEntity, new FreeLookCamera(65.0f, 0.1f, 5000.0f, 16.0f / 9.0f));
-            reg.Get<TransformComponent>(cameraEntity).Position = new Vector3(1, 2, 1);
-
-            PhysX.Init();
             PhysX.MeshData pData = new PhysX.MeshData
             {
-                UUID = 0, 
+                UUID = 0,
                 vertices = new PhysX.VertexData[3]
             };
 
-            PhysX.VertexData v = new PhysX.VertexData {x = 0, y = 0, z = 0};
-            PhysX.VertexData v1 = new PhysX.VertexData {x = 1, y = 0, z = 0};
-            PhysX.VertexData v2 = new PhysX.VertexData {x = 1, y = 1, z = 0};
+            PhysX.VertexData v = new PhysX.VertexData { x = 0, y = 0, z = 0 };
+            PhysX.VertexData v1 = new PhysX.VertexData { x = 1, y = 0, z = 0 };
+            PhysX.VertexData v2 = new PhysX.VertexData { x = 1, y = 1, z = 0 };
             pData.vertices[0] = v;
             pData.vertices[1] = v1;
             pData.vertices[2] = v2;
 
             pData.vertexCount = 3;
-            pData.indices = new uint[] {0, 1, 2};
+            pData.indices = new uint[] { 0, 1, 2 };
             pData.indexCount = 3;
 
             PhysX.CreateMeshShape(pData);
             // PhysX.CreateMeshCollider(meshEntity.UUID, pData.UUID, 0, 0, 0);
+        }
 
-            physicsSystem.Simulate();
+        public override void Update()
+        {
+        }
 
-            while (window.IsOpen())
-            {
-                // reg.Get<TransformComponent>(meshEntity).TransformMatrix *= Matrix4.Rotate(new Vector3(0, 0.01f, 0));
-                window.Poll();
-                if (Input.IsKeyPressed(Bindings.GLFW.Keys.Escape))
-                {
-                    window.Close();
-                }
+        public override void Render()
+        {
+            RenderSystem.Render();
+        }
 
-                physicsSystem.Update();
+        public override void Cleanup()
+        {
+        }
+    }
 
-                renderSystem.Render();
-                physicsSystem.Simulate();
-                swapchain.Present(new ISwapchain.PresentInfo());
-            }
-
-            PhysX.Destroy();
-
-            gfxContext.Dispose();
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            Engine<Sandbox>.Initialize(new Sandbox());
+            Engine<Sandbox>.Instance().Run();
+            Engine<Sandbox>.Destruct();
         }
     }
 }

@@ -64,11 +64,17 @@ namespace Cobalt.Graphics.GL
 
             public void Bind()
             {
+                if (Buffer == null)
+                    return;
+
                 StateMachine.BindStorageBufferRange(Index, Buffer, Offset, Range);
             }
 
             public void Bind(uint offset)
             {
+                if (Buffer == null)
+                    return;
+
                 StateMachine.BindStorageBufferRange(Index, Buffer, (int)offset, Range);
             }
 
@@ -92,11 +98,17 @@ namespace Cobalt.Graphics.GL
 
             public void Bind()
             {
+                if (Buffer == null)
+                    return;
+
                 StateMachine.BindUniformBufferRange(Index, Buffer, Offset, Range);
             }
 
             public void Bind(uint offset)
             {
+                if (Buffer == null)
+                    return;
+
                 StateMachine.BindUniformBufferRange(Index, Buffer, (int) offset, Range);
             }
 

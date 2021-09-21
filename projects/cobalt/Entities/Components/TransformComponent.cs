@@ -10,7 +10,7 @@ namespace Cobalt.Entities.Components
 
         private Vector3 _position = Vector3.Zero;
         private Vector3 _scale = Vector3.One;
-        private Quaternion _rotation = new Quaternion();
+        private Quaternion _rotation = Quaternion.Identity;
         #endregion
 
         #region Internal Data

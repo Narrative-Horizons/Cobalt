@@ -5,7 +5,7 @@ namespace Cobalt.Graphics.API
 {
     public interface IPhysicalDevice : IDisposable
     {
-        internal class CreateInfo
+        public class CreateInfo
         {
             internal sealed class Builder : CreateInfo
             {

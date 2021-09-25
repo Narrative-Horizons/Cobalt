@@ -87,9 +87,8 @@ layout(std140, binding = 2) uniform SceneData
 
 layout (binding = 4) uniform VisibilityParameters
 {
-    uint materialID;
-    uint sampleCount;
     ivec2 dimensions;
+    int sampleCount;
 };
 
 layout (std430, binding = 5) buffer VertexBuffer
@@ -129,7 +128,7 @@ void main(void)
 {
     vec2 uv = i.uv;
     ivec2 iuv = ivec2(int(uv.x * dimensions.x), int(uv.y * dimensions.y));
-    // TODO: compute each sample
+
     uvec2 s = texelFetch(visibility, iuv, 0).rg; // just take the first sample for now
     FragmentParameters fragment = FetchFragment(s);
 

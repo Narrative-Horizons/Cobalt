@@ -14,7 +14,7 @@ namespace Cobalt.Graphics.GL
         public EBufferAccessMask ReadWriteRangeFlags { get; private set; } = 0;
         public EBufferAccess ReadWriteFlag { get; private set; }
         public bool Persistent { get; private set; }
-        public int Size { get; private set; }
+        public int SizeBytes { get; private set; }
         private IntPtr Mapping { get; set; } = default;
 
         private int _mapStart = 0;
@@ -25,7 +25,7 @@ namespace Cobalt.Graphics.GL
             Handle = OpenGL.CreateBuffers();
             int size = createInfo.Size;
             Flags = 0;
-            Size = size;
+            SizeBytes = size;
 
             if(memoryInfo.Usage != EMemoryUsage.GPUOnly && (memoryInfo.Required.Contains(EMemoryProperty.HostVisible) ||
                 memoryInfo.Preferred.Contains(EMemoryProperty.HostVisible)))
@@ -93,7 +93,7 @@ namespace Cobalt.Graphics.GL
 
         public IntPtr Map()
         {
-            if (Mapping == default || (_mapStart != 0 && _mapRange != Size))
+            if (Mapping == default || (_mapStart != 0 && _mapRange != SizeBytes))
             {
                 Mapping = OpenGL.MapNamedBuffer(Handle, ReadWriteFlag);
             }
@@ -123,6 +123,11 @@ namespace Cobalt.Graphics.GL
         public uint GetHandle()
         {
             return Handle;
+        }
+
+        public int Size()
+        {
+            return SizeBytes;
         }
 
         private static bool _UsePersistence()

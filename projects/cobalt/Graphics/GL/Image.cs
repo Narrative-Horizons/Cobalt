@@ -21,36 +21,67 @@ namespace Cobalt.Graphics.GL
             int width = createInfo.Width;
             int height = createInfo.Height;
             int depth = createInfo.Depth;
-            this.Levels = createInfo.MipCount;
+            Levels = createInfo.MipCount;
             int layers = createInfo.LayerCount;
             ETextureTarget target = ToTarget(createInfo.Type, layers);
             EPixelInternalFormat format = ToSizedFormat(createInfo.Format);
 
-            this.Format = createInfo.Format;
-            this.Type = createInfo.Type;
-            this.LayerCount = createInfo.LayerCount;
+            Format = createInfo.Format;
+            Type = createInfo.Type;
+            LayerCount = createInfo.LayerCount;
+
+            int sampleCount = (int)createInfo.SampleCount;
 
             Handle = OpenGL.CreateTextures(ETextureTarget.Texture2D);
 
             if (target == ETextureTarget.Texture1D)
             {
                 OpenGL.TextureStorage1D(Handle, Levels, format, width);
+                if (sampleCount > 1)
+                {
+                    // Log that multisampling not supported for 1D images
+                }
             }
             else if (target == ETextureTarget.Texture1DArray)
             {
                 OpenGL.TextureStorage2D(Handle, Levels, format, width, layers);
+                if (sampleCount > 1)
+                {
+                    // Log that multisampling not supported for 1D images
+                }
             }
             else if (target == ETextureTarget.Texture2D)
             {
-                OpenGL.TextureStorage2D(Handle, Levels, format, width, height);
+                if (sampleCount > 1)
+                {
+                    OpenGL.TextureStorage2DMS(Handle, sampleCount, format, width, height, true);
+                }
+                else
+                {
+                    OpenGL.TextureStorage2D(Handle, Levels, format, width, height);
+                }
             }
             else if (target == ETextureTarget.Texture2DArray)
             {
-                OpenGL.TextureStorage3D(Handle, Levels, format, width, height, layers);
+                if (sampleCount > 1)
+                {
+                    OpenGL.TextureStorage3DMS(Handle, sampleCount, format, width, height, layers, true);
+                }
+                else
+                {
+                    OpenGL.TextureStorage3D(Handle, Levels, format, width, height, layers);
+                }
             }
             else if(target == ETextureTarget.Texture3D)
             {
-                OpenGL.TextureStorage3D(Handle, Levels, format, width, height, depth);
+                if (sampleCount > 1)
+                {
+                    OpenGL.TextureStorage3DMS(Handle, sampleCount, format, width, height, depth, true);
+                }
+                else
+                {
+                    OpenGL.TextureStorage3D(Handle, Levels, format, width, height, depth);
+                }
             }
             else if(target == ETextureTarget.TextureCubeMap)
             {

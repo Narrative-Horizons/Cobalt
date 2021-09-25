@@ -90,6 +90,15 @@ namespace Cobalt.Graphics.GL.Commands
             {
                 StateMachine.Enable(EEnableCap.Blend, false);
             }
+
+            if (Pipeline.Info.MultisamplingCreationInformation != default)
+            {
+                StateMachine.Enable(EEnableCap.Multisample, Pipeline.Info.MultisamplingCreationInformation.Samples != ESampleCount.Samples1);
+            }
+            else
+            {
+                StateMachine.Enable(EEnableCap.Multisample, false);
+            }
         }
 
         private static EDepthFunction convert(ECompareOp op) 

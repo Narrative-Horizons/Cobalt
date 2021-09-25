@@ -304,12 +304,20 @@ namespace Cobalt.Graphics.GL
 
         public void UpdateDescriptorSets(List<DescriptorWriteInfo> writeInformation)
         {
-            List<IDescriptorSet> sets = new List<IDescriptorSet>();
             writeInformation.ForEach(writeInfo =>
             {
-                DescriptorSet s = (DescriptorSet)writeInfo.DescriptorSet;
+                DescriptorSet s = writeInfo.DescriptorSet as DescriptorSet;
 
                 s.Write(writeInformation);
+            });
+        }
+
+        public void UpdateDescriptorSets(List<DescriptorCopyInfo> copyInformation)
+        {
+            copyInformation.ForEach(copyInfo =>
+            {
+                DescriptorSet src = copyInfo.src as DescriptorSet;
+                src.Copy(copyInfo);
             });
         }
 

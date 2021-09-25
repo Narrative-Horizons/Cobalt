@@ -90,5 +90,7 @@ namespace Cobalt.Graphics.API
         IntPtr Map(int offset, int size);
 
         void Unmap();
+
+        int Size();
     }
 }

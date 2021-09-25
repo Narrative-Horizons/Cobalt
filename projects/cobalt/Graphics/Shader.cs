@@ -68,6 +68,12 @@ namespace Cobalt.Graphics
                     return this;
                 }
 
+                public new Builder MultisampleInfo(MultisampleCreateInfo multiInfo)
+                {
+                    base.MultisampleInfo = multiInfo;
+                    return this;
+                }
+
                 public CreateInfo Build()
                 {
                     return new CreateInfo()
@@ -79,7 +85,8 @@ namespace Cobalt.Graphics
                         TessEvalSource = base.TessEvalSource,
                         ComputeSource = base.ComputeSource,
                         DepthInfo = base.DepthInfo,
-                        ColorBlendInfo = base.ColorBlendInfo
+                        ColorBlendInfo = base.ColorBlendInfo,
+                        MultisampleInfo = base.MultisampleInfo
                     };
                 }
             }
@@ -95,6 +102,10 @@ namespace Cobalt.Graphics
                         .DepthWriteEnabled(true)
                         .DepthCompareOp(ECompareOp.Less).Build();
             public ColorBlendCreateInfo ColorBlendInfo { get; private set; }
+            public MultisampleCreateInfo MultisampleInfo { get; private set; } = new MultisampleCreateInfo.Builder()
+                        .AlphaToOneEnabled(false)
+                        .AlphaToCoverageEnabled(false)
+                        .Samples(ESampleCount.Samples1).Build();
         }
 
         static bool first = true;
@@ -279,11 +290,7 @@ namespace Cobalt.Graphics
                         .CullFaces(EPolgyonFace.Back)
                         .RasterizerDiscardEnabled(true).Build())
                 .DepthStencilCreationInformation(createInfo.DepthInfo)
-                .MultisamplingCreationInformation(
-                    new MultisampleCreateInfo.Builder()
-                        .AlphaToOneEnabled(false)
-                        .AlphaToCoverageEnabled(false)
-                        .Samples(ESampleCount.Samples1).Build())
+                .MultisamplingCreationInformation(createInfo.MultisampleInfo)
                 .ColorBlendCreationInformation(createInfo.ColorBlendInfo)
                 .PipelineLayout(layout).Build();
 

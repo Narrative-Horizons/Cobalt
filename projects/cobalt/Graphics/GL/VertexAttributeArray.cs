@@ -10,6 +10,9 @@ namespace Cobalt.Graphics.GL
     {
         public uint Handle { get; private set; }
 
+        private readonly List<IBuffer> _vertexBuffers;
+        private readonly IBuffer _elementBuffer;
+
         public VertexAttributeArray(IGraphicsPipeline.VertexAttributeCreateInfo info, List<IBuffer> buffers)
         {
             Handle = OpenGL.CreateVertexArrays();
@@ -37,11 +40,16 @@ namespace Cobalt.Graphics.GL
             {
                 OpenGL.EnableVertexArrayAttrib(Handle, (uint)attribute.Location);
             });
+
+            _vertexBuffers = buffers;
+            _elementBuffer = null;
         }
 
         public VertexAttributeArray(IGraphicsPipeline.VertexAttributeCreateInfo info, List<IBuffer> vertexBuffers, IBuffer elementBuffer) : this(info, vertexBuffers)
         {
             OpenGL.VertexArrayElementBuffer(Handle, BufferHelper.GetHandle(elementBuffer));
+
+            _elementBuffer = elementBuffer;
         }
 
         public void Dispose()
@@ -52,6 +60,16 @@ namespace Cobalt.Graphics.GL
         public override int GetHashCode()
         {
             return Handle.GetHashCode();
+        }
+
+        public List<IBuffer> GetVertexBuffers()
+        {
+            return _vertexBuffers;
+        }
+
+        public IBuffer GetElementBuffer()
+        {
+            return _elementBuffer;
         }
 
         private static int GetCount(EDataFormat format)

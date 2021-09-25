@@ -130,17 +130,6 @@ namespace Cobalt.Graphics
             public IBuffer sceneBuffer;
         }
 
-        private class FrameImages
-        {
-            public IFrameBuffer visibilityFbo;
-            public IFrameBuffer resolveFbo;
-            public IImageView visibility;
-            public IImageView depth;
-            public IImageView color;
-        }
-
-        private FrameImages[] _visibility;
-
         private IFrameBuffer[] _frameBuffer;
         private IImageView[] _colorAttachmentViews;
         private ISampler _imageResolveSampler;
@@ -148,9 +137,6 @@ namespace Cobalt.Graphics
         private readonly ZPrePass _zPrePass;
         private readonly PbrRenderPass _pbrPass;
         private readonly ScreenResolvePass _screenResolvePass;
-
-        private readonly VisibilityPass _visibilityPass;
-        private readonly OpaquePbrUberPass _opaquePbrPass;
 
         private readonly Dictionary<EMaterialType, HashSet<Entity>> _renderables = new Dictionary<EMaterialType, HashSet<Entity>>();
         private readonly Dictionary<PbrMaterialComponent, uint> _materialIndices = new Dictionary<PbrMaterialComponent, uint>();
@@ -200,36 +186,6 @@ namespace Cobalt.Graphics
                         .AddAccessibleStage(EShaderType.Fragment).Build())
                     .AddBinding(new IDescriptorSetLayout.DescriptorSetLayoutBinding.Builder()
                         .BindingIndex(3)
-                        .Count(1)
-                        .DescriptorType(EDescriptorType.CombinedImageSampler)
-                        .Name("VisibilityBuffer")
-                        .AddAccessibleStage(EShaderType.Fragment).Build())
-                    .AddBinding(new IDescriptorSetLayout.DescriptorSetLayoutBinding.Builder()
-                        .BindingIndex(4)
-                        .Count(1)
-                        .DescriptorType(EDescriptorType.UniformBuffer)
-                        .Name("VisibilityBufferParameters")
-                        .AddAccessibleStage(EShaderType.Fragment).Build())
-                    .AddBinding(new IDescriptorSetLayout.DescriptorSetLayoutBinding.Builder()
-                        .BindingIndex(5)
-                        .Count(1)
-                        .DescriptorType(EDescriptorType.StorageBuffer)
-                        .Name("VertexBuffer")
-                        .AddAccessibleStage(EShaderType.Fragment).Build())
-                    .AddBinding(new IDescriptorSetLayout.DescriptorSetLayoutBinding.Builder()
-                        .BindingIndex(6)
-                        .Count(1)
-                        .DescriptorType(EDescriptorType.StorageBuffer)
-                        .Name("IndexBuffer")
-                        .AddAccessibleStage(EShaderType.Fragment).Build())
-                    .AddBinding(new IDescriptorSetLayout.DescriptorSetLayoutBinding.Builder()
-                        .BindingIndex(7)
-                        .Count(1)
-                        .DescriptorType(EDescriptorType.StorageBuffer)
-                        .Name("DrawCommands")
-                        .AddAccessibleStage(EShaderType.Fragment))
-                    .AddBinding(new IDescriptorSetLayout.DescriptorSetLayoutBinding.Builder()
-                        .BindingIndex(8)
                         .Count((int)MAX_TEX_COUNT)
                         .DescriptorType(EDescriptorType.CombinedImageSampler)
                         .Name("Textures")
@@ -242,8 +198,6 @@ namespace Cobalt.Graphics
             _zPrePass = new ZPrePass(device);
             _pbrPass = new PbrRenderPass(device, layout, EMaterialType.Opaque);
             _screenResolvePass = new ScreenResolvePass(swapchain, device, 1280, 720);
-            _visibilityPass = new VisibilityPass(device);
-            _opaquePbrPass = new OpaquePbrUberPass(device, layout);
 
             registry.Events.AddHandler<ComponentAddEvent<PbrMaterialComponent>>(_AddComponent);
             registry.Events.AddHandler<ComponentAddEvent<PbrMaterialComponent>>(_AddComponent);
@@ -314,21 +268,9 @@ namespace Cobalt.Graphics
                 height = 720
             };
 
-            FrameInfo pbrVisRenderInfo = new FrameInfo
-            {
-                frameBuffer = _visibility[frameInFlight].visibilityFbo,
-                frameInFlight = frameInFlight,
-                width = 1280,
-                height = 720
-            };
-
             // Handle scene draw
             buffer.Sync();
 
-            _visibilityPass.Record(buffer, pbrVisRenderInfo, drawInfo);
-
-            pbrVisRenderInfo.frameBuffer = _visibility[frameInFlight].resolveFbo;
-            _opaquePbrPass.Record(buffer, pbrVisRenderInfo, drawInfo);
 
             _zPrePass.Record(buffer, sceneRenderInfo, drawInfo);
             _pbrPass.Record(buffer, sceneRenderInfo, drawInfo);
@@ -341,58 +283,12 @@ namespace Cobalt.Graphics
 
         private void _Build(int frameInFlight, CameraComponent camera)
         {
-            List<DescriptorWriteInfo> writeInfos = new List<DescriptorWriteInfo>();
-            DescriptorWriteInfo.Builder texArrayBuilder = new DescriptorWriteInfo.Builder();
-
-            // Build texture array
-            _textures.ForEach(tex =>
-            {
-                texArrayBuilder.AddImageInfo(new DescriptorWriteInfo.DescriptorImageInfo.Builder()
-                    .View(tex.Image)
-                    .Sampler(tex.Sampler)
-                    .Layout(EImageLayout.ShaderReadOnly)
-                    .Build());
-            });
-
-            writeInfos.Add(texArrayBuilder.DescriptorSet(_frames[frameInFlight].descriptorSet)
-                .ArrayElement(0)
-                .BindingIndex(8)
-                .Build());
-
-            // Per-Material
-            writeInfos.Add(new DescriptorWriteInfo.Builder().AddBufferInfo( 
-                new DescriptorWriteInfo.DescriptorBufferInfo.Builder()
-                    .Buffer(_frames[frameInFlight].materialData)
-                    .Range(1000000 * 16).Build())
-                    .BindingIndex(1)
-                    .DescriptorSet(_frames[frameInFlight].descriptorSet)
-                    .ArrayElement(0).Build());
-
-            // Per-Entity Data
-            writeInfos.Add(new DescriptorWriteInfo.Builder().AddBufferInfo(
-                new DescriptorWriteInfo.DescriptorBufferInfo.Builder()
-                    .Buffer(_frames[frameInFlight].entityData)
-                    .Range(1000000 * 68).Build())
-                    .BindingIndex(0)
-                    .DescriptorSet(_frames[frameInFlight].descriptorSet)
-                    .ArrayElement(0).Build());
-
-            // Per-Scene Data
-            writeInfos.Add(new DescriptorWriteInfo.Builder().AddBufferInfo(
-                new DescriptorWriteInfo.DescriptorBufferInfo.Builder()
-                    .Buffer(_frames[frameInFlight].sceneBuffer)
-                    .Range(256).Build())
-                    .BindingIndex(2)
-                    .DescriptorSet(_frames[frameInFlight].descriptorSet)
-                    .ArrayElement(0).Build());
-
-            _device.UpdateDescriptorSets(writeInfos);
-
             // Upload data for next frame
 
-            foreach (var (vao, meshes) in _framePayload)
-                foreach (var (mesh, entities) in _framePayload)
-                    entities.Clear();
+            foreach (var (materialType, vaos) in _framePayload)
+                foreach (var (vao, meshes) in vaos)
+                    foreach (var (mesh, entities) in _framePayload)
+                        entities.Clear();
 
             foreach (var (type, renderables) in _renderables)
             {
@@ -460,6 +356,59 @@ namespace Cobalt.Graphics
             }; 
             nativeSceneData.Set(data);
             _frames[writeFrame].sceneBuffer.Unmap();
+
+            List<DescriptorWriteInfo> writeInfos = new List<DescriptorWriteInfo>();
+            DescriptorWriteInfo.Builder texArrayBuilder = new DescriptorWriteInfo.Builder();
+
+            // Build texture array
+            _textures.ForEach(tex =>
+            {
+                texArrayBuilder.AddImageInfo(new DescriptorWriteInfo.DescriptorImageInfo.Builder()
+                    .View(tex.Image)
+                    .Sampler(tex.Sampler)
+                    .Layout(EImageLayout.ShaderReadOnly)
+                    .Build());
+            });
+
+            writeInfos.Add(texArrayBuilder.DescriptorSet(_frames[frameInFlight].descriptorSet)
+                .ArrayElement(0)
+                .BindingIndex(3)
+                .Build());
+
+            // Per-Material
+            writeInfos.Add(new DescriptorWriteInfo.Builder().AddBufferInfo(
+                new DescriptorWriteInfo.DescriptorBufferInfo.Builder()
+                        .Buffer(_frames[frameInFlight].materialData)
+                        .Range(1000000 * 16)
+                        .Build())
+                    .BindingIndex(1)
+                    .DescriptorSet(_frames[frameInFlight].descriptorSet)
+                    .ArrayElement(0)
+                    .Build());
+
+            // Per-Entity Data
+            writeInfos.Add(new DescriptorWriteInfo.Builder().AddBufferInfo(
+                new DescriptorWriteInfo.DescriptorBufferInfo.Builder()
+                        .Buffer(_frames[frameInFlight].entityData)
+                        .Range(1000000 * 68)
+                        .Build())
+                    .BindingIndex(0)
+                    .DescriptorSet(_frames[frameInFlight].descriptorSet)
+                    .ArrayElement(0)
+                    .Build());
+
+            // Per-Scene Data
+            writeInfos.Add(new DescriptorWriteInfo.Builder().AddBufferInfo(
+                new DescriptorWriteInfo.DescriptorBufferInfo.Builder()
+                        .Buffer(_frames[frameInFlight].sceneBuffer)
+                        .Range(256)
+                        .Build())
+                    .BindingIndex(2)
+                    .DescriptorSet(_frames[frameInFlight].descriptorSet)
+                    .ArrayElement(0)
+                    .Build());
+
+            _device.UpdateDescriptorSets(writeInfos);
         }
 
         private bool _AddComponent<T>(ComponentAddEvent<T> data) 
@@ -565,13 +514,10 @@ namespace Cobalt.Graphics
 
                     _frames[frame].sceneBuffer = _device.CreateBuffer(IBuffer.FromPayload(new SceneData()).AddUsage(EBufferUsage.UniformBuffer),
                         new IBuffer.MemoryInfo.Builder().Usage(EMemoryUsage.CPUToGPU).AddRequiredProperty(EMemoryProperty.HostCoherent).AddRequiredProperty(EMemoryProperty.HostVisible));
-
-                    // TODO: Handle transparency information
                 }
             }
 
             _frameBuffer = new IFrameBuffer[framesInFlight];
-            _visibility = new FrameImages[framesInFlight];
             IImage[] colorAttachments = new IImage[framesInFlight];
             IImage[] depthAttachments = new IImage[framesInFlight];
             _colorAttachmentViews = new IImageView[framesInFlight];
@@ -596,83 +542,6 @@ namespace Cobalt.Graphics
                 _frameBuffer[i] = _device.CreateFrameBuffer(new IFrameBuffer.CreateInfo.Builder()
                     .AddAttachment(new IFrameBuffer.CreateInfo.Attachment.Builder().ImageView(_colorAttachmentViews[i]).Usage(EImageUsage.ColorAttachment))
                     .AddAttachment(new IFrameBuffer.CreateInfo.Attachment.Builder().ImageView(depthAttachmentViews[i]).Usage(EImageUsage.DepthAttachment)));
-
-                var visibility = _device.CreateImage(new IImage.CreateInfo.Builder()
-                    .AddUsage(EImageUsage.ColorAttachment)
-                    .Width(1280)
-                    .Height(720)
-                    .Type(EImageType.Image2D)
-                    .Format(EDataFormat.R32G32_UINT)
-                    .SampleCount(ESampleCount.Samples1)
-                    .MipCount(1)
-                    .LayerCount(1),
-                    new IImage.MemoryInfo.Builder()
-                        .Usage(EMemoryUsage.GPUOnly)
-                        .AddRequiredProperty(EMemoryProperty.DeviceLocal));
-                _visibility[i] = new FrameImages
-                {
-                    visibility = visibility.CreateImageView(new IImageView.CreateInfo.Builder()
-                        .ViewType(EImageViewType.ViewType2D)
-                        .BaseArrayLayer(0)
-                        .BaseMipLevel(0)
-                        .ArrayLayerCount(1)
-                        .MipLevelCount(1)
-                        .Format(EDataFormat.R32G32_UINT))
-                };
-
-
-                var depthAttachment = _device.CreateImage(new IImage.CreateInfo.Builder()
-                    .AddUsage(EImageUsage.DepthAttachment)
-                    .Width(1280)
-                    .Height(720)
-                    .Type(EImageType.Image2D)
-                    .Format(EDataFormat.D32_SFLOAT)
-                    .MipCount(1)
-                    .LayerCount(1),
-                    new IImage.MemoryInfo.Builder()
-                        .Usage(EMemoryUsage.GPUOnly)
-                        .AddRequiredProperty(EMemoryProperty.DeviceLocal));
-                _visibility[i].depth = depthAttachment.CreateImageView(new IImageView.CreateInfo.Builder()
-                            .ViewType(EImageViewType.ViewType2D)
-                            .BaseArrayLayer(0)
-                            .BaseMipLevel(0)
-                            .ArrayLayerCount(1)
-                            .MipLevelCount(1)
-                            .Format(EDataFormat.D32_SFLOAT));
-
-                var colorAttachment = _device.CreateImage(new IImage.CreateInfo.Builder()
-                    .AddUsage(EImageUsage.ColorAttachment)
-                    .Width(1280)
-                    .Height(720)
-                    .Type(EImageType.Image2D)
-                    .Format(EDataFormat.R8G8B8A8)
-                    .MipCount(1)
-                    .LayerCount(1),
-                    new IImage.MemoryInfo.Builder()
-                        .Usage(EMemoryUsage.GPUOnly)
-                        .AddRequiredProperty(EMemoryProperty.DeviceLocal));
-                _visibility[i].color = colorAttachment.CreateImageView(new IImageView.CreateInfo.Builder()
-                    .ViewType(EImageViewType.ViewType2D)
-                    .BaseArrayLayer(0)
-                    .BaseMipLevel(0)
-                    .ArrayLayerCount(1)
-                    .MipLevelCount(1)
-                    .Format(EDataFormat.R8G8B8A8));
-
-                _visibility[i].visibilityFbo = _device.CreateFrameBuffer(new IFrameBuffer.CreateInfo.Builder()
-                    .AddAttachment(new IFrameBuffer.CreateInfo.Attachment.Builder()
-                        .ImageView(_visibility[i].visibility)
-                        .Usage(EImageUsage.ColorAttachment))
-                    .AddAttachment(new IFrameBuffer.CreateInfo.Attachment.Builder()
-                        .ImageView(_visibility[i].depth)
-                        .Usage(EImageUsage.DepthAttachment)));
-                _visibility[i].resolveFbo = _device.CreateFrameBuffer(new IFrameBuffer.CreateInfo.Builder()
-                    .AddAttachment(new IFrameBuffer.CreateInfo.Attachment.Builder()
-                        .ImageView(_visibility[i].color)
-                        .Usage(EImageUsage.ColorAttachment))
-                    .AddAttachment(new IFrameBuffer.CreateInfo.Attachment.Builder()
-                        .ImageView(_visibility[i].depth)
-                        .Usage(EImageUsage.DepthAttachment)));
             }
 
             _imageResolveSampler = _device.CreateSampler(new ISampler.CreateInfo.Builder().AddressModeU(EAddressMode.Repeat)

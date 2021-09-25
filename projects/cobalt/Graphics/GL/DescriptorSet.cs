@@ -12,6 +12,7 @@ namespace Cobalt.Graphics.GL
             void Bind();
             void Bind(uint offset);
             bool IsDynamic();
+            int Copy(int offset, int count, IBinding dst, int dstOffset, int dstCount);
         }
 
         private class CombinedImageSamplerBinding : IBinding
@@ -48,6 +49,22 @@ namespace Cobalt.Graphics.GL
             {
                 return false;
             }
+
+            public int Copy(int offset, int count, IBinding dst, int dstOffset, int dstCount)
+            {
+                CombinedImageSamplerBinding d = dst as CombinedImageSamplerBinding;
+
+                int copyCount = 0;
+                for (int i = 0; i < count && i + dstOffset < d.Images.Length && i + offset < Images.Length; ++i)
+                {
+                    d.Images[i + offset] = Images[i + dstOffset];
+                    d.Samplers[i + offset] = Samplers[i + dstOffset];
+                    d.Handles[i + offset] = Handles[i + dstOffset];
+                    ++copyCount;
+                }
+
+                return copyCount;
+            }
         }
 
         private class StorageBufferBinding : IBinding
@@ -82,6 +99,14 @@ namespace Cobalt.Graphics.GL
             {
                 return true;
             }
+
+            public int Copy(int offset, int count, IBinding dst, int dstOffset, int dstCount)
+            {
+                StorageBufferBinding d = dst as StorageBufferBinding;
+                d.Index = Index;
+                d.Buffer = Buffer;
+                return 1;
+            }
         }
 
         private class UniformBufferBinding : IBinding
@@ -115,6 +140,14 @@ namespace Cobalt.Graphics.GL
             public bool IsDynamic()
             {
                 return true;
+            }
+
+            public int Copy(int offset, int count, IBinding dst, int dstOffset, int dstCount)
+            {
+                UniformBufferBinding d = dst as UniformBufferBinding;
+                d.Index = Index;
+                d.Buffer = Buffer;
+                return 1;
             }
         }
 
@@ -250,6 +283,37 @@ namespace Cobalt.Graphics.GL
         public IDescriptorSetLayout GetLayout()
         {
             return _layout;
+        }
+
+        public void Copy(DescriptorCopyInfo copyInfo)
+        {
+            int srcBindingStart = copyInfo.srcBinding;
+            int srcOffsetStart = copyInfo.srcArrayElement;
+            int dstBindingStart = copyInfo.dstBinding;
+            int dstOffsetStart = copyInfo.dstArrayElement;
+            DescriptorSet dstSet = copyInfo.dst as DescriptorSet;
+
+            for (int i = 0; i < copyInfo.count; )
+            {
+                IBinding src = _bindings.GetValueOrDefault(srcBindingStart, null);
+                IBinding dst = dstSet._bindings.GetValueOrDefault(dstBindingStart, null);
+
+                if (src != null && dst != null)
+                {
+                    int numCopied = src.Copy(srcOffsetStart, copyInfo.count, dst, dstOffsetStart, copyInfo.count);
+                    srcBindingStart += 1;
+                    dstBindingStart += 1;
+
+                    srcOffsetStart = 0;
+                    dstOffsetStart = 0;
+
+                    i += numCopied;
+                }
+                else
+                {
+                    Console.WriteLine("Invalid copy info.  Source and destination do not both have binding.");
+                }
+            }
         }
     }
 }

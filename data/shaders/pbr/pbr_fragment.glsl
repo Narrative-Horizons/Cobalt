@@ -4,7 +4,7 @@
 layout(early_fragment_tests) in;
 
 #define MAX_TEX_COUNT 500
-layout(location = 8, bindless_sampler) uniform sampler2D texArray[MAX_TEX_COUNT];
+layout(location = 3, bindless_sampler) uniform sampler2D texArray[MAX_TEX_COUNT];
 
 const float PI = 3.14159265359;
 
@@ -175,5 +175,5 @@ void main()
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0 / 2.2));
 
-    FragColor = vec4(albedo, 1);
+    FragColor = vec4(color, 1);
 }

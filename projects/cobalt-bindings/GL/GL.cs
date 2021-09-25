@@ -242,8 +242,14 @@ namespace Cobalt.Bindings.GL
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_texture_storage_2d", CallingConvention = CallingConvention.Cdecl)]
         public static extern void TextureStorage2D(uint texture, int levels, EPixelInternalFormat internalFormat, int width, int height);
 
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_texture_storage_2d_multisample", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void TextureStorage2DMS(uint texture, int sampleCount, EPixelInternalFormat internalFormat, int width, int height, bool fixedSampleLocations);
+
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_texture_storage_3d", CallingConvention = CallingConvention.Cdecl)]
         public static extern void TextureStorage3D(uint texture, int levels, EPixelInternalFormat internalFormat, int width, int height, int depth);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_texture_storage_3d_multisample", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void TextureStorage3DMS(uint texture, int sampleCount, EPixelInternalFormat internalFormat, int width, int height, int depth, bool fixedSampleLocations);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_bind_buffer_range", CallingConvention = CallingConvention.Cdecl)]
         public static extern void BindBufferRange(EBufferTarget target, uint index, uint buffer, int offset, int size);

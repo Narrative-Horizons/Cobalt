@@ -4,6 +4,7 @@ using Cobalt.Entities.Components;
 using Cobalt.Events;
 using Cobalt.Graphics.API;
 using Cobalt.Graphics.Passes;
+using Cobalt.Graphics.Pipelines;
 using Cobalt.Math;
 using System;
 using System.Collections.Generic;
@@ -152,8 +153,12 @@ namespace Cobalt.Graphics
         private static readonly uint TEX_NOT_FOUND = uint.MaxValue;
         private static readonly uint MAX_TEX_COUNT = 500;
 
+        private PbrUberPipeline _uber;
+
         public PbrPipeline(Registry registry, IDevice device, ISwapchain swapchain)
         {
+            _uber = new PbrUberPipeline(registry, device, 1280, 720, 2);
+
             foreach (EMaterialType type in Enum.GetValues(typeof(EMaterialType)))
             {
                 _framePayload.Add(type, new Dictionary<IVertexAttributeArray, Dictionary<RenderableMesh, List<EntityData>>>());
@@ -279,6 +284,9 @@ namespace Cobalt.Graphics
             var frameInfo = new FrameInfo { frameInFlight = frameInFlight };
             _screenResolvePass.SetInputTexture(new Texture() { Image = _colorAttachmentViews[frameInFlight], Sampler = _imageResolveSampler }, frameInfo);
             _screenResolvePass.Record(buffer, frameInfo, new DrawInfo());
+
+            _uber.OnFrameStart(sceneRenderInfo);
+            _uber.Render(sceneRenderInfo, camera);
         }
 
         private void _Build(int frameInFlight, CameraComponent camera)

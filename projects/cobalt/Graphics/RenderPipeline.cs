@@ -1,7 +1,9 @@
-﻿using Cobalt.Graphics.API;
+﻿using Cobalt.Entities.Components;
+using Cobalt.Graphics.API;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using static Cobalt.Graphics.RenderPass;
 
 namespace Cobalt.Graphics
 {
@@ -13,18 +15,19 @@ namespace Cobalt.Graphics
         public IImageView GetImageView(string name, int frame);
         public IFrameBuffer GetFrameBuffer(string name, int frame);
         public IBuffer GetBuffer(string name, int frame);
+        public void Render(FrameInfo frame, CameraComponent camera);
     }
 
-    public class RenderPipeline : IRenderPipeline
+    public abstract class RenderPipeline : IRenderPipeline
     {
         private readonly Dictionary<string, List<IImageView>> _imageViews = new Dictionary<string, List<IImageView>>();
         private readonly Dictionary<string, List<IFrameBuffer>> _frameBuffers = new Dictionary<string, List<IFrameBuffer>>();
         private readonly Dictionary<string, List<IBuffer>> _buffers = new Dictionary<string, List<IBuffer>>();
-        private readonly IDevice _device;
+        protected IDevice Device { get; set; }
 
         public RenderPipeline(IDevice device)
         {
-            _device = device;
+            Device = device;
         }
 
         public IBuffer GetBuffer(string name, int frame)
@@ -59,5 +62,8 @@ namespace Cobalt.Graphics
         {
             return _buffers.TryAdd(name, buffers);
         }
+
+        public abstract void Render(FrameInfo frame, CameraComponent camera);
+        public abstract void OnFrameStart(FrameInfo frame);
     }
 }

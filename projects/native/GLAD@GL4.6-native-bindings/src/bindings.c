@@ -51,6 +51,11 @@ GLAD_BINDING_EXPORT void cobalt_gl_disable(unsigned int mask)
 	glDisable(mask);
 }
 
+GLAD_BINDING_EXPORT void cobalt_gl_get_texture_image(unsigned int texture, int level, unsigned int format, unsigned int type, unsigned int size, void* pixels)
+{
+	glGetTextureImage(texture, level, format, type, size, pixels);
+}
+
 GLAD_BINDING_EXPORT void cobalt_gl_polygon_mode(unsigned int face, unsigned int mode)
 {
 	glPolygonMode(face, mode);

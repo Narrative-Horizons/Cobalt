@@ -287,6 +287,10 @@ namespace Cobalt.Bindings.GL
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_blend_equation_i", CallingConvention = CallingConvention.Cdecl)]
         public static extern void BlendEquationI(uint buffer, EBlendEquationMode color, EBlendEquationMode alpha);
 
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_get_texture_image", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void GetTextureImage(uint texture, int level, EPixelFormat format, EPixelType type,
+            uint size, byte[] pixels);
+
         public static void NamedBufferStorageTyped<T>(uint buffer, long size, [NotNull] [In, Out] T[] data, EBufferAccessMask flags) where T : unmanaged
         {
             unsafe

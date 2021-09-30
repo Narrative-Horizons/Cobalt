@@ -8,12 +8,39 @@ namespace Cobalt.Graphics.API
         BGRA8_SRGB,
         R8G8B8A8_SRGB,
         R8G8B8A8,
+        R32_UINT,
         R32G32_UINT,
         R32G32_SFLOAT,
         R32G32B32_SFLOAT,
         R32G32B32A32_SFLOAT,
         D24_SFLOAT_S8_UINT,
-        D32_SFLOAT
+        D32_SFLOAT,
+    }
+
+    public static class EnumExtensions
+    {
+        public static uint GetBppFromFormat(this EDataFormat format)
+        {
+            switch (format)
+            {
+                case EDataFormat.BGRA8_SRGB:
+                case EDataFormat.R8G8B8A8_SRGB:
+                case EDataFormat.R8G8B8A8:
+                case EDataFormat.R32_UINT:
+                case EDataFormat.D24_SFLOAT_S8_UINT:
+                case EDataFormat.D32_SFLOAT:
+                    return 4;
+                case EDataFormat.R32G32_UINT:
+                case EDataFormat.R32G32_SFLOAT:
+                    return 8;
+                case EDataFormat.R32G32B32_SFLOAT:
+                    return 12;
+                case EDataFormat.R32G32B32A32_SFLOAT:
+                    return 16;
+                default:
+                    return 0;
+            }
+        }
     }
 
     public enum EImageType : uint

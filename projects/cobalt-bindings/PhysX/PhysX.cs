@@ -65,8 +65,10 @@ namespace Cobalt.Bindings.PhysX
             [FieldOffset(20)]
             public float rz;
             [FieldOffset(24)]
-            public uint generation;
+            public float rw;
             [FieldOffset(28)]
+            public uint generation;
+            [FieldOffset(32)]
             public uint identifier;
         };
 

@@ -47,31 +47,18 @@ layout(std140, binding = 2) uniform SceneData
 
 layout (location = 0) out VertexData
 {
-    vec3 position;
-    vec3 normal;
-    vec3 tangent;
-    vec3 binormal;
-    vec2 texcoord0;
-
-    vec3 worldPos;
-    vec3 fragPosition;
-    flat int instanceID;
+    flat uint identifier;
+    flat uint generation;
 } outData;
 
 void main()
 {
     int instance = gl_InstanceID + gl_BaseInstance;
-    outData.instanceID = instance;
 
     ObjectData myData = objects[instance];
 
-    outData.position = iPosition;
-    outData.texcoord0 = iTexCoord0;
-    outData.normal = mat3(myData.transform) * iNormal;
-    outData.tangent = iTangent;
-    outData.binormal = iBinormal;
-    outData.worldPos = vec3(myData.transform * vec4(iPosition, 1.0));
-    gl_Position = viewProjection * myData.transform * vec4(iPosition, 1);
+    outData.identifier = myData.identifier;
+    outData.generation = myData.generation;
 
-    outData.fragPosition = gl_Position.xyz;
+    gl_Position = viewProjection * myData.transform * vec4(iPosition, 1);
 }

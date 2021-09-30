@@ -67,5 +67,7 @@ namespace Cobalt.Graphics.API
             public int Layers { get; private set; }
             public List<Attachment> Attachments { get; private set; } = new List<Attachment>();
         }
+
+        public List<IImageView> GetAttachments();
     }
 }

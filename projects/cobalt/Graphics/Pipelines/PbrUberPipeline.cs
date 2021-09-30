@@ -79,7 +79,7 @@ namespace Cobalt.Graphics.Pipelines
 
         private static readonly int INDIRECT_DRAW_STRUCT_SIZE = 20;
 
-        private readonly PbrVisibilityPass _visibility;
+       // private readonly PbrVisibilityPass _visibility;
 
         private ICommandPool _commandPool;
         private List<ICommandBuffer> _commandBuffers;
@@ -94,7 +94,7 @@ namespace Cobalt.Graphics.Pipelines
         public PbrUberPipeline(Registry registry, IDevice device, int width, int height, int frames) : base(device)
         {
             _registry = registry;
-            _visibility = new PbrVisibilityPass(device);
+            //_visibility = new PbrVisibilityPass(device);
             BuildResources(width, height, frames);
 
             registry.Events.AddHandler<ComponentAddEvent<PbrMaterialComponent>>(AddComponent);
@@ -161,7 +161,7 @@ namespace Cobalt.Graphics.Pipelines
             _frames[frameInFlight].indirectBuffer.Unmap();
 
             var cmdBuffer = _commandBuffers[frameInFlight % _commandBuffers.Count];
-            _visibility.Record(cmdBuffer, frame, drawInfo);
+            //_visibility.Record(cmdBuffer, frame, drawInfo);
         }
 
         public override void OnFrameStart(FrameInfo frame)
@@ -463,7 +463,7 @@ namespace Cobalt.Graphics.Pipelines
             Register(ColorResolveBufferResourceName, resolve);
 
             // Build visibility framebuffer
-            var visFbo = Enumerable.Range(0, frames).Select((frame) =>
+            /*var visFbo = Enumerable.Range(0, frames).Select((frame) =>
             {
                 return Device.CreateFrameBuffer(new IFrameBuffer.CreateInfo.Builder()
                     .Layers(1)
@@ -477,7 +477,7 @@ namespace Cobalt.Graphics.Pipelines
                         .ImageView(depth[frame])
                         .Usage(EImageUsage.DepthAttachment)));
             }).ToList();
-            Register(VisibilityPassFrameBufferResourceName, visFbo);
+            Register(VisibilityPassFrameBufferResourceName, visFbo);*/
         }
 
         private bool AddComponent<T>(ComponentAddEvent<T> data)

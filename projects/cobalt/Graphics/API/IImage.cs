@@ -119,5 +119,7 @@ namespace Cobalt.Graphics.API
         }
 
         public IImageView CreateImageView(IImageView.CreateInfo info);
+
+        public byte[] GetPixels(int x, int y, uint width, uint height);
     }
 }

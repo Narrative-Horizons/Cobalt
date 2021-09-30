@@ -9,6 +9,8 @@ namespace Cobalt.Graphics.GL
     {
         public uint Handle { get; private set; }
 
+        private List<IImageView> _views = new List<IImageView>();
+
         public FrameBuffer()
         {
             Handle = 0;
@@ -23,6 +25,8 @@ namespace Cobalt.Graphics.GL
             {
                 ImageView view = (ImageView)attachment.ImageView;
                 Image image = view.Image;
+
+                _views.Add(view);
 
                 Bindings.GL.EFramebufferAttachment type = ToInternalType(attachment.Usage);
 
@@ -71,6 +75,11 @@ namespace Cobalt.Graphics.GL
         public void Dispose()
         {
             OpenGL.DeleteFramebuffers(Handle);
+        }
+
+        public List<IImageView> GetAttachments()
+        {
+            return _views;
         }
     }
 }

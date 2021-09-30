@@ -12,6 +12,9 @@ struct ObjectData
 {
     mat4 transform;
     uint materialID;
+    uint identifier;
+    uint generation;
+    uint _padding;
 };
 
 struct DirectionalLight

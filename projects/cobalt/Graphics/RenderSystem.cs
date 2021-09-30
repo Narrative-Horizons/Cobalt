@@ -24,6 +24,8 @@ namespace Cobalt.Graphics
         private PbrPipeline _pipeline;
         private List<IFence> _renderSync = new List<IFence>();
 
+        private PickingSystem _pickingSystem;
+
         public RenderSystem(Registry registry, IDevice device, ISwapchain swapchain)
         {
             _registry = registry;
@@ -39,6 +41,8 @@ namespace Cobalt.Graphics
                     .Signaled(true)
                     .Build()));
             }
+
+            _pickingSystem = new PickingSystem(device);
         }
 
         public void Render()
@@ -65,6 +69,10 @@ namespace Cobalt.Graphics
                 .Buffer(cmdBuffer)
                 .Signal(renderSync)
                 .Build());
+
+            Entity e = _pickingSystem.GetEntity(_pipeline._pickingBuffer[_currentFrame].GetAttachments()[0], (int)Input.MousePosition.x, (int)Input.MousePosition.y);
+
+            Logger.Log.Debug(e.Identifier + ", " + e.Generation);
 
             // Compute visibility pass
 
@@ -93,9 +101,10 @@ namespace Cobalt.Graphics
             public Matrix4 Transformation; // [0, 64)
             public uint MaterialId; // [64, 68)
 
+            public uint Identifier; // [68, 72)
+            public uint Generation; // [72, 76)
+
             // padding
-            private uint padding0; // [68, 72)
-            private uint padding1; // [72, 76)
             private uint padding2; // [76, 80)
         }
 
@@ -131,13 +140,17 @@ namespace Cobalt.Graphics
             public IBuffer sceneBuffer;
         }
 
+
         private IFrameBuffer[] _frameBuffer;
+        public IFrameBuffer[] _pickingBuffer;
         private IImageView[] _colorAttachmentViews;
         private ISampler _imageResolveSampler;
 
         private readonly ZPrePass _zPrePass;
         private readonly PbrRenderPass _pbrPass;
         private readonly ScreenResolvePass _screenResolvePass;
+
+        private readonly PickingPass _pickingPass;
 
         private readonly Dictionary<EMaterialType, HashSet<Entity>> _renderables = new Dictionary<EMaterialType, HashSet<Entity>>();
         private readonly Dictionary<PbrMaterialComponent, uint> _materialIndices = new Dictionary<PbrMaterialComponent, uint>();
@@ -158,6 +171,7 @@ namespace Cobalt.Graphics
         public PbrPipeline(Registry registry, IDevice device, ISwapchain swapchain)
         {
             _uber = new PbrUberPipeline(registry, device, 1280, 720, 2);
+
 
             foreach (EMaterialType type in Enum.GetValues(typeof(EMaterialType)))
             {
@@ -203,8 +217,8 @@ namespace Cobalt.Graphics
             _zPrePass = new ZPrePass(device);
             _pbrPass = new PbrRenderPass(device, layout, EMaterialType.Opaque);
             _screenResolvePass = new ScreenResolvePass(swapchain, device, 1280, 720);
+            _pickingPass = new PickingPass(device);
 
-            registry.Events.AddHandler<ComponentAddEvent<PbrMaterialComponent>>(_AddComponent);
             registry.Events.AddHandler<ComponentAddEvent<PbrMaterialComponent>>(_AddComponent);
             registry.Events.AddHandler<ComponentAddEvent<MeshComponent>>(_AddComponent);
             registry.Events.AddHandler<ComponentAddEvent<TransformComponent>>(_AddComponent);
@@ -229,7 +243,7 @@ namespace Cobalt.Graphics
 
             DrawElementsIndirectCommand drawData = new DrawElementsIndirectCommand();
             NativeBuffer<DrawElementsIndirectCommandPayload> nativeIndirectData = new NativeBuffer<DrawElementsIndirectCommandPayload>(_frames[frameInFlight].indirectBuffer.Map());
-            
+
             foreach (var (type, payload) in _framePayload)
             {
                 var items = new Dictionary<IVertexAttributeArray, DrawCommand>();
@@ -273,11 +287,20 @@ namespace Cobalt.Graphics
                 height = 720
             };
 
+            FrameInfo pickingRenderInfo = new FrameInfo
+            {
+                frameBuffer = _pickingBuffer[frameInFlight],
+                frameInFlight = frameInFlight,
+                width = 1280,
+                height = 720
+            };
+
             // Handle scene draw
             buffer.Sync();
 
 
             _zPrePass.Record(buffer, sceneRenderInfo, drawInfo);
+            _pickingPass.Record(buffer, pickingRenderInfo, drawInfo);
             _pbrPass.Record(buffer, sceneRenderInfo, drawInfo);
 
             // Handle screen resolution
@@ -305,7 +328,14 @@ namespace Cobalt.Graphics
                 {
                     PbrMaterialComponent matComponent = _registry.Get<PbrMaterialComponent>(renderable);
                     MeshComponent mesh = _registry.Get<MeshComponent>(renderable);
-                    EntityData e = new EntityData { MaterialId = _GetOrInsert(matComponent), Transformation = _registry.Get<TransformComponent>(renderable).TransformMatrix };
+                    EntityData e = new EntityData
+                    {
+                        MaterialId = _GetOrInsert(matComponent),
+                        Transformation = _registry.Get<TransformComponent>(renderable).TransformMatrix,
+                        Identifier = renderable.Identifier,
+                        Generation = renderable.Generation
+                    };
+
                     RenderableMesh renderMesh = mesh.Mesh;
                     if (!payload.ContainsKey(renderMesh.vao))
                     {
@@ -348,11 +378,11 @@ namespace Cobalt.Graphics
             {
                 View = camera.ViewMatrix,
                 Projection = camera.ProjectionMatrix,
-                ViewProjection = camera.ViewMatrix * camera.ProjectionMatrix, 
+                ViewProjection = camera.ViewMatrix * camera.ProjectionMatrix,
 
                 CameraPosition = camera.Transform.Position,
                 CameraDirection = camera.Transform.Forward,
-                 
+
                 Sun = new DirectionalLightComponent
                 {
                     Direction = new Vector3(0, -1, 0),
@@ -361,7 +391,7 @@ namespace Cobalt.Graphics
                     Specular = new Vector3(1),
                     Intensity = 1
                 }
-            }; 
+            };
             nativeSceneData.Set(data);
             _frames[writeFrame].sceneBuffer.Unmap();
 
@@ -419,7 +449,7 @@ namespace Cobalt.Graphics
             _device.UpdateDescriptorSets(writeInfos);
         }
 
-        private bool _AddComponent<T>(ComponentAddEvent<T> data) 
+        private bool _AddComponent<T>(ComponentAddEvent<T> data)
         {
             _AddEntity(data.Entity, data.Registry);
             return false;
@@ -492,7 +522,7 @@ namespace Cobalt.Graphics
             _textures.Add(tex);
             return (uint)_textureIndices.Count - 1;
         }
-    
+
         private void _BuildFrameData(int framesInFlight, IPipelineLayout layout)
         {
             for (int frame = 0; frame < framesInFlight; ++frame)
@@ -526,6 +556,7 @@ namespace Cobalt.Graphics
             }
 
             _frameBuffer = new IFrameBuffer[framesInFlight];
+            _pickingBuffer = new IFrameBuffer[framesInFlight];
             IImage[] colorAttachments = new IImage[framesInFlight];
             IImage[] depthAttachments = new IImage[framesInFlight];
             _colorAttachmentViews = new IImageView[framesInFlight];
@@ -533,6 +564,16 @@ namespace Cobalt.Graphics
 
             for (int i = 0; i < framesInFlight; i++)
             {
+                var pickingAttachment = _device.CreateImage(new IImage.CreateInfo.Builder().AddUsage(EImageUsage.ColorAttachment).Width(1280).Height(720).Type(EImageType.Image2D)
+                        .Format(EDataFormat.R32G32_UINT).MipCount(1).LayerCount(1),
+                    new IImage.MemoryInfo.Builder().Usage(EMemoryUsage.GPUOnly).AddRequiredProperty(EMemoryProperty.DeviceLocal));
+
+                var pickingAttachmentView = pickingAttachment.CreateImageView(new IImageView.CreateInfo.Builder().ViewType(EImageViewType.ViewType2D).BaseArrayLayer(0)
+                    .BaseMipLevel(0).ArrayLayerCount(1).MipLevelCount(1).Format(EDataFormat.R32G32_UINT));
+
+                _pickingBuffer[i] = _device.CreateFrameBuffer(new IFrameBuffer.CreateInfo.Builder()
+                    .AddAttachment(new IFrameBuffer.CreateInfo.Attachment.Builder().ImageView(pickingAttachmentView).Usage(EImageUsage.ColorAttachment)));
+
                 colorAttachments[i] = _device.CreateImage(new IImage.CreateInfo.Builder().AddUsage(EImageUsage.ColorAttachment).Width(1280).Height(720).Type(EImageType.Image2D)
                     .Format(EDataFormat.R8G8B8A8).MipCount(1).LayerCount(1),
                     new IImage.MemoryInfo.Builder().Usage(EMemoryUsage.GPUOnly).AddRequiredProperty(EMemoryProperty.DeviceLocal));

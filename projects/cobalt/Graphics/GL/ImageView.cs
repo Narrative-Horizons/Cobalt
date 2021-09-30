@@ -67,6 +67,8 @@ namespace Cobalt.Graphics.GL
             {
                 case EDataFormat.Unknown:
                     break;
+                case EDataFormat.R32_UINT:
+                    return (int) EPixelInternalFormat.R32ui;
                 case EDataFormat.BGRA8_SRGB:
                     break;
                 case EDataFormat.R8G8B8A8_SRGB:

@@ -45,11 +45,11 @@ bool IsCcdActive(physx::PxFilterData& filterData)
 struct PhysicsTransform
 {
 	float x, y, z;
-	float rx, ry, rz;
+	float rx, ry, rz, rw;
 	uint32_t generation, identifier;
 
-	PhysicsTransform(float x, float y, float z, float rx, float ry, float rz, uint32_t generation, uint32_t identifier)
-		: x(x), y(y), z(z), rx(rx), ry(ry), rz(rz), generation(generation), identifier(identifier)
+	PhysicsTransform(float x, float y, float z, float rx, float ry, float rz, float rw, uint32_t generation, uint32_t identifier)
+		: x(x), y(y), z(z), rx(rx), ry(ry), rz(rz), rw(rw), generation(generation), identifier(identifier)
 	{
 	}
 };
@@ -59,25 +59,6 @@ struct SimulationResults
 	PhysicsTransform* data;
 	uint32_t size;
 };
-
-static std::tuple<float, float, float> to_euler(const physx::PxQuat& rotation)
-{
-	// TODO: Trig LUTs?
-	const float sinr_cosp = 2.0f * (rotation.w * rotation.x + rotation.y * rotation.z);
-	const float cosr_cosp = 1.0f - 2.0 * (rotation.x * rotation.x + rotation.y * rotation.y);
-	const float roll = std::atan2(sinr_cosp, cosr_cosp); // z
-
-	const float sinp = 2.0f * (rotation.w * rotation.y - rotation.z * rotation.x);
-	const float pitch = std::abs(sinp) >= 1.0 ? std::copysign(M_PI_2, sinp) : static_cast<float>(std::asin(sinp)); // x
-
-	const float siny_cosp = 2.0f * (rotation.w * rotation.z + rotation.x * rotation.y);
-	const float cosy_cosp = 1.0f - 2.0f * (rotation.y * rotation.y + rotation.z * rotation.z);
-	const float yaw = std::atan2(siny_cosp, cosy_cosp); // y
-
-	const float radtodeg = 180.0f / M_PI;
-
-	return std::make_tuple(pitch * radtodeg, yaw * radtodeg, roll * radtodeg);
-}
 
 static physx::PxFoundation* foundation;
 static physx::PxPvd* pvd;
@@ -330,9 +311,8 @@ PHYSX_BINDING_EXPORT SimulationResults fetch_results()
 			uint32_t identifier = (id & std::numeric_limits<uint32_t>::max());
 
 			const auto transform = actor->getGlobalPose();
-			const auto [rx, ry, rz] = to_euler(transform.q);
 
-			_transformScratchBuffer.emplace_back(transform.p.x, transform.p.y, transform.p.z, rx, ry, rz, generation, identifier);
+			_transformScratchBuffer.emplace_back(transform.p.x, transform.p.y, transform.p.z, transform.q.x, transform.q.y, transform.q.z, transform.q.w, generation, identifier);
 		}
 	}
 
@@ -369,7 +349,7 @@ PHYSX_BINDING_EXPORT void sync()
 		{
 			uint64_t id = static_cast<uint64_t>(trans.generation) << 32 | trans.identifier;
 
-			actors[id]->setGlobalPose({ trans.x, trans.y, trans.z, {0, 0, 0, 1} });
+			actors[id]->setGlobalPose({ trans.x, trans.y, trans.z, {trans.rx, trans.ry, trans.rz, trans.rw} });
 		}
 	}
 }

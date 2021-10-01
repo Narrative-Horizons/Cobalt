@@ -6,7 +6,6 @@ using Cobalt.Graphics.API;
 using Cobalt.Math;
 using System.Runtime.InteropServices;
 using Cobalt.Bindings.PhysX;
-using Cobalt.Physics;
 
 namespace Cobalt.Sandbox
 {

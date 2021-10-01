@@ -128,7 +128,7 @@ namespace Cobalt.Graphics.GL
             throw new InvalidOperationException("Unsupported data format");
         }
 
-        private static EPixelInternalFormat ToSizedFormat(EDataFormat format)
+        internal static EPixelInternalFormat ToSizedFormat(EDataFormat format)
         {
             switch (format)
             {
@@ -159,7 +159,7 @@ namespace Cobalt.Graphics.GL
             throw new InvalidOperationException("Unsupported data format");
         }
 
-        private static EPixelFormat ToPixelFormat(EDataFormat format)
+        internal static EPixelFormat ToPixelFormat(EDataFormat format)
         {
             switch (format)
             {
@@ -189,7 +189,7 @@ namespace Cobalt.Graphics.GL
             }
         }
 
-        private static EPixelType ToPixelType(EDataFormat format)
+        internal static EPixelType ToPixelType(EDataFormat format)
         {
             switch (format)
             {
@@ -227,7 +227,7 @@ namespace Cobalt.Graphics.GL
             uint bpp = Format.GetBppFromFormat();
             byte[] imagePixels = new byte[Width * Height * bpp];
 
-            OpenGL.GetTextureImage(Handle, Levels, ToPixelFormat(Format), ToPixelType(Format),
+            OpenGL.GetTextureImage(Handle, 0, ToPixelFormat(Format), ToPixelType(Format),
                 (uint)imagePixels.Length, imagePixels);
 
             byte[] pixels = new byte[width * height * bpp];

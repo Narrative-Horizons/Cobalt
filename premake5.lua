@@ -15,6 +15,7 @@ workspace "Cobalt"
     include "dependencies/GLFW@3.3.3"
     include "dependencies/stb@b42009b"
     include "dependencies/glsl-parser"
+    include "dependencies/vk-bootstrap"
     group ""
 
     group "Native Bindings"
@@ -23,6 +24,7 @@ workspace "Cobalt"
     include "projects/native/stb@b42009b-native-bindings"
     include "projects/native/glsl-parser-native-bindings"
     include "projects/native/PhysX@4.1.2-native-bindings"
+    include "projects/native/vk-bootstrap-native-bindings"
     group ""
 
     group "Asset Management"
@@ -40,8 +42,10 @@ workspace "Cobalt"
     NativeIncludeDirs["glad"] = "%{sln.location}/dependencies/GLAD@GL4.6/include"
     NativeIncludeDirs["glfw"] = "%{sln.location}/dependencies/GLFW@3.3.3/include"
     NativeIncludeDirs["stb"]  = "%{sln.location}/dependencies/stb@b42009b/include"
-    NativeIncludeDirs["glslparser"]  = "%{sln.location}/dependencies/glsl-parser/include"
+    NativeIncludeDirs["glslparser"] = "%{sln.location}/dependencies/glsl-parser/include"
     NativeIncludeDirs["phonon"] = "%{sln.location}/dependencies/phonon/include/"
+    NativeIncludeDirs["vkbootstrap"] = "%{sln.location}/dependencies/vk-bootstrap/src"
+    NativeIncludeDirs["vulkan"] = "%{sln.location}/dependencies/Vulkan-Headers@1.2.194/include"
 
     Dependencies = {}
     Dependencies["PhysX"] = {

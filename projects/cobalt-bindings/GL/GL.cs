@@ -113,6 +113,9 @@ namespace Cobalt.Bindings.GL
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_make_texture_handle_resident_ARB", CallingConvention = CallingConvention.Cdecl)]
         public static extern void MakeTextureHandleResidentARB(ulong handle);
 
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_make_image_handle_resident_ARB", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void MakeImageHandleResidentARB(ulong handle, EBufferAccess format);
+
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_delete_buffers", CallingConvention = CallingConvention.Cdecl)]
         public static extern void DeleteBuffers(uint amount, uint[] buffers);
 
@@ -139,6 +142,9 @@ namespace Cobalt.Bindings.GL
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_get_texture_sampler_handle_ARB", CallingConvention = CallingConvention.Cdecl)]
         public static extern ulong GetTextureSamplerHandleARB(uint tex, uint sam);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_gl_get_image_handle_ARB", CallingConvention = CallingConvention.Cdecl)]
+        public static extern ulong GetImageHandleARB(uint texture, int level, bool layered, int layer, EPixelFormat format);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_gl_create_shader", CallingConvention = CallingConvention.Cdecl)]
         public static extern uint CreateShader(EShaderType type);

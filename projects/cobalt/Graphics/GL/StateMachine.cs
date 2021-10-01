@@ -11,12 +11,15 @@ namespace Cobalt.Graphics.GL
         private static uint _currentProgram = uint.MaxValue;
         private static uint _currentVao = uint.MaxValue;
         private static EBeginMode _currentDrawMode = 0;
-        private static HashSet<TextureSamplerHandleWrapper> _residentTextureSamplerHandles = new HashSet<TextureSamplerHandleWrapper>();
         private static Dictionary<EEnableCap, bool> _capabilities = new Dictionary<EEnableCap, bool>();
 
+        private static HashSet<TextureSamplerHandleWrapper> _residentTextureSamplerHandles = new HashSet<TextureSamplerHandleWrapper>();
         private static HashSet<ulong> _residentTextureHandles = new HashSet<ulong>();
+        private static Dictionary<TextureSamplerHandleWrapper, ulong> _cachedTextureHandles = new Dictionary<TextureSamplerHandleWrapper, ulong>();
 
-        private static Dictionary<TextureSamplerHandleWrapper, ulong> _cachedHandles = new Dictionary<TextureSamplerHandleWrapper, ulong>();
+        private static HashSet<uint> _residentImageSamplerHandles = new HashSet<uint>();
+        private static HashSet<ulong> _residentImageHandles = new HashSet<ulong>();
+        private static Dictionary<uint, ulong> _cachedImageHandles = new Dictionary<uint, ulong>();
 
         private static bool DepthEnabled = false;
 
@@ -220,6 +223,15 @@ namespace Cobalt.Graphics.GL
             }
         }
 
+        internal static void MakeImageHandleResidentArb(ulong handle)
+        {
+            if (_residentImageHandles.Contains(handle) == false && handle != 0)
+            {
+                OpenGL.MakeImageHandleResidentARB(handle, EBufferAccess.ReadWrite); // TODO: smarter buffer access
+                _residentImageHandles.Add(handle);
+            }
+        }
+
         public static void DrawArraysInstancedBaseInstance(int baseVertex, int vertexCount, int baseInstance, int instanceCount)
         {
             OpenGL.DrawArraysInstancedBaseInstance(_currentDrawMode, baseVertex, vertexCount, instanceCount, (uint)baseInstance);
@@ -234,6 +246,21 @@ namespace Cobalt.Graphics.GL
                 offsetPtr, instanceCount, baseVertex, (uint)baseInstance);
         }
 
+        internal static ulong GetImageHandle(ImageView imageView)
+        {
+            uint tex = imageView.Handle;
+
+            if (_cachedImageHandles.ContainsKey(tex))
+            {
+                return _cachedImageHandles[tex];
+            }
+
+            ulong handle = OpenGL.GetImageHandleARB(tex, 0, imageView.Layer != null, imageView.Layer ?? 0, imageView.ViewFormat);
+            _cachedImageHandles.Add(tex, handle);
+
+            return handle;
+        }
+
         internal static ulong GetTextureSamplerHandle(ImageView imageView, Sampler sampler)
         {
             uint tex = imageView.Handle;
@@ -245,13 +272,13 @@ namespace Cobalt.Graphics.GL
                 samplerHandle = sam
             };
 
-            if(_cachedHandles.ContainsKey(wrapper))
+            if(_cachedTextureHandles.ContainsKey(wrapper))
             {
-                return _cachedHandles[wrapper];
+                return _cachedTextureHandles[wrapper];
             }
 
             ulong handle = OpenGL.GetTextureSamplerHandleARB(tex, sam);
-            _cachedHandles.Add(wrapper, handle);
+            _cachedTextureHandles.Add(wrapper, handle);
 
             return handle;
         }

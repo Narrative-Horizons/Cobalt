@@ -67,6 +67,55 @@ namespace Cobalt.Graphics.GL
             }
         }
 
+        private class SampledImageBinding : IBinding
+        {
+            public int Index { get; set; }
+            public ImageView[] Images { get; set; }
+            public ulong[] Handles { get; set; }
+
+            public SampledImageBinding(int index, int count)
+            {
+                Index = index;
+                Images = new ImageView[count];
+                Handles = new ulong[count];
+            }
+
+            public void Bind()
+            {
+                foreach (ulong handle in Handles)
+                {
+                    StateMachine.MakeImageHandleResidentArb(handle);
+                }
+
+                StateMachine.UniformHandleuivArb(Index, Handles);
+            }
+
+            public void Bind(uint offset)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsDynamic()
+            {
+                return false;
+            }
+
+            public int Copy(int offset, int count, IBinding dst, int dstOffset, int dstCount)
+            {
+                SampledImageBinding d = dst as SampledImageBinding;
+
+                int copyCount = 0;
+                for (int i = 0; i < count && i + dstOffset < d.Images.Length && i + offset < Images.Length; ++i)
+                {
+                    d.Images[i + offset] = Images[i + dstOffset];
+                    d.Handles[i + offset] = Handles[i + dstOffset];
+                    ++copyCount;
+                }
+
+                return copyCount;
+            }
+        }
+
         private class StorageBufferBinding : IBinding
         {
             public uint Index { get; set; }

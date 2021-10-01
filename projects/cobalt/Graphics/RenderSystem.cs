@@ -28,6 +28,44 @@ namespace Cobalt.Graphics
 
         public RenderSystem(Registry registry, IDevice device, ISwapchain swapchain)
         {
+            Bindings.Vulkan.VK.InstanceCreateInfo createInfo = new Bindings.Vulkan.VK.InstanceCreateInfo
+            {
+                appName = "Hello World",
+                appVersion =
+                {
+                    major = 1,
+                    minor = 0,
+                    patch = 0
+                },
+                desiredVersion =
+                {
+                    major = 1,
+                    minor = 2,
+                    patch = 0
+                },
+                enabledExtensionCount = 0,
+                enabledExtensions = { },
+                enabledLayerCount = 0,
+                enabledLayers = { },
+                engineName = "Cobalt",
+                engineVersion =
+                {
+                    major = 0,
+                    minor = 0,
+                    patch = 1
+                },
+                requiredVersion =
+                {
+                    major = 1,
+                    minor = 2,
+                    patch = 0
+                },
+                requireValidationLayers = true,
+                useDefaultDebugger = true
+            };
+            var result = Bindings.Vulkan.VK.CreateInstance(createInfo);
+            Bindings.Vulkan.VK.DestroyInstance(result);
+
             _registry = registry;
             _framesInFlight = swapchain.GetImageCount();
             _pipeline = new PbrPipeline(registry, device, swapchain);

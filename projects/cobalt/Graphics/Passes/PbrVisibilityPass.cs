@@ -46,6 +46,9 @@ namespace Cobalt.Graphics.Passes
                 Height = info.height,
                 RenderPass = Pass
             });
+
+
+
             return true;
         }
     }

@@ -13,8 +13,14 @@ project "vk-bootstrap-native-bindings"
     }
 
     includedirs {
-        "%{NativeIncludeDirs.vulkan}",
-        "%{NativeIncludeDirs.vkbootstrap}"
+        "%{NativeIncludeDirs.glfw}",
+        "%{NativeIncludeDirs.vkbootstrap}",
+        "%{NativeIncludeDirs.vulkan}"
+    }
+
+    links {
+        "GLFW@3.3.3",
+        "vk-bootstrap"
     }
 
     toolset "clang"
@@ -24,10 +30,6 @@ project "vk-bootstrap-native-bindings"
         systemversion "latest"
         staticruntime "Off"
 
-        links {
-            "vk-bootstrap"
-        }
-
     filter {}
 
     -- Configuration Filters
@@ -35,17 +37,9 @@ project "vk-bootstrap-native-bindings"
         runtime "Debug"
         symbols "On"
 
-        defines({
-            "_DEBUG"
-        })
-
     filter "configurations:Release"
         optimize "Full"
         runtime "Release"
         symbols "Off"
-
-        defines({
-            "NDEBUG"
-        })
 
     filter {}

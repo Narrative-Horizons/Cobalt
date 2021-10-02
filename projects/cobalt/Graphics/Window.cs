@@ -60,16 +60,10 @@ namespace Cobalt.Graphics
         {
             GLFW.SetErrorCallback(GlfwError);
 
-            GLFW.WindowHint(Hint.ContextVersionMajor, 4);
-            GLFW.WindowHint(Hint.ContextVersionMinor, 6);
-            GLFW.WindowHint(Hint.OpenglProfile, Profile.Core);
             _window = GLFW.CreateWindow(info.Width, info.Height, info.Name, GLFWMonitor.None, GLFWWindow.None);
 
-            GLFW.MakeContextCurrent(_window);
             GLFW.ShowWindow(_window);
-
             GLFW.SetWindowSizeCallback(_window, Resize);
-            GLFW.SwapInterval(0);
 
             GLFW.SetKeyCallback(_window, (GLFWWindow window, Keys key, int scanCode, InputState state, ModifierKeys mods) =>
             {
@@ -164,6 +158,11 @@ namespace Cobalt.Graphics
         {
             OpenGL.Finish();
             GLFW.SwapBuffers(_window);
+        }
+
+        internal GLFWWindow Native()
+        {
+            return _window;
         }
     }
 }

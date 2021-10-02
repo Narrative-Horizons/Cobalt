@@ -15,17 +15,10 @@ namespace Cobalt.Core
         #endregion
 
         #region Properties
-        public IGraphicsApplication GraphicsApplication { get; internal set; }
-        public IPhysicalDevice GPU { get; internal set; }
-        public IDevice Device { get; internal set; }
-        public IRenderSurface Surface { get; internal set; }
-        public ISwapchain SwapChain { get; internal set; }
         public GraphicsContext Context { get; internal set; }
         public Window Window { get; internal set; }
         public PhysicsSystem Physics { get; internal set; }
-        public AssetManager Assets { get; internal set; }
         public Registry Registry { get; internal set; }
-        public RenderableManager RenderableManager { get; internal set; }
         #endregion
 
         private Engine(Application app)
@@ -55,8 +48,6 @@ namespace Cobalt.Core
                 application.Setup();
 
                 Registry = new Registry();
-                Assets = new AssetManager(Device);
-                RenderableManager = new RenderableManager(Device);
                 Physics = new PhysicsSystem(Registry);
                 
                 PhysX.Init();
@@ -80,7 +71,6 @@ namespace Cobalt.Core
                     Physics.Sync();
 
                     Physics.Simulate();
-                    SwapChain.Present(new ISwapchain.PresentInfo());
                 }
 
                 application.Cleanup();
@@ -88,26 +78,6 @@ namespace Cobalt.Core
 
             PhysX.Destroy();
             Context.Dispose();
-        }
-
-        public IGraphicsApplication CreateGraphicsApplication(IGraphicsApplication.CreateInfo createInfo)
-        {
-            GraphicsApplication = Context.CreateApplication(createInfo);
-            return GraphicsApplication;
-        }
-
-        public IPhysicalDevice CreatePhysicalDevice(IPhysicalDevice.CreateInfo createInfo)
-        {
-            GPU = GraphicsApplication.GetPhysicalDevices().Find(gpu => gpu.SupportsGraphics() && gpu.SupportsPresent() && gpu.SupportsCompute() && gpu.SupportsTransfer());
-            return GPU;
-        }
-
-        public IDevice CreateDevice(IDevice.CreateInfo createInfo)
-        {
-            Device = GPU.Create(createInfo);
-            Surface = Device.GetSurface(Window);
-
-            return Device;
         }
 
         public Window CreateWindow(Window.CreateInfo createInfo)
@@ -120,12 +90,6 @@ namespace Cobalt.Core
         {
             Context = GraphicsContext.GetInstance(api);
             return Context;
-        }
-
-        public ISwapchain CreateSwapChain(ISwapchain.CreateInfo createInfo)
-        {
-            SwapChain = Surface.CreateSwapchain(createInfo);
-            return SwapChain;
         }
     }
 }

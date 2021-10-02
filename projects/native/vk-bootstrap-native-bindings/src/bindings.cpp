@@ -1,5 +1,7 @@
 #include <VkBootstrap.h>
 
+#include <GLFW/glfw3.h>
+
 #include <stdio.h>
 #include <stdbool.h>
 
@@ -26,11 +28,28 @@ struct InstanceCreateInfo
 	const char** enabledExtensions;
 	bool requireValidationLayers;
 	bool useDefaultDebugger;
-	// TODO: custom debugger and layers
+	GLFWwindow* window;
 };
 
-VKBOOTSTRAP_BINDING_EXPORT vkb::Instance* cobalt_vkb_create_instance(InstanceCreateInfo info)
+struct PhysicalDevice
 {
+	vkb::Instance* parent;
+	vkb::PhysicalDevice device;
+	VkSurfaceKHR surface;
+};
+
+struct Device
+{
+	vkb::Instance instance;
+	vkb::PhysicalDevice physicalDevice;
+	vkb::Device device;
+	VkSurfaceKHR surface;
+};
+
+VKBOOTSTRAP_BINDING_EXPORT Device* cobalt_vkb_create_device(InstanceCreateInfo info)
+{
+	glfwInit();
+
 	vkb::InstanceBuilder bldr = vkb::InstanceBuilder()
 		.set_app_version(info.appVersion.major, info.appVersion.minor, info.appVersion.patch)
 		.set_app_name(info.appName)
@@ -54,23 +73,66 @@ VKBOOTSTRAP_BINDING_EXPORT vkb::Instance* cobalt_vkb_create_instance(InstanceCre
 		bldr.use_default_debug_messenger();
 	}
 
-	auto result = bldr.build();
-
-	if (result)
+	const auto instanceResult = bldr.build();
+	if (!instanceResult)
 	{
-		return new vkb::Instance(result.value());
+		return nullptr;
 	}
 
-	return nullptr;
+	Device device;
+
+	device.instance = instanceResult.value();
+
+	// create surface
+	VkSurfaceKHR surface;
+	const VkResult surfaceResult = glfwCreateWindowSurface(device.instance.instance, info.window, device.instance.allocation_callbacks, &surface);
+
+	if (surfaceResult != VK_SUCCESS)
+	{
+		vkb::destroy_instance(device.instance);
+		return nullptr;
+	}
+	device.surface = surface;
+
+	// select physical device
+	vkb::PhysicalDeviceSelector physicalDeviceSelector = vkb::PhysicalDeviceSelector(device.instance)
+		.prefer_gpu_device_type(vkb::PreferredDeviceType::discrete)
+		.set_minimum_version(1, 2)
+		.set_surface(surface);
+	const auto physicalDeviceResult = physicalDeviceSelector.select();
+
+	if (!physicalDeviceResult)
+	{
+		vkb::destroy_surface(device.instance, device.surface);
+		vkb::destroy_instance(device.instance);
+		return nullptr;
+	}
+	device.physicalDevice = physicalDeviceResult.value();
+
+	const auto deviceResult = vkb::DeviceBuilder(device.physicalDevice)
+		.build();
+
+	if (!deviceResult)
+	{
+		vkb::destroy_surface(device.instance, device.surface);
+		vkb::destroy_instance(device.instance);
+		return nullptr;
+	}
+
+	device.device = deviceResult.value();
+	return new Device(device);
 }
 
-VKBOOTSTRAP_BINDING_EXPORT bool cobalt_vkb_destroy_instance(vkb::Instance* instance)
+VKBOOTSTRAP_BINDING_EXPORT bool cobalt_vkb_destroy_device(Device* device)
 {
-	if (instance)
+	if (device)
 	{
-		vkb::destroy_instance(*instance);
-		delete instance;
+		vkb::destroy_device(device->device);
+		vkb::destroy_surface(device->instance, device->surface);
+		vkb::destroy_instance(device->instance);
+		delete device;
+		return true;
 	}
 
-	return true;
+	return false;
 }

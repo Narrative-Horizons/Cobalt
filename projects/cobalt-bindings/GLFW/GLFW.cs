@@ -199,6 +199,7 @@ namespace Cobalt.Bindings.GLFW
 
         public static GLFWWindow CreateWindow(int width, int height, [NotNull] string title, GLFWMonitor monitor, GLFWWindow share)
         {
+            WindowHint(Hint.ClientApi, 0);
             return CreateWindow(width, height, Encoding.UTF8.GetBytes(title), monitor, share);
         }
 

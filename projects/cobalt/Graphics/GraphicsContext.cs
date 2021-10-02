@@ -1,11 +1,7 @@
-﻿using GLAD = Cobalt.Bindings.GL.GL;
-
-using Cobalt.Bindings.GLFW;
+﻿using Cobalt.Bindings.GLFW;
 using Cobalt.Graphics.API;
 using System;
 using System.Collections.Generic;
-using Cobalt.Core;
-using System.Runtime.InteropServices;
 
 namespace Cobalt.Graphics
 {
@@ -89,15 +85,6 @@ namespace Cobalt.Graphics
         {
             Window window = new Window(info);
             _windows.Add(window);
-
-            if (GLAD.LoadGLProcAddress(GLFW.GetProcAddress))
-            {
-                Console.WriteLine("Successfully loaded GLAD.");
-            }
-            else
-            {
-                Console.WriteLine("Error on GLAD Init");
-            }
 
             return window;
         }

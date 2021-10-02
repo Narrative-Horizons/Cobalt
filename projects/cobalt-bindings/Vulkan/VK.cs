@@ -25,6 +25,7 @@ namespace Cobalt.Bindings.Vulkan
 			public string[] enabledExtensions;
 			public bool requireValidationLayers;
 			public bool useDefaultDebugger;
+			public GLFW.GLFWWindow window;
 			// TODO: custom debugger and layers
 		};
 
@@ -38,10 +39,10 @@ namespace Cobalt.Bindings.Vulkan
 #endif
         #endregion
 
-        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_create_instance", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_create_device", CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr CreateInstance(InstanceCreateInfo info);
 
-		[DllImport(LIBRARY, EntryPoint = "cobalt_vkb_destroy_instance", CallingConvention = CallingConvention.Cdecl)]
+		[DllImport(LIBRARY, EntryPoint = "cobalt_vkb_destroy_device", CallingConvention = CallingConvention.Cdecl)]
 		public static extern bool DestroyInstance(IntPtr instance);
 	}
 }

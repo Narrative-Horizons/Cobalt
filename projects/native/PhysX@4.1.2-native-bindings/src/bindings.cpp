@@ -188,7 +188,6 @@ PHYSX_BINDING_EXPORT void init()
 
 	scene = physics->createScene(sceneDesc);
 	//_scene->setSimulationEventCallback() TODO
-	scene->simulate(0.02f); // Prewarm
 }
 
 PHYSX_BINDING_EXPORT void destroy()

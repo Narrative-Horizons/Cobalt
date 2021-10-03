@@ -1,4 +1,4 @@
-project "vk-bootstrap-native-bindings"
+project "vulkan-native-bindings"
     kind "SharedLib"
     language "C++"
     cppdialect "C++17"
@@ -15,7 +15,8 @@ project "vk-bootstrap-native-bindings"
     includedirs {
         "%{NativeIncludeDirs.glfw}",
         "%{NativeIncludeDirs.vkbootstrap}",
-        "%{NativeIncludeDirs.vulkan}"
+        "%{NativeIncludeDirs.vulkan}",
+        "%{NativeIncludeDirs.vma}",
     }
 
     links {

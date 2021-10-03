@@ -14,7 +14,8 @@ project "Cobalt"
         "log4net:2.0.12",
         "Newtonsoft.Json:13.0.1",
         "Silk.NET.Assimp:2.4.0",
-        "NAudio:2.0.0"
+        "NAudio:2.0.0",
+        "ImGui.NET:1.78.0"
     }
 
     links {

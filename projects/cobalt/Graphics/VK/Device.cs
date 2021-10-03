@@ -51,12 +51,8 @@ namespace Cobalt.Graphics.VK
                 useDefaultDebugger = true,
                 window = window.Native()
             };
-            var handle = Bindings.Vulkan.VK.CreateInstance(createInfo);
-            if (handle != IntPtr.Zero)
-            {
-                return new Device(handle);
-            }
-            return null;
+            IntPtr handle = Bindings.Vulkan.VK.CreateInstance(createInfo);
+            return handle != IntPtr.Zero ? new Device(handle) : null;
         }
 
         public void Dispose()

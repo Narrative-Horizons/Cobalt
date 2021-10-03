@@ -1,11 +1,15 @@
 #include <VkBootstrap.h>
 
+#define VMA_IMPLEMENTATION
+#define VMA_STATIC_VULKAN_FUNCTIONS 0
+#include <vma/vk_mem_alloc.h>
+
 #include <GLFW/glfw3.h>
 
 #include <stdio.h>
 #include <stdbool.h>
 
-#define VKBOOTSTRAP_BINDING_EXPORT extern "C" __declspec(dllexport) inline
+#define VK_BINDING_EXPORT extern "C" __declspec(dllexport) inline
 
 struct ApiVersion
 {
@@ -43,10 +47,12 @@ struct Device
 	vkb::Instance instance;
 	vkb::PhysicalDevice physicalDevice;
 	vkb::Device device;
+	vkb::DispatchTable functionTable;
 	VkSurfaceKHR surface;
+	VmaAllocator allocator;
 };
 
-VKBOOTSTRAP_BINDING_EXPORT Device* cobalt_vkb_create_device(InstanceCreateInfo info)
+VK_BINDING_EXPORT Device* cobalt_vkb_create_device(InstanceCreateInfo info)
 {
 	glfwInit();
 
@@ -120,10 +126,33 @@ VKBOOTSTRAP_BINDING_EXPORT Device* cobalt_vkb_create_device(InstanceCreateInfo i
 	}
 
 	device.device = deviceResult.value();
+	device.functionTable = device.device.make_table();
+
+	VmaAllocatorCreateInfo allocatorInfo = {};
+	allocatorInfo.flags = 0;
+	allocatorInfo.device = device.device;
+
+	VmaVulkanFunctions funcs = {};
+	funcs.vkAllocateMemory = device.functionTable.fp_vkAllocateMemory;
+	funcs.vkBindBufferMemory = device.functionTable.fp_vkBindBufferMemory;
+	funcs.vkBindBufferMemory2KHR = device.functionTable.fp_vkBindBufferMemory2KHR;
+	funcs.vkBindImageMemory = device.functionTable.fp_vkBindImageMemory;
+	funcs.vkBindImageMemory2KHR = device.functionTable.fp_vkBindImageMemory2KHR;
+	funcs.vkCmdCopyBuffer = device.functionTable.fp_vkCmdCopyBuffer;
+	funcs.vkCreateBuffer = device.functionTable.fp_vkCreateBuffer;
+	funcs.vkCreateImage = device.functionTable.fp_vkCreateImage;
+	funcs.vkDestroyBuffer = device.functionTable.fp_vkDestroyBuffer;
+	funcs.vkDestroyImage = device.functionTable.fp_vkDestroyImage;
+	funcs.vkFlushMappedMemoryRanges = device.functionTable.fp_vkFlushMappedMemoryRanges;
+	
+	allocatorInfo.pVulkanFunctions = &funcs;
+	
+	vmaCreateAllocator(&allocatorInfo, &device.allocator);
+	
 	return new Device(device);
 }
 
-VKBOOTSTRAP_BINDING_EXPORT bool cobalt_vkb_destroy_device(Device* device)
+VK_BINDING_EXPORT bool cobalt_vkb_destroy_device(Device* device)
 {
 	if (device)
 	{

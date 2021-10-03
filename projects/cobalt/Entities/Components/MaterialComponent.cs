@@ -9,6 +9,25 @@ namespace Cobalt.Entities.Components
         Opaque
     };
 
+    public class UIEditorMaterialComponent : BaseComponent
+    {
+        public Texture Texture { get; set; }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Texture);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is UIEditorMaterialComponent casted))
+            {
+                return false;
+            }
+
+            return Texture == casted.Texture;
+        }
+    }
     public class PbrMaterialComponent : BaseComponent
     {
         public EMaterialType Type = EMaterialType.Opaque;

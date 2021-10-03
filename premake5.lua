@@ -24,7 +24,7 @@ workspace "Cobalt"
     include "projects/native/stb@b42009b-native-bindings"
     include "projects/native/glsl-parser-native-bindings"
     include "projects/native/PhysX@4.1.2-native-bindings"
-    include "projects/native/vk-bootstrap-native-bindings"
+    include "projects/native/vulkan-native-bindings"
     group ""
 
     group "Asset Management"
@@ -46,6 +46,7 @@ workspace "Cobalt"
     NativeIncludeDirs["phonon"] = "%{sln.location}/dependencies/phonon/include/"
     NativeIncludeDirs["vkbootstrap"] = "%{sln.location}/dependencies/vk-bootstrap/src"
     NativeIncludeDirs["vulkan"] = "%{sln.location}/dependencies/Vulkan-Headers@1.2.194/include"
+    NativeIncludeDirs["vma"] = "%{sln.location}/dependencies/VMA@2.3.0/include"
 
     Dependencies = {}
     Dependencies["PhysX"] = {

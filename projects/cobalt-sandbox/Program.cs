@@ -1,3 +1,4 @@
+using System;
 using Cobalt.Core;
 using Cobalt.Entities;
 using Cobalt.Entities.Components;
@@ -31,7 +32,7 @@ namespace Cobalt.Sandbox
                 .Height(720)
                 .Name("Cobalt Sandbox")
                 .Build());
-            
+
             using (Device d = Device.Create(window))
             {
 

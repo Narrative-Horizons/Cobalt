@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace Cobalt.Graphics.GL
 {
-    internal class RenderPass : IRenderPass
+    internal class GLRenderPass : IRenderPass
     {
         public IRenderPass.CreateInfo Info { get; private set; }
 
-        public RenderPass(IRenderPass.CreateInfo info)
+        public GLRenderPass(IRenderPass.CreateInfo info)
         {
             Info = info;
         }

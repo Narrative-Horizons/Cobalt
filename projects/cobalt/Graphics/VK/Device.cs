@@ -6,11 +6,11 @@ namespace Cobalt.Graphics.VK
 {
     public class Device : IDisposable
     {
-        private readonly IntPtr _handle;
+        internal readonly IntPtr handle;
 
         private Device(IntPtr handle)
         {
-            _handle = handle;
+            this.handle = handle;
         }
 
         public static Device Create(Window window)
@@ -57,7 +57,7 @@ namespace Cobalt.Graphics.VK
 
         public void Dispose()
         {
-            Bindings.Vulkan.VK.DestroyInstance(_handle);
+            Bindings.Vulkan.VK.DestroyInstance(handle);
         }
     }
 }

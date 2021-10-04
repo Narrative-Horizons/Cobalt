@@ -469,7 +469,7 @@ namespace Cobalt.Graphics.Pipelines
                     .Layers(1)
                     .Width(width)
                     .Height(height)
-                    .RenderPass(_visibility.Native)
+                    .GLRenderPass(_visibility.Native)
                     .AddAttachment(new IFrameBuffer.CreateInfo.Attachment.Builder()
                         .ImageView(visibility[frame])
                         .Usage(EImageUsage.ColorAttachment))

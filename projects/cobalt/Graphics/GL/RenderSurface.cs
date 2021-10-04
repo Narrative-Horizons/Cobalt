@@ -5,7 +5,7 @@ namespace Cobalt.Graphics.GL
 {
     internal class RenderSurface : IRenderSurface
     {
-        public Swapchain SwapChain { get; private set; }
+        public GLSwapchain SwapChain { get; private set; }
 
         public Window Window { get; private set; }
         public RenderSurface(Window window)
@@ -16,9 +16,9 @@ namespace Cobalt.Graphics.GL
         public ISwapchain CreateSwapchain(ISwapchain.CreateInfo info)
         {
             if (SwapChain != null)
-                throw new InvalidOperationException("Swapchain already exists");
+                throw new InvalidOperationException("GLSwapchain already exists");
 
-            SwapChain = new Swapchain(Window, info);
+            SwapChain = new GLSwapchain(Window, info);
 
             return SwapChain;
         }

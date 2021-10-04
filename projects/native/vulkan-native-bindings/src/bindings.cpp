@@ -35,6 +35,23 @@ struct InstanceCreateInfo
 	GLFWwindow* window;
 };
 
+struct SwapchainCreateInfo
+{
+	
+};
+
+struct RenderPassCreateInfo
+{
+	size_t attachmentCount;
+	const VkAttachmentDescription* attachments;
+
+	size_t subpassCount;
+	const VkSubpassDescription* subpasses;
+
+	size_t dependencyCount;
+	const VkSubpassDependency* dependencies;
+};
+
 struct PhysicalDevice
 {
 	vkb::Instance* parent;
@@ -50,6 +67,21 @@ struct Device
 	vkb::DispatchTable functionTable;
 	VkSurfaceKHR surface;
 	VmaAllocator allocator;
+
+	VkQueue graphicsQueue;
+	VkQueue presentQueue;
+	VkQueue computeQueue;
+	VkQueue tranferQueue;
+};
+
+struct Swapchain
+{
+	vkb::Swapchain swapchain;
+};
+
+struct RenderPass
+{
+	VkRenderPass pass;
 };
 
 VK_BINDING_EXPORT Device* cobalt_vkb_create_device(InstanceCreateInfo info)
@@ -125,6 +157,45 @@ VK_BINDING_EXPORT Device* cobalt_vkb_create_device(InstanceCreateInfo info)
 		return nullptr;
 	}
 
+	auto gq = device.device.get_queue(vkb::QueueType::graphics);
+	if (!gq.has_value())
+	{
+		vkb::destroy_surface(device.instance, device.surface);
+		vkb::destroy_instance(device.instance);
+		return nullptr;
+	}
+	device.graphicsQueue = gq.value();
+
+	auto pq = device.device.get_queue(vkb::QueueType::present);
+	if (!pq.has_value())
+	{
+		vkb::destroy_surface(device.instance, device.surface);
+		vkb::destroy_instance(device.instance);
+		return nullptr;
+	}
+
+	device.presentQueue = pq.value();
+
+	auto cq = device.device.get_queue(vkb::QueueType::compute);
+	if (!cq.has_value())
+	{
+		vkb::destroy_surface(device.instance, device.surface);
+		vkb::destroy_instance(device.instance);
+		return nullptr;
+	}
+
+	device.computeQueue = cq.value();
+
+	auto tq = device.device.get_queue(vkb::QueueType::transfer);
+	if (!tq.has_value())
+	{
+		vkb::destroy_surface(device.instance, device.surface);
+		vkb::destroy_instance(device.instance);
+		return nullptr;
+	}
+
+	device.tranferQueue = tq.value();
+
 	device.device = deviceResult.value();
 	device.functionTable = device.device.make_table();
 
@@ -161,7 +232,7 @@ VK_BINDING_EXPORT Device* cobalt_vkb_create_device(InstanceCreateInfo info)
 	allocatorInfo.physicalDevice = device.physicalDevice;
 	
 	vmaCreateAllocator(&allocatorInfo, &device.allocator);
-	
+
 	return new Device(device);
 }
 
@@ -173,6 +244,67 @@ VK_BINDING_EXPORT bool cobalt_vkb_destroy_device(Device* device)
 		vkb::destroy_surface(device->instance, device->surface);
 		vkb::destroy_instance(device->instance);
 		delete device;
+		return true;
+	}
+
+	return false;
+}
+
+VK_BINDING_EXPORT Swapchain* cobalt_vkb_create_swapchain(Device* device, SwapchainCreateInfo info)
+{
+	const vkb::SwapchainBuilder bldr{ device->device };
+	const auto swapchainResult = bldr.build();
+	if (!swapchainResult)
+	{
+		return nullptr;
+	}
+
+	Swapchain* swapchain = new Swapchain();
+	swapchain->swapchain = swapchainResult.value();
+
+	return swapchain;
+}
+
+VK_BINDING_EXPORT bool cobalt_vkb_destroy_swapchain(Swapchain* swapchain)
+{
+	if(swapchain)
+	{
+		vkb::destroy_swapchain(swapchain->swapchain);
+		delete swapchain;
+
+		return true;
+	}
+
+	return false;
+}
+
+
+VK_BINDING_EXPORT RenderPass* cobalt_vkb_create_renderpass(Device* device, RenderPassCreateInfo info)
+{
+	VkRenderPassCreateInfo renderPassInfo = {};
+	renderPassInfo.pNext = nullptr;
+	renderPassInfo.flags = 0;
+	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+
+	VkRenderPass pass;
+	if(!device->functionTable.createRenderPass(&renderPassInfo, nullptr, &pass))
+	{
+		return nullptr;
+	}
+
+	RenderPass* renderpass = new RenderPass();
+	renderpass->pass = pass;
+
+	return renderpass;
+}
+
+VK_BINDING_EXPORT bool cobalt_vkb_destroy_renderpass(Device* device, RenderPass* renderpass)
+{
+	if (renderpass)
+	{
+		device->functionTable.destroyRenderPass(renderpass->pass, nullptr);
+		delete renderpass;
+
 		return true;
 	}
 

@@ -29,6 +29,16 @@ namespace Cobalt.Bindings.Vulkan
 			// TODO: custom debugger and layers
 		};
 
+        public struct SwapchainCreateInfo
+        {
+
+        }
+
+        public struct RenderPassCreateInfo
+        {
+
+        }
+
 		#region DLL Loading
 #if COBALT_PLATFORM_WINDOWS
 		public const string LIBRARY = "bin/vk-bootstrap-native-bindings.dll";
@@ -45,8 +55,16 @@ namespace Cobalt.Bindings.Vulkan
 		[DllImport(LIBRARY, EntryPoint = "cobalt_vkb_destroy_device", CallingConvention = CallingConvention.Cdecl)]
 		public static extern bool DestroyInstance(IntPtr instance);
 
-        [DllImport(LIBRARY, EntryPoint = "cobalt_vma_create_buffer", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void CreateBuffer();
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_create_swapchain", CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr CreateSwapchain(IntPtr device, SwapchainCreateInfo info);
 
-    }
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_destroy_swapchain", CallingConvention = CallingConvention.Cdecl)]
+        public static extern bool DestroySwapchain(IntPtr swapchain);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_create_renderpass", CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr CreateRenderPass(IntPtr device, RenderPassCreateInfo info);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_destroy_renderpass", CallingConvention = CallingConvention.Cdecl)]
+        public static extern bool DestroyRenderPass(IntPtr device, IntPtr renderpass);
+	}
 }

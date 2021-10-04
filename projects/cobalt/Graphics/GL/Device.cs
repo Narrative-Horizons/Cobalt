@@ -19,7 +19,7 @@ namespace Cobalt.Graphics.GL
         private readonly List<IQueue> _queues = new List<IQueue>();
         private readonly Dictionary<Window, RenderSurface> _surfaces = new Dictionary<Window, RenderSurface>();
 
-        public List<RenderPass> Passes { get; private set; } = new List<RenderPass>();
+        public List<GLRenderPass> Passes { get; private set; } = new List<GLRenderPass>();
         public List<FrameBuffer> FrameBuffers { get; private set; } = new List<FrameBuffer>();
         public List<IBuffer> Buffers { get; private set; } = new List<IBuffer>();
         public List<Image> Images { get; private set; } = new List<Image>();
@@ -202,7 +202,7 @@ namespace Cobalt.Graphics.GL
 
         public IRenderPass CreateRenderPass(IRenderPass.CreateInfo info)
         {
-            RenderPass pass = new RenderPass(info);
+            GLRenderPass pass = new GLRenderPass(info);
             Passes.Add(pass);
 
             return pass;

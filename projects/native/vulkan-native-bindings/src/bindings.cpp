@@ -287,7 +287,7 @@ VK_BINDING_EXPORT RenderPass* cobalt_vkb_create_renderpass(Device* device, Rende
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 
 	VkRenderPass pass;
-	if(!device->functionTable.createRenderPass(&renderPassInfo, nullptr, &pass))
+	if(device->functionTable.createRenderPass(&renderPassInfo, device->device.allocation_callbacks, &pass) != VK_SUCCESS)
 	{
 		return nullptr;
 	}
@@ -302,7 +302,7 @@ VK_BINDING_EXPORT bool cobalt_vkb_destroy_renderpass(Device* device, RenderPass*
 {
 	if (renderpass)
 	{
-		device->functionTable.destroyRenderPass(renderpass->pass, nullptr);
+		device->functionTable.destroyRenderPass(renderpass->pass, device->device.allocation_callbacks);
 		delete renderpass;
 
 		return true;

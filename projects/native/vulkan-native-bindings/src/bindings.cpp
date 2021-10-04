@@ -133,19 +133,32 @@ VK_BINDING_EXPORT Device* cobalt_vkb_create_device(InstanceCreateInfo info)
 	allocatorInfo.device = device.device;
 
 	VmaVulkanFunctions funcs = {};
+	funcs.vkGetPhysicalDeviceProperties = (PFN_vkGetPhysicalDeviceProperties)device.instance.fp_vkGetInstanceProcAddr(device.instance.instance, "vkGetPhysicalDeviceProperties");
+	funcs.vkGetPhysicalDeviceMemoryProperties = (PFN_vkGetPhysicalDeviceMemoryProperties)device.instance.fp_vkGetInstanceProcAddr(device.instance.instance, "vkGetPhysicalDeviceMemoryProperties");
 	funcs.vkAllocateMemory = device.functionTable.fp_vkAllocateMemory;
-	funcs.vkBindBufferMemory = device.functionTable.fp_vkBindBufferMemory;
-	funcs.vkBindBufferMemory2KHR = device.functionTable.fp_vkBindBufferMemory2KHR;
-	funcs.vkBindImageMemory = device.functionTable.fp_vkBindImageMemory;
-	funcs.vkBindImageMemory2KHR = device.functionTable.fp_vkBindImageMemory2KHR;
-	funcs.vkCmdCopyBuffer = device.functionTable.fp_vkCmdCopyBuffer;
-	funcs.vkCreateBuffer = device.functionTable.fp_vkCreateBuffer;
-	funcs.vkCreateImage = device.functionTable.fp_vkCreateImage;
-	funcs.vkDestroyBuffer = device.functionTable.fp_vkDestroyBuffer;
-	funcs.vkDestroyImage = device.functionTable.fp_vkDestroyImage;
+	funcs.vkFreeMemory = device.functionTable.fp_vkFreeMemory;
+	funcs.vkMapMemory = device.functionTable.fp_vkMapMemory;
+	funcs.vkUnmapMemory = device.functionTable.fp_vkUnmapMemory;
 	funcs.vkFlushMappedMemoryRanges = device.functionTable.fp_vkFlushMappedMemoryRanges;
-	
+	funcs.vkInvalidateMappedMemoryRanges = device.functionTable.fp_vkInvalidateMappedMemoryRanges;
+	funcs.vkBindBufferMemory = device.functionTable.fp_vkBindBufferMemory;
+	funcs.vkBindImageMemory = device.functionTable.fp_vkBindImageMemory;
+	funcs.vkGetBufferMemoryRequirements = device.functionTable.fp_vkGetBufferMemoryRequirements;
+	funcs.vkGetImageMemoryRequirements = device.functionTable.fp_vkGetImageMemoryRequirements;
+	funcs.vkCreateBuffer = device.functionTable.fp_vkCreateBuffer;
+	funcs.vkDestroyBuffer = device.functionTable.fp_vkDestroyBuffer;
+	funcs.vkCreateImage = device.functionTable.fp_vkCreateImage;
+	funcs.vkDestroyImage = device.functionTable.fp_vkDestroyImage;
+	funcs.vkCmdCopyBuffer = device.functionTable.fp_vkCmdCopyBuffer;
+	funcs.vkGetBufferMemoryRequirements2KHR = device.functionTable.fp_vkGetBufferMemoryRequirements2KHR;
+	funcs.vkGetImageMemoryRequirements2KHR = device.functionTable.fp_vkGetImageMemoryRequirements2KHR;
+	funcs.vkBindBufferMemory2KHR = device.functionTable.fp_vkBindBufferMemory2KHR;
+	funcs.vkBindImageMemory2KHR = device.functionTable.fp_vkBindImageMemory2KHR;
+	funcs.vkGetPhysicalDeviceMemoryProperties2KHR = (PFN_vkGetPhysicalDeviceMemoryProperties2KHR)device.instance.fp_vkGetInstanceProcAddr(device.instance.instance, "vkGetPhysicalDeviceMemoryProperties2KHR");
+
 	allocatorInfo.pVulkanFunctions = &funcs;
+	allocatorInfo.instance = device.instance;
+	allocatorInfo.physicalDevice = device.physicalDevice;
 	
 	vmaCreateAllocator(&allocatorInfo, &device.allocator);
 	

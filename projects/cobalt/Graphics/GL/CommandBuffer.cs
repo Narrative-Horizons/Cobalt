@@ -236,10 +236,6 @@ namespace Cobalt.Graphics.GL
                     return TextureFetchBit | ShaderImageAccessBit | PixelBufferBit | FramebufferBit;
                 case EAccessFlag.ColorAttachmentWriteBit:
                     return TextureFetchBit | ShaderImageAccessBit | PixelBufferBit | FramebufferBit;
-                case EAccessFlag.DepthStencilReadBit:
-                    return TextureFetchBit | ShaderImageAccessBit | PixelBufferBit | FramebufferBit;
-                case EAccessFlag.DepthStencilWriteBit:
-                    return TextureFetchBit | ShaderImageAccessBit | PixelBufferBit | FramebufferBit;
                 case EAccessFlag.TransferReadBit:
                     return TextureUpdateBit | BufferUpdateBit;
                 case EAccessFlag.TransferWriteBit:

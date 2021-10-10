@@ -43,6 +43,63 @@ namespace Cobalt.Graphics.API
         }
     }
 
+    public enum EPipelineBindPoint : uint
+    {
+        Graphics = 0,
+        Compute = 1,
+        RayTracingKHR = 1000165000,
+        SubpassShadingHuawei = 1000369003,
+        RayTracingNV = RayTracingKHR,
+        MaxEnum = 0x7FFFFFFF
+    }
+
+    [Flags]
+    public enum EPipelineStageFlags : uint
+    {
+        TopOfPipeBit = 0x00000001,
+        DrawIndirectBit = 0x00000002,
+        VertexInputBit = 0x00000004,
+        VertexShaderBit = 0x00000008,
+        TessellationControlShaderBit = 0x00000010,
+        TessellationEvaluationShaderBit = 0x00000020,
+        GeometryShaderBit = 0x00000040,
+        FragmentShaderBit = 0x00000080,
+        EarlyFragmentTestsBit = 0x00000100,
+        LateFragmentTestsBit = 0x00000200,
+        ColorAttachmentOutputBit = 0x00000400,
+        ComputeShaderBit = 0x00000800,
+        TransferBit = 0x00001000,
+        BottomOfPipeBit = 0x00002000,
+        HostBit = 0x00004000,
+        AllGraphicsBit = 0x00008000,
+        AllCommandsBit = 0x00010000,
+        TransformFeedbackBitExt = 0x01000000,
+        ConditionalRenderingBitExt = 0x00040000,
+        AccelerationStructureBuildBitKHR = 0x02000000,
+        RayTracingShaderBitKHR = 0x00200000,
+        TaskShaderBitNV = 0x00080000,
+        MeshShaderBitNV = 0x00100000,
+        FragmentDensityProcessBitExt = 0x00800000,
+        FragmentShadingRateAttachmentBitKHR = 0x00400000,
+        CommandPreprocessBitNV = 0x00020000,
+        NoneKHR = 0,
+        ShadingRateImageBitNV = FragmentShadingRateAttachmentBitKHR,
+        RayTracingShaderBitNV = RayTracingShaderBitKHR,
+        AccelerationStructureBuildBitNV = AccelerationStructureBuildBitKHR,
+        FlagBitsMaxEnum = 0x7FFFFFFF
+    }
+
+    [Flags]
+    public enum EDependencyFlags : uint
+    {
+        ByRegionBit = 0x00000001,
+        DeviceGroupBit = 0x00000004,
+        ViewLocalBit = 0x00000002,
+        ViewLocalBitKHR = ViewLocalBit,
+        DeviceGroupBitKHR = DeviceGroupBit,
+        FlagBitsMaxEnum = 0x7FFFFFFF
+    }
+
     public enum EImageType : uint
     {
         Image1D,
@@ -325,22 +382,38 @@ namespace Cobalt.Graphics.API
     [Flags]
     public enum EAccessFlag : uint
     {
-        IndirectCommandReadBit,
-        IndexReadBit,
-        VertexAttributeReadBit,
-        UniformReadBit,
-        InputAttachmentReadBit,
-        ShaderReadBit,
-        ShaderWriteBit,
-        ColorAttachmentReadBit,
-        ColorAttachmentWriteBit,
-        DepthStencilReadBit,
-        DepthStencilWriteBit,
-        TransferReadBit,
-        TransferWriteBit,
-        HostReadBit,
-        HostWriteBit,
-        MemoryReadBit,
-        MemoryWriteBit
+        IndirectCommandReadBit = 0x00000001,
+        IndexReadBit = 0x00000002,
+        VertexAttributeReadBit = 0x00000004,
+        UniformReadBit = 0x00000008,
+        InputAttachmentReadBit = 0x00000010,
+        ShaderReadBit = 0x00000020,
+        ShaderWriteBit = 0x00000040,
+        ColorAttachmentReadBit = 0x00000080,
+        ColorAttachmentWriteBit = 0x00000100,
+        DepthStencilAttachmentReadBit = 0x00000200,
+        DepthStencilAttachmentWriteBit = 0x00000400,
+        TransferReadBit = 0x00000800,
+        TransferWriteBit = 0x00001000,
+        HostReadBit = 0x00002000,
+        HostWriteBit = 0x00004000,
+        MemoryReadBit = 0x00008000,
+        MemoryWriteBit = 0x00010000,
+        TransformFeedbackWriteBitExt = 0x02000000,
+        TransformFeedbackCounterReadBitExt = 0x04000000,
+        TransformFeedbackCounterWriteBitExt = 0x08000000,
+        ConditionalRenderingReadBitExt = 0x00100000,
+        ColorAttachmentReadNoncoherentBitExt = 0x00080000,
+        AccelerationStructureReadBitKHR = 0x00200000,
+        AccelerationStructureWriteBitKHR = 0x00400000,
+        FragmentDensityMapReadBitExt = 0x01000000,
+        FragmentShadingRateAttachmentReadBitKHR = 0x00800000,
+        CommandPreprocessReadBitNV = 0x00020000,
+        CommandPreprocessWriteBitNV = 0x00040000,
+        NoneKHR = 0,
+        ShadingRateImageReadBitNV = FragmentShadingRateAttachmentReadBitKHR,
+        AccelerationStructureReadBitNV = AccelerationStructureReadBitKHR,
+        AccelerationStructureWriteBitNV = AccelerationStructureWriteBitKHR,
+        FlagBitsMaxEnum = 0x7FFFFFFF
     }
 }

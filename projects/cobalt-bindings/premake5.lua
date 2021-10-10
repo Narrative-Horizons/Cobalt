@@ -18,7 +18,7 @@ project "Cobalt Bindings"
         "vulkan-native-bindings",
         "PhysX@4.1.2-native-bindings"
     }
-
+    
     files {
         "**.cs"
     }

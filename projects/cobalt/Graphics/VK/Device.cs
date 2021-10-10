@@ -1,21 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Cobalt.Bindings.Vulkan;
 
 namespace Cobalt.Graphics.VK
 {
     public class Device : IDisposable
     {
-        internal readonly IntPtr handle;
+        internal readonly Bindings.Vulkan.VK.Instance handle;
 
-        private Device(IntPtr handle)
+        private Device(Bindings.Vulkan.VK.Instance handle)
         {
             this.handle = handle;
         }
 
         public static Device Create(Window window)
         {
-            Bindings.Vulkan.VK.InstanceCreateInfo createInfo = new Bindings.Vulkan.VK.InstanceCreateInfo
+            InstanceCreateInfo createInfo = new InstanceCreateInfo
             {
                 appName = "Hello World",
                 appVersion =
@@ -51,7 +52,7 @@ namespace Cobalt.Graphics.VK
                 useDefaultDebugger = true,
                 window = window.Native()
             };
-            IntPtr handle = Bindings.Vulkan.VK.CreateInstance(createInfo);
+            Bindings.Vulkan.VK.Instance handle = Bindings.Vulkan.VK.CreateInstance(createInfo);
             return handle != IntPtr.Zero ? new Device(handle) : null;
         }
 

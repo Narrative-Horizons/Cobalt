@@ -1,13 +1,14 @@
 ﻿using System;
+using Cobalt.Bindings.Vulkan;
 
 namespace Cobalt.Graphics.VK
 {
     internal class Swapchain : IDisposable
     {
-        internal readonly IntPtr handle;
-        public Swapchain(Device device, Bindings.Vulkan.VK.SwapchainCreateInfo info)
+        internal readonly Bindings.Vulkan.VK.SwapChain handle;
+        public Swapchain(Bindings.Vulkan.VK.Device device, SwapchainCreateInfo info)
         {
-            handle = Bindings.Vulkan.VK.CreateSwapchain(device.handle, info);
+            handle = Bindings.Vulkan.VK.CreateSwapchain(device, info);
         }
 
         public void Dispose()

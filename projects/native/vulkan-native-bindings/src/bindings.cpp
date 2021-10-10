@@ -278,13 +278,23 @@ VK_BINDING_EXPORT bool cobalt_vkb_destroy_swapchain(Swapchain* swapchain)
 	return false;
 }
 
-
 VK_BINDING_EXPORT RenderPass* cobalt_vkb_create_renderpass(Device* device, RenderPassCreateInfo info)
 {
 	VkRenderPassCreateInfo renderPassInfo = {};
 	renderPassInfo.pNext = nullptr;
 	renderPassInfo.flags = 0;
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+
+	renderPassInfo.attachmentCount = static_cast<uint32_t>(info.attachmentCount);
+	renderPassInfo.pAttachments = info.attachments;
+
+	renderPassInfo.dependencyCount = 0;
+
+	VkSubpassDescription subPass = {};
+	subPass.flags = 0;
+
+	renderPassInfo.subpassCount = 1;
+	renderPassInfo.pSubpasses = &subPass;
 
 	VkRenderPass pass;
 	if(device->functionTable.createRenderPass(&renderPassInfo, device->device.allocation_callbacks, &pass) != VK_SUCCESS)

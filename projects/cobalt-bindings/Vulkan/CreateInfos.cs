@@ -126,4 +126,15 @@ namespace Cobalt.Bindings.Vulkan
         [FieldOffset(28)] 
         public SubpassDependency[] dependencies;
     }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct CommandBufferCreateInfo
+    {
+        [FieldOffset(0)] 
+        public uint pool;
+        [FieldOffset(4)] 
+        public uint amount;
+        [FieldOffset(8)] 
+        public bool primary;
+    }
 }

@@ -3,7 +3,6 @@ using Cobalt.Core;
 using Cobalt.Entities;
 using Cobalt.Entities.Components;
 using Cobalt.Graphics;
-using Cobalt.Graphics.API;
 using Cobalt.Math;
 using System.Runtime.InteropServices;
 using Cobalt.Bindings.PhysX;

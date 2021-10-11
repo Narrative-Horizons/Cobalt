@@ -52,6 +52,13 @@ struct RenderPassCreateInfo
 	const VkSubpassDependency* dependencies;
 };
 
+struct CommandBufferCreateInfo
+{
+	uint32_t pool;
+	uint32_t amount;
+	bool primary;
+};
+
 struct PhysicalDevice
 {
 	vkb::Instance* parent;
@@ -72,6 +79,11 @@ struct Device
 	VkQueue presentQueue;
 	VkQueue computeQueue;
 	VkQueue tranferQueue;
+
+	VkCommandPool graphicsPool;
+	VkCommandPool presentPool;
+	VkCommandPool computePool;
+	VkCommandPool transferPool;
 };
 
 struct Swapchain
@@ -82,6 +94,15 @@ struct Swapchain
 struct RenderPass
 {
 	VkRenderPass pass;
+};
+
+struct CommandBuffer
+{
+	VkCommandBuffer* buffers;
+	uint32_t amount;
+
+	VkCommandPool pool;
+	VkQueue queue;
 };
 
 VK_BINDING_EXPORT Device* cobalt_vkb_create_device(InstanceCreateInfo info)
@@ -233,6 +254,22 @@ VK_BINDING_EXPORT Device* cobalt_vkb_create_device(InstanceCreateInfo info)
 	
 	vmaCreateAllocator(&allocatorInfo, &device.allocator);
 
+	VkCommandPoolCreateInfo poolInfo = {};
+	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	poolInfo.flags = 0;
+	poolInfo.pNext = nullptr;
+	poolInfo.queueFamilyIndex = device.device.get_queue_index(vkb::QueueType::graphics).value();
+	device.functionTable.createCommandPool(&poolInfo, device.device.allocation_callbacks, &device.graphicsPool);
+
+	poolInfo.queueFamilyIndex = device.device.get_queue_index(vkb::QueueType::compute).value();
+	device.functionTable.createCommandPool(&poolInfo, device.device.allocation_callbacks, &device.computePool);
+
+	poolInfo.queueFamilyIndex = device.device.get_queue_index(vkb::QueueType::present).value();
+	device.functionTable.createCommandPool(&poolInfo, device.device.allocation_callbacks, &device.presentPool);
+	
+	poolInfo.queueFamilyIndex = device.device.get_queue_index(vkb::QueueType::transfer).value();
+	device.functionTable.createCommandPool(&poolInfo, device.device.allocation_callbacks, &device.transferPool);
+	
 	return new Device(device);
 }
 
@@ -267,7 +304,7 @@ VK_BINDING_EXPORT Swapchain* cobalt_vkb_create_swapchain(Device* device, Swapcha
 
 VK_BINDING_EXPORT bool cobalt_vkb_destroy_swapchain(Swapchain* swapchain)
 {
-	if(swapchain)
+	if (swapchain)
 	{
 		vkb::destroy_swapchain(swapchain->swapchain);
 		delete swapchain;
@@ -278,7 +315,7 @@ VK_BINDING_EXPORT bool cobalt_vkb_destroy_swapchain(Swapchain* swapchain)
 	return false;
 }
 
-VK_BINDING_EXPORT RenderPass* cobalt_vkb_create_renderpass(Device* device, RenderPassCreateInfo info)
+VK_BINDING_EXPORT VkRenderPass cobalt_vkb_create_renderpass(Device* device, RenderPassCreateInfo info)
 {
 	VkRenderPassCreateInfo renderPassInfo = {};
 	renderPassInfo.pNext = nullptr;
@@ -288,33 +325,104 @@ VK_BINDING_EXPORT RenderPass* cobalt_vkb_create_renderpass(Device* device, Rende
 	renderPassInfo.attachmentCount = static_cast<uint32_t>(info.attachmentCount);
 	renderPassInfo.pAttachments = info.attachments;
 
-	renderPassInfo.dependencyCount = 0;
-
-	VkSubpassDescription subPass = {};
-	subPass.flags = 0;
-
-	renderPassInfo.subpassCount = 1;
-	renderPassInfo.pSubpasses = &subPass;
+	renderPassInfo.subpassCount = static_cast<uint32_t>(info.subpassCount);
+	renderPassInfo.pSubpasses = info.subpasses;
+	
+	renderPassInfo.dependencyCount = static_cast<uint32_t>(info.dependencyCount);
+	renderPassInfo.pDependencies = info.dependencies;
 
 	VkRenderPass pass;
-	if(device->functionTable.createRenderPass(&renderPassInfo, device->device.allocation_callbacks, &pass) != VK_SUCCESS)
+	if (device->functionTable.createRenderPass(&renderPassInfo, device->device.allocation_callbacks, &pass) != VK_SUCCESS)
 	{
 		return nullptr;
 	}
 
-	RenderPass* renderpass = new RenderPass();
-	renderpass->pass = pass;
-
-	return renderpass;
+	return pass;
 }
 
-VK_BINDING_EXPORT bool cobalt_vkb_destroy_renderpass(Device* device, RenderPass* renderpass)
+VK_BINDING_EXPORT bool cobalt_vkb_destroy_renderpass(Device* device, VkRenderPass renderpass)
 {
 	if (renderpass)
 	{
-		device->functionTable.destroyRenderPass(renderpass->pass, device->device.allocation_callbacks);
-		delete renderpass;
+		device->functionTable.destroyRenderPass(renderpass, device->device.allocation_callbacks);
 
+		return true;
+	}
+
+	return false;
+}
+
+VK_BINDING_EXPORT CommandBuffer* cobalt_vkb_create_commandbuffer(Device* device, CommandBufferCreateInfo info)
+{
+	VkCommandBufferAllocateInfo allocInfo = {};
+	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	allocInfo.pNext = nullptr;
+	allocInfo.commandBufferCount = info.amount;
+
+	VkQueue queue = nullptr;
+	
+	switch (info.pool)
+	{
+		case 0: // Present
+		{
+			allocInfo.commandPool = device->presentPool;
+			queue = device->presentQueue;
+			break;
+		}
+
+		case 1: // Graphics
+		{
+			allocInfo.commandPool = device->graphicsPool;
+			queue = device->graphicsQueue;
+			break;
+		}
+
+		case 2: // Transfer
+		{
+			allocInfo.commandPool = device->transferPool;
+			queue = device->tranferQueue;
+			break;
+		}
+
+		case 4: // Compute
+		{
+			allocInfo.commandPool = device->computePool;
+			queue = device->computeQueue;
+			break;
+		}
+	}
+
+	allocInfo.level = info.primary ? VK_COMMAND_BUFFER_LEVEL_PRIMARY : VK_COMMAND_BUFFER_LEVEL_SECONDARY;
+
+	VkCommandBuffer* buffers = new VkCommandBuffer[info.amount];
+	
+	if (device->functionTable.allocateCommandBuffers(&allocInfo, buffers))
+	{
+		return nullptr;
+	}
+
+	CommandBuffer* buffer = new CommandBuffer();
+	buffer->buffers = buffers;
+	buffer->pool = allocInfo.commandPool;
+	buffer->amount = info.amount;
+	buffer->queue = queue;
+
+	return buffer;
+}
+
+VK_BINDING_EXPORT bool cobalt_vkb_destroy_commandbuffer(Device* device, CommandBuffer* buffer, const uint32_t index)
+{
+	if (buffer)
+	{
+		device->functionTable.freeCommandBuffers(buffer->pool, 1, buffer->buffers + index);
+		buffer->amount--;
+
+		if (buffer->amount == 0)
+		{
+			delete[] buffer->buffers;
+			delete buffer;
+		}
+		
 		return true;
 	}
 

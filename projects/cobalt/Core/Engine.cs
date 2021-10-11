@@ -1,8 +1,6 @@
 ﻿using Cobalt.Bindings.PhysX;
 using Cobalt.Entities;
 using Cobalt.Graphics;
-using Cobalt.Graphics.API;
-using Cobalt.Graphics.GL;
 using Cobalt.Physics;
 using System;
 

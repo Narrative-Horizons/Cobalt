@@ -95,6 +95,23 @@ namespace Cobalt.Bindings.Vulkan
             }
         }
 
+        public struct Buffer
+        {
+            public IntPtr handle;
+
+            public static implicit operator IntPtr(Buffer window)
+            {
+                return window.handle;
+            }
+
+            public static explicit operator Buffer(IntPtr handle) => new Buffer(handle);
+
+            public Buffer(IntPtr handle)
+            {
+                this.handle = handle;
+            }
+        }
+
         #region DLL Loading
 #if COBALT_PLATFORM_WINDOWS
         public const string LIBRARY = "bin/gfx-native-bindings.dll";
@@ -128,5 +145,11 @@ namespace Cobalt.Bindings.Vulkan
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_destroy_commandbuffer", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool DestroyCommandBuffer(Device device, CommandBuffer buffer, uint index);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_create_buffer", CallingConvention = CallingConvention.Cdecl)]
+        public static extern Buffer CreateBuffer(Device device, BufferCreateInfo info, BufferMemoryCreateInfo memoryInfo);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_destroy_buffer", CallingConvention = CallingConvention.Cdecl)]
+        public static extern bool DestroyBuffer(Device device, Buffer buffer);
     }
 }

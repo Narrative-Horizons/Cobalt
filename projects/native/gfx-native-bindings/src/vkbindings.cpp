@@ -59,6 +59,23 @@ struct CommandBufferCreateInfo
 	bool primary;
 };
 
+struct BufferCreateInfo
+{
+	uint32_t usage;
+	size_t size;
+	uint32_t sharingMode;
+
+	uint32_t indexCount;
+	uint32_t* indices;
+};
+
+struct BufferMemoryCreateInfo
+{
+	uint32_t usage;
+	uint32_t preferredFlags;
+	uint32_t requiredFlags;
+};
+
 struct PhysicalDevice
 {
 	vkb::Instance* parent;
@@ -103,6 +120,12 @@ struct CommandBuffer
 
 	VkCommandPool pool;
 	VkQueue queue;
+};
+
+struct Buffer
+{
+	VkBuffer buffer;
+	VmaAllocation allocation;
 };
 
 VK_BINDING_EXPORT Device* cobalt_vkb_create_device(InstanceCreateInfo info)
@@ -422,6 +445,51 @@ VK_BINDING_EXPORT bool cobalt_vkb_destroy_commandbuffer(Device* device, CommandB
 			delete[] buffer->buffers;
 			delete buffer;
 		}
+		
+		return true;
+	}
+
+	return false;
+}
+
+VK_BINDING_EXPORT Buffer* cobalt_vkb_create_buffer(Device* device, BufferCreateInfo createInfo, BufferMemoryCreateInfo memoryInfo)
+{
+	VkBufferCreateInfo info = {};
+	
+	info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	info.flags = 0;
+	info.pNext = nullptr;
+	info.usage = createInfo.usage;
+	info.size = createInfo.size;
+	info.sharingMode = static_cast<VkSharingMode>(createInfo.sharingMode);
+	info.queueFamilyIndexCount = createInfo.indexCount;
+	info.pQueueFamilyIndices = createInfo.indices;
+
+	VmaAllocationCreateInfo allocInfo = {};
+	allocInfo.flags = 0;
+	allocInfo.pUserData = nullptr;
+	allocInfo.usage = static_cast<VmaMemoryUsage>(memoryInfo.usage);
+	allocInfo.preferredFlags = memoryInfo.preferredFlags;
+	allocInfo.requiredFlags = memoryInfo.requiredFlags;
+
+	VkBuffer vkbuffer;
+	VmaAllocation allocation;
+	
+	vmaCreateBuffer(device->allocator, &info, &allocInfo, &vkbuffer, &allocation, nullptr);
+
+	Buffer* buffer = new Buffer();
+	buffer->buffer = vkbuffer;
+	buffer->allocation = allocation;
+
+	return buffer;
+}
+
+VK_BINDING_EXPORT bool cobalt_vkb_destroy_buffer(Device* device, Buffer* buffer)
+{
+	if (buffer)
+	{
+		vmaDestroyBuffer(device->allocator, buffer->buffer, buffer->allocation);
+		delete buffer;
 		
 		return true;
 	}

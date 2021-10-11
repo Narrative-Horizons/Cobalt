@@ -137,4 +137,30 @@ namespace Cobalt.Bindings.Vulkan
         [FieldOffset(8)] 
         public bool primary;
     }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct BufferCreateInfo
+    {
+        [FieldOffset(0)] 
+        public uint usage;
+        [FieldOffset(4)] 
+        public ulong size;
+        [FieldOffset(12)]
+        public uint sharingMode;
+        [FieldOffset(16)]
+        public uint indexCount;
+        [FieldOffset(24)]
+        public uint[] indices;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct BufferMemoryCreateInfo
+    {
+        [FieldOffset(0)] 
+        public uint usage;
+        [FieldOffset(4)]
+        public uint preferredFlags;
+        [FieldOffset(8)]
+        public uint requiredFlags;
+    }
 }

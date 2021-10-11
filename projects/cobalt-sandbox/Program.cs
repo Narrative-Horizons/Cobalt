@@ -26,17 +26,12 @@ namespace Cobalt.Sandbox
         {
             var engine = Engine<Sandbox>.Instance();
 
-            engine.CreateGraphicsContext(GraphicsContext.API.OpenGL_4);
             var window = engine.CreateWindow(new Window.CreateInfo.Builder()
                 .Width(1280)
                 .Height(720)
                 .Name("Cobalt Sandbox")
                 .Build());
-
-            using (Device d = Device.Create(window))
-            {
-
-            }
+            engine.CreateGraphicsContext(window);
         }
 
         public override void Initialize()
@@ -49,6 +44,10 @@ namespace Cobalt.Sandbox
 
         public override void Render()
         {
+            var rs = Engine<Sandbox>.Instance().Render;
+            rs.PreRender();
+            rs.Render();
+            rs.PostRender();
         }
 
         public override void Cleanup()

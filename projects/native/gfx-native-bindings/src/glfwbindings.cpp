@@ -1,6 +1,6 @@
 #include <GLFW/glfw3.h>
 
-#define GLFW_BINDING_EXPORT __declspec(dllexport)
+#define GLFW_BINDING_EXPORT extern "C" __declspec(dllexport) inline
 
 GLFW_BINDING_EXPORT int cobalt_glfw_init()
 {
@@ -207,7 +207,7 @@ GLFW_BINDING_EXPORT GLFWmousebuttonfun cobalt_glfw_set_mouse_button_callback(GLF
 	return glfwSetMouseButtonCallback(window, fun);
 }
 
-GLFW_BINDING_EXPORT GLFWmousebuttonfun cobalt_glfw_set_mouse_scroll_callback(GLFWwindow* window, GLFWscrollfun fun)
+GLFW_BINDING_EXPORT GLFWscrollfun cobalt_glfw_set_mouse_scroll_callback(GLFWwindow* window, GLFWscrollfun fun)
 {
 	return glfwSetScrollCallback(window, fun);
 }

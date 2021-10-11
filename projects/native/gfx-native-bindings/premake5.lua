@@ -1,7 +1,7 @@
-project "GLFW@3.3.3-native-bindings"
+project "gfx-native-bindings"
     kind "SharedLib"
-    language "C"
-    cdialect "C11"
+    language "C++"
+    cppdialect "C++17"
 
     architecture "x64"
 
@@ -9,15 +9,20 @@ project "GLFW@3.3.3-native-bindings"
     objdir (intermediate)
 
     files {
-        "src/**.c"
+        "src/**.c",
+        "src/**.cpp"
     }
 
     includedirs {
-        "%{NativeIncludeDirs.glfw}"
+        "%{NativeIncludeDirs.glfw}",
+        "%{NativeIncludeDirs.vkbootstrap}",
+        "%{NativeIncludeDirs.vulkan}",
+        "%{NativeIncludeDirs.vma}",
     }
 
     links {
-        "GLFW@3.3.3"
+        "GLFW@3.3.3",
+        "vk-bootstrap"
     }
 
     toolset "clang"

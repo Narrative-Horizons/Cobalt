@@ -20,6 +20,11 @@ namespace Cobalt.Bindings.Vulkan
             {
                 this.handle = handle;
             }
+
+            public void Destroy()
+            {
+                DestroyInstance(this);
+            }
         }
 
         public struct Device
@@ -75,11 +80,11 @@ namespace Cobalt.Bindings.Vulkan
 
         #region DLL Loading
 #if COBALT_PLATFORM_WINDOWS
-		public const string LIBRARY = "bin/vk-bootstrap-native-bindings.dll";
+		public const string LIBRARY = "bin/gfx-native-bindings.dll";
 #elif COBALT_PLATFORM_MACOS
-        public const string LIBRARY = "bin/vk-bootstrap-native-bindings";
+        public const string LIBRARY = "bin/gfx-native-bindings";
 #else
-        public const string LIBRARY = "bin/vk-bootstrap-native-bindings";
+        public const string LIBRARY = "bin/gfx-native-bindings";
 #endif
 		#endregion
 
@@ -87,7 +92,7 @@ namespace Cobalt.Bindings.Vulkan
         public static extern Instance CreateInstance(InstanceCreateInfo info);
 
 		[DllImport(LIBRARY, EntryPoint = "cobalt_vkb_destroy_device", CallingConvention = CallingConvention.Cdecl)]
-		public static extern bool DestroyInstance(Instance instance);
+		private static extern bool DestroyInstance(Instance instance);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_create_swapchain", CallingConvention = CallingConvention.Cdecl)]
         public static extern SwapChain CreateSwapchain(Device device, SwapchainCreateInfo info);

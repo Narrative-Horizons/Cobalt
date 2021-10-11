@@ -1,15 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using Cobalt.Bindings.Vulkan;
+using static Cobalt.Bindings.Vulkan.VK;
 
 namespace Cobalt.Graphics.VK
 {
     public class Device : IDisposable
     {
-        internal readonly Bindings.Vulkan.VK.Instance handle;
+        internal readonly Instance handle;
 
-        private Device(Bindings.Vulkan.VK.Instance handle)
+        private Device(Instance handle)
         {
             this.handle = handle;
         }
@@ -52,13 +51,13 @@ namespace Cobalt.Graphics.VK
                 useDefaultDebugger = true,
                 window = window.Native()
             };
-            Bindings.Vulkan.VK.Instance handle = Bindings.Vulkan.VK.CreateInstance(createInfo);
+            Instance handle = CreateInstance(createInfo);
             return handle != IntPtr.Zero ? new Device(handle) : null;
         }
 
         public void Dispose()
         {
-            Bindings.Vulkan.VK.DestroyInstance(handle);
+            
         }
     }
 }

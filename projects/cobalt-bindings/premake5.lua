@@ -12,10 +12,9 @@ project "Cobalt Bindings"
 
     dependson {
         "GLAD@GL4.6-native-bindings",
-        "GLFW@3.3.3-native-bindings",
         "stb@b42009b-native-bindings",
         "phonon-native-bindings",
-        "vulkan-native-bindings",
+        "gfx-native-bindings",
         "PhysX@4.1.2-native-bindings"
     }
     

@@ -4,6 +4,7 @@ using Cobalt.Graphics;
 using Cobalt.Graphics.API;
 using Cobalt.Graphics.GL;
 using Cobalt.Physics;
+using System;
 
 namespace Cobalt.Core
 {
@@ -18,6 +19,7 @@ namespace Cobalt.Core
         public GraphicsContext Context { get; internal set; }
         public Window Window { get; internal set; }
         public PhysicsSystem Physics { get; internal set; }
+        public RenderSystem Render { get; internal set; }
         public Registry Registry { get; internal set; }
         #endregion
 
@@ -29,6 +31,11 @@ namespace Cobalt.Core
         public static void Initialize(Application app)
         {
             _instance ??= new Engine<Application>(app);
+        }
+
+        public void CreateGraphicsContext(Window window)
+        {
+            Context = new GraphicsContext(window);
         }
 
         public static Engine<Application> Instance()
@@ -48,6 +55,7 @@ namespace Cobalt.Core
                 application.Setup();
 
                 Registry = new Registry();
+                Render = new RenderSystem(Registry, Context);
                 Physics = new PhysicsSystem(Registry);
                 
                 PhysX.Init();
@@ -82,14 +90,8 @@ namespace Cobalt.Core
 
         public Window CreateWindow(Window.CreateInfo createInfo)
         {
-            Window = Context.CreateWindow(createInfo);
+            Window = new Window(createInfo);
             return Window;
-        }
-
-        public GraphicsContext CreateGraphicsContext(GraphicsContext.API api)
-        {
-            Context = GraphicsContext.GetInstance(api);
-            return Context;
         }
     }
 }

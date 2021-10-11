@@ -19,12 +19,10 @@ workspace "Cobalt"
     group ""
 
     group "Native Bindings"
-    include "projects/native/GLAD@GL4.6-native-bindings"
-    include "projects/native/GLFW@3.3.3-native-bindings"
+    include "projects/native/gfx-native-bindings"
     include "projects/native/stb@b42009b-native-bindings"
     include "projects/native/glsl-parser-native-bindings"
     include "projects/native/PhysX@4.1.2-native-bindings"
-    include "projects/native/vulkan-native-bindings"
     group ""
 
     group "Asset Management"

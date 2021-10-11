@@ -86,8 +86,6 @@ struct RenderPass
 
 VK_BINDING_EXPORT Device* cobalt_vkb_create_device(InstanceCreateInfo info)
 {
-	glfwInit();
-
 	vkb::InstanceBuilder bldr = vkb::InstanceBuilder()
 		.set_app_version(info.appVersion.major, info.appVersion.minor, info.appVersion.patch)
 		.set_app_name(info.appName)
@@ -156,6 +154,8 @@ VK_BINDING_EXPORT Device* cobalt_vkb_create_device(InstanceCreateInfo info)
 		vkb::destroy_instance(device.instance);
 		return nullptr;
 	}
+
+	device.device = deviceResult.value();
 
 	auto gq = device.device.get_queue(vkb::QueueType::graphics);
 	if (!gq.has_value())

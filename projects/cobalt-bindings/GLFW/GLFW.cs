@@ -12,11 +12,11 @@ namespace Cobalt.Bindings.GLFW
     {
         #region DLL Loading
 #if COBALT_PLATFORM_WINDOWS
-        public const string LIBRARY = "bin/GLFW@3.3.3-native-bindings.dll";
+        public const string LIBRARY = "bin/gfx-native-bindings.dll";
 #elif COBALT_PLATFORM_MACOS
-        public const string LIBRARY = "bin/GLFW@3.3.3-native-bindings";
+        public const string LIBRARY = "bin/gfx-native-bindings";
 #else
-        public const string LIBRARY = "bin/GLFW@3.3.3-native-bindings";
+        public const string LIBRARY = "bin/gfx-native-bindings";
 #endif
         #endregion
 
@@ -199,6 +199,7 @@ namespace Cobalt.Bindings.GLFW
 
         public static GLFWWindow CreateWindow(int width, int height, [NotNull] string title, GLFWMonitor monitor, GLFWWindow share)
         {
+            GLFW.Init();
             WindowHint(Hint.ClientApi, 0);
             return CreateWindow(width, height, Encoding.UTF8.GetBytes(title), monitor, share);
         }

@@ -151,5 +151,11 @@ namespace Cobalt.Bindings.Vulkan
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_destroy_buffer", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool DestroyBuffer(Device device, Buffer buffer);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_map_buffer", CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr MapBuffer(Device device, Buffer buffer);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_unmap_buffer", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void UnmapBuffer(Device device, Buffer buffer);
     }
 }

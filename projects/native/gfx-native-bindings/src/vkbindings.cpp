@@ -76,6 +76,16 @@ struct BufferMemoryCreateInfo
 	uint32_t requiredFlags;
 };
 
+struct BufferCopy
+{
+	uint64_t bufferOffset;
+	uint32_t bufferRowLength;
+	uint32_t bufferImageHeight;
+	VkImageSubresourceLayers imageSubresource;
+	VkOffset3D imageOffset;
+	VkExtent3D imageExtent;
+};
+
 struct PhysicalDevice
 {
 	vkb::Instance* parent;
@@ -126,6 +136,7 @@ struct Buffer
 {
 	VkBuffer buffer;
 	VmaAllocation allocation;
+	size_t size;
 };
 
 VK_BINDING_EXPORT Device* cobalt_vkb_create_device(InstanceCreateInfo info)
@@ -480,6 +491,7 @@ VK_BINDING_EXPORT Buffer* cobalt_vkb_create_buffer(Device* device, BufferCreateI
 	Buffer* buffer = new Buffer();
 	buffer->buffer = vkbuffer;
 	buffer->allocation = allocation;
+	buffer->size = createInfo.size;
 
 	return buffer;
 }
@@ -495,4 +507,22 @@ VK_BINDING_EXPORT bool cobalt_vkb_destroy_buffer(Device* device, Buffer* buffer)
 	}
 
 	return false;
+}
+
+VK_BINDING_EXPORT void* cobalt_vkb_map_buffer(Device* device, Buffer* buffer)
+{
+	void* data = nullptr;
+	vmaMapMemory(device->allocator, buffer->allocation, &data);
+
+	return data;
+}
+
+VK_BINDING_EXPORT void cobalt_vkb_unmap_buffer(Device* device, Buffer* buffer)
+{
+	vmaUnmapMemory(device->allocator, buffer->allocation);
+}
+
+VK_BINDING_EXPORT void cobalt_vkb_copy_buffer(Device* device, CommandBuffer* buffer, uint32_t index, Buffer* src, Buffer* dst, uint32_t regionCount, BufferCopy* regions)
+{
+	device->functionTable.cmdCopyBuffer(buffer->buffers[index], src->buffer, dst->buffer, regionCount, reinterpret_cast<VkBufferCopy*>(regions));
 }

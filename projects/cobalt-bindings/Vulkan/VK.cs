@@ -5,6 +5,7 @@ namespace Cobalt.Bindings.Vulkan
 {
     public static class VK
     {
+        #region Named Pointers
         public struct Instance
         {
             public IntPtr handle;
@@ -112,6 +113,41 @@ namespace Cobalt.Bindings.Vulkan
             }
         }
 
+        public struct ShaderModule
+        {
+            public IntPtr handle;
+
+            public static implicit operator IntPtr(ShaderModule window)
+            {
+                return window.handle;
+            }
+
+            public static explicit operator ShaderModule(IntPtr handle) => new ShaderModule(handle);
+
+            public ShaderModule(IntPtr handle)
+            {
+                this.handle = handle;
+            }
+        }
+
+        public struct Shader
+        {
+            public IntPtr handle;
+
+            public static implicit operator IntPtr(Shader window)
+            {
+                return window.handle;
+            }
+
+            public static explicit operator Shader(IntPtr handle) => new Shader(handle);
+
+            public Shader(IntPtr handle)
+            {
+                this.handle = handle;
+            }
+        }
+        #endregion
+
         #region DLL Loading
 #if COBALT_PLATFORM_WINDOWS
         public const string LIBRARY = "bin/gfx-native-bindings.dll";
@@ -120,9 +156,10 @@ namespace Cobalt.Bindings.Vulkan
 #else
         public const string LIBRARY = "bin/gfx-native-bindings";
 #endif
-		#endregion
+        #endregion
 
-		[DllImport(LIBRARY, EntryPoint = "cobalt_vkb_create_device", CallingConvention = CallingConvention.Cdecl)]
+        #region DLL Imports
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_create_device", CallingConvention = CallingConvention.Cdecl)]
         public static extern Instance CreateInstance(InstanceCreateInfo info);
 
 		[DllImport(LIBRARY, EntryPoint = "cobalt_vkb_destroy_device", CallingConvention = CallingConvention.Cdecl)]
@@ -157,5 +194,15 @@ namespace Cobalt.Bindings.Vulkan
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_unmap_buffer", CallingConvention = CallingConvention.Cdecl)]
         public static extern void UnmapBuffer(Device device, Buffer buffer);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_create_shadermodule", CallingConvention = CallingConvention.Cdecl)]
+        public static extern ShaderModule CreateShaderModule(Device device, ShaderModuleCreateInfo info);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_destroy_shadermodule", CallingConvention = CallingConvention.Cdecl)]
+        public static extern bool DestroyShaderModule(Device device, ShaderModule module);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_create_shader", CallingConvention = CallingConvention.Cdecl)]
+        public static extern Shader CreateShader(Device device, ShaderCreateInfo info);
+        #endregion
     }
 }

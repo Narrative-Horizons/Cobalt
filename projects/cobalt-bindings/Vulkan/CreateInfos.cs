@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Text;
+﻿using System.Runtime.InteropServices;
 
 namespace Cobalt.Bindings.Vulkan
 {
@@ -163,4 +160,69 @@ namespace Cobalt.Bindings.Vulkan
         [FieldOffset(8)]
         public uint requiredFlags;
     }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct ShaderModuleCreateInfo
+    {
+        [FieldOffset(0)]
+        public char[] code;
+        [FieldOffset(8)]
+        public ulong codeSize;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct ShaderLayoutBindingCreateInfo
+    {
+        [FieldOffset(0)]
+        public uint bindingIndex;
+        [FieldOffset(4)]
+        public uint type;
+        [FieldOffset(8)]
+        public uint descriptorCount;
+        [FieldOffset(12)]
+        public uint stageFlags;
+    };
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct ShaderLayoutSetCreateInfo
+    {
+        [FieldOffset(0)]
+        public uint bindingCount;
+        [FieldOffset(4)]
+        public ShaderLayoutBindingCreateInfo[] bindingInfos;
+    };
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct ShaderLayoutCreateInfo
+    {
+        [FieldOffset(0)]
+        public uint setCount;
+        [FieldOffset(4)]
+        public ShaderLayoutSetCreateInfo[] setInfos;
+    };
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct ShaderCreateInfo
+    {
+        [FieldOffset(0)]
+        public char[] vertexModulePath;
+        [FieldOffset(8)]
+        public char[] fragmentModulePath;
+        [FieldOffset(16)]
+        public char[] geometryModulePath;
+        [FieldOffset(24)]
+        public char[] tesselationEvalModulePath;
+        [FieldOffset(32)]
+        public char[] tesselationControlModulePath;
+        [FieldOffset(40)]
+        public char[] computeModulePath;
+
+        [FieldOffset(48)]
+        public VK.RenderPass pass;
+        [FieldOffset(56)]
+        public uint subPassIndex;
+
+        [FieldOffset(60)]
+        public ShaderLayoutCreateInfo layoutInfo;
+    };
 }

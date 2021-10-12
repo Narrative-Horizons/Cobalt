@@ -10,7 +10,8 @@ project "gfx-native-bindings"
 
     files {
         "src/**.c",
-        "src/**.cpp"
+        "src/**.cpp",
+        "src/**.hpp"
     }
 
     includedirs {

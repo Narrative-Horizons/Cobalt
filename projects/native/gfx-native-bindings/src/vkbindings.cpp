@@ -9,135 +9,10 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#include "createinfos.hpp"
+#include "graphicsobjects.hpp"
+
 #define VK_BINDING_EXPORT extern "C" __declspec(dllexport) inline
-
-struct ApiVersion
-{
-	unsigned int major;
-	unsigned int minor;
-	unsigned int patch;
-};
-
-struct InstanceCreateInfo
-{
-	ApiVersion appVersion;
-	const char* appName;
-	ApiVersion engineVersion;
-	const char* engineName;
-	ApiVersion requiredVersion;
-	ApiVersion desiredVersion;
-	size_t enabledLayerCount;
-	const char** enabledLayers;
-	size_t enabledExtensionCount;
-	const char** enabledExtensions;
-	bool requireValidationLayers;
-	bool useDefaultDebugger;
-	GLFWwindow* window;
-};
-
-struct SwapchainCreateInfo
-{
-	
-};
-
-struct RenderPassCreateInfo
-{
-	size_t attachmentCount;
-	const VkAttachmentDescription* attachments;
-
-	size_t subpassCount;
-	const VkSubpassDescription* subpasses;
-
-	size_t dependencyCount;
-	const VkSubpassDependency* dependencies;
-};
-
-struct CommandBufferCreateInfo
-{
-	uint32_t pool;
-	uint32_t amount;
-	bool primary;
-};
-
-struct BufferCreateInfo
-{
-	uint32_t usage;
-	size_t size;
-	uint32_t sharingMode;
-
-	uint32_t indexCount;
-	uint32_t* indices;
-};
-
-struct BufferMemoryCreateInfo
-{
-	uint32_t usage;
-	uint32_t preferredFlags;
-	uint32_t requiredFlags;
-};
-
-struct BufferCopy
-{
-	uint64_t bufferOffset;
-	uint32_t bufferRowLength;
-	uint32_t bufferImageHeight;
-	VkImageSubresourceLayers imageSubresource;
-	VkOffset3D imageOffset;
-	VkExtent3D imageExtent;
-};
-
-struct PhysicalDevice
-{
-	vkb::Instance* parent;
-	vkb::PhysicalDevice device;
-	VkSurfaceKHR surface;
-};
-
-struct Device
-{
-	vkb::Instance instance;
-	vkb::PhysicalDevice physicalDevice;
-	vkb::Device device;
-	vkb::DispatchTable functionTable;
-	VkSurfaceKHR surface;
-	VmaAllocator allocator;
-
-	VkQueue graphicsQueue;
-	VkQueue presentQueue;
-	VkQueue computeQueue;
-	VkQueue tranferQueue;
-
-	VkCommandPool graphicsPool;
-	VkCommandPool presentPool;
-	VkCommandPool computePool;
-	VkCommandPool transferPool;
-};
-
-struct Swapchain
-{
-	vkb::Swapchain swapchain;
-};
-
-struct RenderPass
-{
-	VkRenderPass pass;
-};
-
-struct CommandBuffer
-{
-	VkCommandBuffer* buffers;
-	uint32_t amount;
-
-	VkCommandPool pool;
-	VkQueue queue;
-};
-
-struct Buffer
-{
-	VkBuffer buffer;
-	VmaAllocation allocation;
-	size_t size;
-};
 
 VK_BINDING_EXPORT Device* cobalt_vkb_create_device(InstanceCreateInfo info)
 {
@@ -303,6 +178,16 @@ VK_BINDING_EXPORT Device* cobalt_vkb_create_device(InstanceCreateInfo info)
 	
 	poolInfo.queueFamilyIndex = device.device.get_queue_index(vkb::QueueType::transfer).value();
 	device.functionTable.createCommandPool(&poolInfo, device.device.allocation_callbacks, &device.transferPool);
+
+	VkPipelineCacheCreateInfo cacheInfo = {};
+	cacheInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+	cacheInfo.flags = 0;
+	cacheInfo.pNext = nullptr;
+	cacheInfo.initialDataSize = 0;
+	cacheInfo.pInitialData = nullptr;
+
+	// TODO: Look for pipelinecache file on load, on exit save out the pipeline cache
+	device.pipelineCache = VK_NULL_HANDLE;
 	
 	return new Device(device);
 }
@@ -525,4 +410,47 @@ VK_BINDING_EXPORT void cobalt_vkb_unmap_buffer(Device* device, Buffer* buffer)
 VK_BINDING_EXPORT void cobalt_vkb_copy_buffer(Device* device, CommandBuffer* buffer, uint32_t index, Buffer* src, Buffer* dst, uint32_t regionCount, BufferCopy* regions)
 {
 	device->functionTable.cmdCopyBuffer(buffer->buffers[index], src->buffer, dst->buffer, regionCount, reinterpret_cast<VkBufferCopy*>(regions));
+}
+
+VK_BINDING_EXPORT VkShaderModule cobalt_vkb_create_shadermodule(Device* device, ShaderModuleCreateInfo info)
+{
+	VkShaderModuleCreateInfo createInfo = {};
+	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+	createInfo.flags = 0;
+	createInfo.pNext = nullptr;
+	createInfo.codeSize = info.codeSize;
+	createInfo.pCode = reinterpret_cast<const uint32_t*>(info.code);
+
+	VkShaderModule shaderModule;
+
+	if(!device->functionTable.createShaderModule(&createInfo, device->device.allocation_callbacks, &shaderModule))
+	{
+		return nullptr;
+	}
+
+	return shaderModule;
+}
+
+VK_BINDING_EXPORT bool cobalt_vkb_destroy_shadermodule(Device* device, VkShaderModule shaderModule)
+{
+	if(shaderModule)
+	{
+		device->functionTable.destroyShaderModule(shaderModule, device->device.allocation_callbacks);
+		return true;
+	}
+
+	return false;
+}
+
+VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateInfo info)
+{
+	if(info.vertexModulePath != nullptr)
+	{
+		// Normal shader
+		
+	}
+	else if(info.computeModulePath != nullptr)
+	{
+		// Compute shader
+	}
 }

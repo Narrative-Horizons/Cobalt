@@ -1,8 +1,10 @@
 #pragma once
+#include <unordered_map>
 #include <vma/vk_mem_alloc.h>
 #include <vulkan/vulkan.h>
 
 #include "VkBootstrap.h"
+
 
 struct BufferCopy
 {
@@ -19,28 +21,6 @@ struct PhysicalDevice
 	vkb::Instance* parent;
 	vkb::PhysicalDevice device;
 	VkSurfaceKHR surface;
-};
-
-struct Device
-{
-	vkb::Instance instance;
-	vkb::PhysicalDevice physicalDevice;
-	vkb::Device device;
-	vkb::DispatchTable functionTable;
-	VkSurfaceKHR surface;
-	VmaAllocator allocator;
-
-	VkQueue graphicsQueue;
-	VkQueue presentQueue;
-	VkQueue computeQueue;
-	VkQueue tranferQueue;
-
-	VkCommandPool graphicsPool;
-	VkCommandPool presentPool;
-	VkCommandPool computePool;
-	VkCommandPool transferPool;
-
-	VkPipelineCache pipelineCache;
 };
 
 struct Swapchain
@@ -68,7 +48,6 @@ struct Buffer
 	VmaAllocation allocation;
 	size_t size;
 };
-
 
 struct ShaderModule
 {
@@ -114,4 +93,28 @@ struct Shader
 	ShaderModule* tesselationControlModule;
 	
 	ShaderModule* computeModule;
+};
+
+struct Device
+{
+	vkb::Instance instance;
+	vkb::PhysicalDevice physicalDevice;
+	vkb::Device device;
+	vkb::DispatchTable functionTable;
+	VkSurfaceKHR surface;
+	VmaAllocator allocator;
+
+	VkQueue graphicsQueue;
+	VkQueue presentQueue;
+	VkQueue computeQueue;
+	VkQueue tranferQueue;
+
+	VkCommandPool graphicsPool;
+	VkCommandPool presentPool;
+	VkCommandPool computePool;
+	VkCommandPool transferPool;
+
+	VkPipelineCache pipelineCache;
+
+	std::unordered_map<std::string, ShaderModule*> shaderModules;
 };

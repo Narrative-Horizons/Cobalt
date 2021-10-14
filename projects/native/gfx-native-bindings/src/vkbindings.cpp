@@ -8,6 +8,8 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <fstream>
+#include <string>
 
 #include "createinfos.hpp"
 #include "graphicsobjects.hpp"
@@ -412,7 +414,7 @@ VK_BINDING_EXPORT void cobalt_vkb_copy_buffer(Device* device, CommandBuffer* buf
 	device->functionTable.cmdCopyBuffer(buffer->buffers[index], src->buffer, dst->buffer, regionCount, reinterpret_cast<VkBufferCopy*>(regions));
 }
 
-VK_BINDING_EXPORT VkShaderModule cobalt_vkb_create_shadermodule(Device* device, ShaderModuleCreateInfo info)
+VK_BINDING_EXPORT ShaderModule* cobalt_vkb_create_shadermodule(Device* device, ShaderModuleCreateInfo info)
 {
 	VkShaderModuleCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -421,12 +423,16 @@ VK_BINDING_EXPORT VkShaderModule cobalt_vkb_create_shadermodule(Device* device, 
 	createInfo.codeSize = info.codeSize;
 	createInfo.pCode = reinterpret_cast<const uint32_t*>(info.code);
 
-	VkShaderModule shaderModule;
+	VkShaderModule vkshaderModule;
 
-	if(!device->functionTable.createShaderModule(&createInfo, device->device.allocation_callbacks, &shaderModule))
+	if(!device->functionTable.createShaderModule(&createInfo, device->device.allocation_callbacks, &vkshaderModule))
 	{
 		return nullptr;
 	}
+
+	ShaderModule* shaderModule = new ShaderModule();
+	shaderModule->shaderModule = vkshaderModule;
+	shaderModule->count = 1;
 
 	return shaderModule;
 }
@@ -444,13 +450,281 @@ VK_BINDING_EXPORT bool cobalt_vkb_destroy_shadermodule(Device* device, VkShaderM
 
 VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateInfo info)
 {
+	Shader* shader = new Shader();
+	std::vector< VkPipelineShaderStageCreateInfo> shaderStages;
+	
 	if(info.vertexModulePath != nullptr)
 	{
 		// Normal shader
+		if(device->shaderModules.find(info.vertexModulePath) != device->shaderModules.end())
+		{
+			shader->vertexModule = device->shaderModules[info.vertexModulePath];
+			shader->vertexModule->count++;
+		}
+		else
+		{
+			std::ifstream vertexFile(info.vertexModulePath, std::ios::in | std::ios::binary | std::ios::ate);
+			std::streamsize size = vertexFile.tellg();
+			vertexFile.seekg(0, std::ios::beg);
+
+			std::vector<char> buffer(size);
+			vertexFile.read(buffer.data(), size);
+
+			ShaderModuleCreateInfo vertexInfo = {};
+			vertexInfo.code = buffer.data();
+			vertexInfo.codeSize = size;
+
+			shader->vertexModule = cobalt_vkb_create_shadermodule(device, vertexInfo);
+		}
+
+		VkPipelineShaderStageCreateInfo vertexStageInfo = {};
+		vertexStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		vertexStageInfo.flags = 0;
+		vertexStageInfo.pNext = nullptr;
+		vertexStageInfo.module = shader->vertexModule->shaderModule;
+		vertexStageInfo.pName = "Vertex Shader";
+		vertexStageInfo.pSpecializationInfo = nullptr;
+		vertexStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+
+		shaderStages.push_back(vertexStageInfo);
 		
+		if(info.fragmentModulePath != nullptr)
+		{
+			if (device->shaderModules.find(info.fragmentModulePath) != device->shaderModules.end())
+			{
+				shader->fragmentModule = device->shaderModules[info.fragmentModulePath];
+				shader->fragmentModule->count++;
+			}
+			else
+			{
+				std::ifstream fragmentFile(info.fragmentModulePath, std::ios::in | std::ios::binary | std::ios::ate);
+				std::streamsize size = fragmentFile.tellg();
+				fragmentFile.seekg(0, std::ios::beg);
+
+				std::vector<char> buffer(size);
+				fragmentFile.read(buffer.data(), size);
+
+				ShaderModuleCreateInfo fragmentInfo = {};
+				fragmentInfo.code = buffer.data();
+				fragmentInfo.codeSize = size;
+
+				shader->fragmentModule = cobalt_vkb_create_shadermodule(device, fragmentInfo);
+			}
+
+			VkPipelineShaderStageCreateInfo fragmentStageInfo = {};
+			fragmentStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+			fragmentStageInfo.flags = 0;
+			fragmentStageInfo.pNext = nullptr;
+			fragmentStageInfo.module = shader->fragmentModule->shaderModule;
+			fragmentStageInfo.pName = "Fragment Shader";
+			fragmentStageInfo.pSpecializationInfo = nullptr;
+			fragmentStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+			shaderStages.push_back(fragmentStageInfo);
+		}
+
+		if (info.geometryModulePath != nullptr)
+		{
+			if (device->shaderModules.find(info.geometryModulePath) != device->shaderModules.end())
+			{
+				shader->geometryModule = device->shaderModules[info.geometryModulePath];
+				shader->geometryModule->count++;
+			}
+			else
+			{
+				std::ifstream geometryFile(info.geometryModulePath, std::ios::in | std::ios::binary | std::ios::ate);
+				std::streamsize size = geometryFile.tellg();
+				geometryFile.seekg(0, std::ios::beg);
+
+				std::vector<char> buffer(size);
+				geometryFile.read(buffer.data(), size);
+
+				ShaderModuleCreateInfo geometryInfo = {};
+				geometryInfo.code = buffer.data();
+				geometryInfo.codeSize = size;
+
+				shader->geometryModule = cobalt_vkb_create_shadermodule(device, geometryInfo);
+			}
+
+			VkPipelineShaderStageCreateInfo geometryStageInfo = {};
+			geometryStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+			geometryStageInfo.flags = 0;
+			geometryStageInfo.pNext = nullptr;
+			geometryStageInfo.module = shader->geometryModule->shaderModule;
+			geometryStageInfo.pName = "Geometry Shader";
+			geometryStageInfo.pSpecializationInfo = nullptr;
+			geometryStageInfo.stage = VK_SHADER_STAGE_GEOMETRY_BIT;
+
+			shaderStages.push_back(geometryStageInfo);
+		}
+
+		if (info.tesselationControlModulePath != nullptr)
+		{
+			if (device->shaderModules.find(info.tesselationControlModulePath) != device->shaderModules.end())
+			{
+				shader->tesselationControlModule = device->shaderModules[info.tesselationControlModulePath];
+				shader->tesselationControlModule->count++;
+			}
+			else
+			{
+				std::ifstream tessControlFile(info.tesselationControlModulePath, std::ios::in | std::ios::binary | std::ios::ate);
+				std::streamsize size = tessControlFile.tellg();
+				tessControlFile.seekg(0, std::ios::beg);
+
+				std::vector<char> buffer(size);
+				tessControlFile.read(buffer.data(), size);
+
+				ShaderModuleCreateInfo tessControlInfo = {};
+				tessControlInfo.code = buffer.data();
+				tessControlInfo.codeSize = size;
+
+				shader->tesselationControlModule = cobalt_vkb_create_shadermodule(device, tessControlInfo);
+			}
+
+			VkPipelineShaderStageCreateInfo tessControlStageInfo = {};
+			tessControlStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+			tessControlStageInfo.flags = 0;
+			tessControlStageInfo.pNext = nullptr;
+			tessControlStageInfo.module = shader->tesselationControlModule->shaderModule;
+			tessControlStageInfo.pName = "Tesselation Control Shader";
+			tessControlStageInfo.pSpecializationInfo = nullptr;
+			tessControlStageInfo.stage = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+
+			shaderStages.push_back(tessControlStageInfo);
+		}
+
+		if (info.tesselationEvalModulePath != nullptr)
+		{
+			if (device->shaderModules.find(info.tesselationEvalModulePath) != device->shaderModules.end())
+			{
+				shader->tesselationEvalModule = device->shaderModules[info.tesselationEvalModulePath];
+				shader->tesselationEvalModule->count++;
+			}
+			else
+			{
+				std::ifstream tessEvalFile(info.tesselationEvalModulePath, std::ios::in | std::ios::binary | std::ios::ate);
+				std::streamsize size = tessEvalFile.tellg();
+				tessEvalFile.seekg(0, std::ios::beg);
+
+				std::vector<char> buffer(size);
+				tessEvalFile.read(buffer.data(), size);
+
+				ShaderModuleCreateInfo tessEvalInfo = {};
+				tessEvalInfo.code = buffer.data();
+				tessEvalInfo.codeSize = size;
+
+				shader->tesselationEvalModule = cobalt_vkb_create_shadermodule(device, tessEvalInfo);
+			}
+
+			VkPipelineShaderStageCreateInfo tessEvalStageInfo = {};
+			tessEvalStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+			tessEvalStageInfo.flags = 0;
+			tessEvalStageInfo.pNext = nullptr;
+			tessEvalStageInfo.module = shader->tesselationEvalModule->shaderModule;
+			tessEvalStageInfo.pName = "Tesselation Eval Shader";
+			tessEvalStageInfo.pSpecializationInfo = nullptr;
+			tessEvalStageInfo.stage = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+
+			shaderStages.push_back(tessEvalStageInfo);
+		}
 	}
 	else if(info.computeModulePath != nullptr)
 	{
 		// Compute shader
+		if (device->shaderModules.find(info.computeModulePath) != device->shaderModules.end())
+		{
+			shader->computeModule = device->shaderModules[info.computeModulePath];
+			shader->computeModule->count++;
+		}
+		else
+		{
+			std::ifstream computeFile(info.computeModulePath, std::ios::in | std::ios::binary | std::ios::ate);
+			std::streamsize size = computeFile.tellg();
+			computeFile.seekg(0, std::ios::beg);
+
+			std::vector<char> buffer(size);
+			computeFile.read(buffer.data(), size);
+
+			ShaderModuleCreateInfo computeInfo = {};
+			computeInfo.code = buffer.data();
+			computeInfo.codeSize = size;
+
+			shader->computeModule = cobalt_vkb_create_shadermodule(device, computeInfo);
+		}
+
+		VkPipelineShaderStageCreateInfo computeStageInfo = {};
+		computeStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		computeStageInfo.flags = 0;
+		computeStageInfo.pNext = nullptr;
+		computeStageInfo.module = shader->computeModule->shaderModule;
+		computeStageInfo.pName = "Compute Shader";
+		computeStageInfo.pSpecializationInfo = nullptr;
+		computeStageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+
+		shaderStages.push_back(computeStageInfo);
 	}
+
+	shader->pass = info.pass;
+	shader->subPassIndex = info.subPassIndex;
+
+	std::vector<VkDescriptorSetLayout> vkLayouts(info.layoutInfo.setCount);
+	for(int i = 0; i < info.layoutInfo.setCount; i++)
+	{
+		VkDescriptorSetLayoutCreateInfo setInfo = {};
+		setInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+		setInfo.flags = 0;
+		setInfo.pNext = nullptr;
+
+		uint32_t bindingCount = info.layoutInfo.setInfos[i].bindingCount;
+		ShaderLayoutBindingCreateInfo* bindings = info.layoutInfo.setInfos[i].bindingInfos;
+
+		setInfo.bindingCount = bindingCount;
+		
+		std::vector<VkDescriptorSetLayoutBinding> vkBindings(bindingCount);
+
+		for(uint32_t j = 0; j < bindingCount; j++)
+		{
+			auto [bindingIndex, type, descriptorCount, stageFlags] = bindings[j];
+
+			VkDescriptorSetLayoutBinding vkBinding = {};
+			vkBinding.binding = bindingIndex;
+			vkBinding.descriptorCount = descriptorCount;
+			vkBinding.descriptorType = static_cast<VkDescriptorType>(type);
+			vkBinding.stageFlags = stageFlags;
+
+			vkBindings.push_back(vkBinding);
+		}
+		
+		setInfo.pBindings = vkBindings.data();
+
+		VkDescriptorSetLayout layout;
+		device->functionTable.createDescriptorSetLayout(&setInfo, device->device.allocation_callbacks, &layout);
+		vkLayouts.push_back(layout);
+	}
+
+	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
+	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	pipelineLayoutInfo.flags = 0;
+	pipelineLayoutInfo.pNext = nullptr;
+	pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(vkLayouts.size());
+	pipelineLayoutInfo.pSetLayouts = vkLayouts.data();
+
+	VkPipelineLayout pipelineLayout;
+	device->functionTable.createPipelineLayout(&pipelineLayoutInfo, device->device.allocation_callbacks, &pipelineLayout);
+	
+	VkGraphicsPipelineCreateInfo pipelineInfo = {};
+	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+	pipelineInfo.flags = 0;
+	pipelineInfo.pNext = nullptr;
+	pipelineInfo.layout = pipelineLayout;
+	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+	pipelineInfo.basePipelineIndex = 0;
+	pipelineInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
+	pipelineInfo.pStages = shaderStages.data();
+	pipelineInfo.renderPass = info.pass->pass;
+	pipelineInfo.subpass = info.subPassIndex;
+
+	device->functionTable.createGraphicsPipelines(device->pipelineCache, 1, &pipelineInfo, device->device.allocation_callbacks, &shader->pipeline);
+
+	return shader;
 }

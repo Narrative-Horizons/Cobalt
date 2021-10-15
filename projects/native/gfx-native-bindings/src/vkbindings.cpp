@@ -208,6 +208,19 @@ VK_BINDING_EXPORT bool cobalt_vkb_destroy_device(Device* device)
 	return false;
 }
 
+VK_BINDING_EXPORT bool cobalt_vkb_destroy_swapchain(Swapchain* swapchain)
+{
+	if (swapchain)
+	{
+		vkb::destroy_swapchain(swapchain->swapchain);
+		delete swapchain;
+
+		return true;
+	}
+
+	return false;
+}
+
 VK_BINDING_EXPORT Swapchain* cobalt_vkb_create_swapchain(Device* device, SwapchainCreateInfo info)
 {
 	const vkb::SwapchainBuilder bldr{ device->device };
@@ -220,20 +233,18 @@ VK_BINDING_EXPORT Swapchain* cobalt_vkb_create_swapchain(Device* device, Swapcha
 	Swapchain* swapchain = new Swapchain();
 	swapchain->swapchain = swapchainResult.value();
 
-	return swapchain;
-}
-
-VK_BINDING_EXPORT bool cobalt_vkb_destroy_swapchain(Swapchain* swapchain)
-{
-	if (swapchain)
+	const auto imageViews = swapchain->swapchain.get_image_views();
+	if(imageViews.has_value())
 	{
-		vkb::destroy_swapchain(swapchain->swapchain);
-		delete swapchain;
-
-		return true;
+		swapchain->frameViews = imageViews.value();
+	}
+	else
+	{
+		cobalt_vkb_destroy_swapchain(swapchain);
+		return nullptr;
 	}
 
-	return false;
+	return swapchain;
 }
 
 VK_BINDING_EXPORT VkRenderPass cobalt_vkb_create_renderpass(Device* device, RenderPassCreateInfo info)
@@ -315,17 +326,17 @@ VK_BINDING_EXPORT CommandBuffer* cobalt_vkb_create_commandbuffer(Device* device,
 
 	allocInfo.level = info.primary ? VK_COMMAND_BUFFER_LEVEL_PRIMARY : VK_COMMAND_BUFFER_LEVEL_SECONDARY;
 
-	VkCommandBuffer* buffers = new VkCommandBuffer[info.amount];
+	std::vector<VkCommandBuffer> buffers(info.amount);
 	
-	if (device->functionTable.allocateCommandBuffers(&allocInfo, buffers))
+	if (device->functionTable.allocateCommandBuffers(&allocInfo, buffers.data()))
 	{
 		return nullptr;
 	}
 
 	CommandBuffer* buffer = new CommandBuffer();
-	buffer->buffers = buffers;
+	
+	buffer->buffers = std::move(buffers);
 	buffer->pool = allocInfo.commandPool;
-	buffer->amount = info.amount;
 	buffer->queue = queue;
 
 	return buffer;
@@ -335,12 +346,11 @@ VK_BINDING_EXPORT bool cobalt_vkb_destroy_commandbuffer(Device* device, CommandB
 {
 	if (buffer)
 	{
-		device->functionTable.freeCommandBuffers(buffer->pool, 1, buffer->buffers + index);
-		buffer->amount--;
+		device->functionTable.freeCommandBuffers(buffer->pool, 1, buffer->buffers.data() + index);
+		buffer->buffers.erase(buffer->buffers.begin() + index);
 
-		if (buffer->amount == 0)
+		if (buffer->buffers.empty())
 		{
-			delete[] buffer->buffers;
 			delete buffer;
 		}
 		
@@ -709,14 +719,13 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 	pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(vkLayouts.size());
 	pipelineLayoutInfo.pSetLayouts = vkLayouts.data();
 
-	VkPipelineLayout pipelineLayout;
-	device->functionTable.createPipelineLayout(&pipelineLayoutInfo, device->device.allocation_callbacks, &pipelineLayout);
+	device->functionTable.createPipelineLayout(&pipelineLayoutInfo, device->device.allocation_callbacks, &shader->pipelineLayout);
 	
 	VkGraphicsPipelineCreateInfo pipelineInfo = {};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 	pipelineInfo.flags = 0;
 	pipelineInfo.pNext = nullptr;
-	pipelineInfo.layout = pipelineLayout;
+	pipelineInfo.layout = shader->pipelineLayout;
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 	pipelineInfo.basePipelineIndex = 0;
 	pipelineInfo.stageCount = static_cast<uint32_t>(shaderStages.size());

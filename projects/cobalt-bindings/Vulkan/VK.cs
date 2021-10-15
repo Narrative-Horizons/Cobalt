@@ -146,6 +146,57 @@ namespace Cobalt.Bindings.Vulkan
                 this.handle = handle;
             }
         }
+
+        public struct Framebuffer
+        {
+            public IntPtr handle;
+
+            public static implicit operator IntPtr(Framebuffer window)
+            {
+                return window.handle;
+            }
+
+            public static explicit operator Framebuffer(IntPtr handle) => new Framebuffer(handle);
+
+            public Framebuffer(IntPtr handle)
+            {
+                this.handle = handle;
+            }
+        }
+
+        public struct Image
+        {
+            public IntPtr handle;
+
+            public static implicit operator IntPtr(Image window)
+            {
+                return window.handle;
+            }
+
+            public static explicit operator Image(IntPtr handle) => new Image(handle);
+
+            public Image(IntPtr handle)
+            {
+                this.handle = handle;
+            }
+        }
+
+        public struct ImageView
+        {
+            public IntPtr handle;
+
+            public static implicit operator IntPtr(ImageView window)
+            {
+                return window.handle;
+            }
+
+            public static explicit operator ImageView(IntPtr handle) => new ImageView(handle);
+
+            public ImageView(IntPtr handle)
+            {
+                this.handle = handle;
+            }
+        }
         #endregion
 
         #region DLL Loading
@@ -203,6 +254,24 @@ namespace Cobalt.Bindings.Vulkan
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_create_shader", CallingConvention = CallingConvention.Cdecl)]
         public static extern Shader CreateShader(Device device, ShaderCreateInfo info);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_create_image", CallingConvention = CallingConvention.Cdecl)]
+        public static extern Image CreateImage(Device device, ImageCreateInfo info);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_destroy_image", CallingConvention = CallingConvention.Cdecl)]
+        public static extern bool DestroyImage(Device device, Image image);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_create_imageview", CallingConvention = CallingConvention.Cdecl)]
+        public static extern ImageView CreateImageView(Device device, ImageViewCreateInfo info);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_destroy_imageview", CallingConvention = CallingConvention.Cdecl)]
+        public static extern bool DestroyImageView(Device device, ImageView imageView);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_create_framebuffer", CallingConvention = CallingConvention.Cdecl)]
+        public static extern Framebuffer CreateFramebuffer(Device device, FramebufferCreateInfo info);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_destroy_framebuffer", CallingConvention = CallingConvention.Cdecl)]
+        public static extern bool DestroyFramebuffer(Device device, Framebuffer imageView);
         #endregion
     }
 }

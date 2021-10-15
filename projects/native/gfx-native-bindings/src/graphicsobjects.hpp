@@ -26,6 +26,7 @@ struct PhysicalDevice
 struct Swapchain
 {
 	vkb::Swapchain swapchain;
+	std::vector<VkImageView> frameViews;
 };
 
 struct RenderPass
@@ -35,8 +36,7 @@ struct RenderPass
 
 struct CommandBuffer
 {
-	VkCommandBuffer* buffers;
-	uint32_t amount;
+	std::vector<VkCommandBuffer> buffers;
 
 	VkCommandPool pool;
 	VkQueue queue;
@@ -64,27 +64,14 @@ struct ShaderLayoutBinding
 	uint32_t stageFlags;
 };
 
-struct ShaderLayoutSet
-{
-	uint32_t bindingCount;
-	ShaderLayoutBinding* bindings;
-};
-
-struct ShaderLayout
-{
-	uint32_t setCount;
-	ShaderLayoutSet* sets;
-	
-	VkPipelineLayout layout;
-};
-
 struct Shader
 {
 	RenderPass* pass;
 	uint32_t subPassIndex;
 	
-	ShaderLayout* layout;
 	VkPipeline pipeline;
+	VkPipelineLayout pipelineLayout;
+
 
 	ShaderModule* vertexModule;
 	ShaderModule* fragmentModule;
@@ -117,4 +104,14 @@ struct Device
 	VkPipelineCache pipelineCache;
 
 	std::unordered_map<std::string, ShaderModule*> shaderModules;
+};
+
+struct ImageView
+{
+	VkImageView imageView;
+};
+
+struct Image
+{
+	VkImage image;
 };

@@ -225,4 +225,75 @@ namespace Cobalt.Bindings.Vulkan
         [FieldOffset(60)]
         public ShaderLayoutCreateInfo layoutInfo;
     };
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct ImageCreateInfo
+    {
+        [FieldOffset(0)] 
+        public uint imageType;
+        [FieldOffset(4)] 
+        public uint format;
+        [FieldOffset(8)] 
+        public uint width;
+        [FieldOffset(12)] 
+        public uint height;
+        [FieldOffset(16)] 
+        public uint depth;
+        [FieldOffset(20)] 
+        public uint mipLevels;
+        [FieldOffset(24)] 
+        public uint arrayLayers;
+        [FieldOffset(28)] 
+        public uint samples;
+        [FieldOffset(32)] 
+        public uint tiling;
+        [FieldOffset(36)] 
+        public uint usage;
+        [FieldOffset(40)] 
+        public uint sharingMode;
+        [FieldOffset(44)] 
+        public uint queueFamilyIndexCount;
+        [FieldOffset(48)] 
+        public uint[] queueFamilyIndices;
+        [FieldOffset(56)] 
+        public uint initialLayout;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct ImageViewCreateInfo
+    {
+        [FieldOffset(0)] 
+        public VK.Image image;
+        [FieldOffset(8)] 
+        public uint viewType;
+        [FieldOffset(12)]
+        public uint format;
+        [FieldOffset(16)]
+        public uint aspectMask;
+        [FieldOffset(20)]
+        public uint baseMipLevel;
+        [FieldOffset(24)]
+        public uint levelCount;
+        [FieldOffset(28)]
+        public uint baseArrayLayer;
+        [FieldOffset(32)]
+        public uint layerCount;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct FramebufferCreateInfo
+    {
+        [FieldOffset(0)] 
+        public VK.RenderPass pass;
+        [FieldOffset(8)] 
+        public uint attachmentCount;
+        [FieldOffset(12)] 
+        public VK.ImageView[] attachments;
+        [FieldOffset(20)] 
+        public uint width;
+        [FieldOffset(24)] 
+        public uint height;
+        [FieldOffset(28)] 
+        public uint layers;
+    }
 }

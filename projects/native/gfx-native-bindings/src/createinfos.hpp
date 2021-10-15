@@ -110,3 +110,33 @@ struct ShaderCreateInfo
 
 	ShaderLayoutCreateInfo layoutInfo;
 };
+
+struct ImageCreateInfo
+{
+	uint32_t imageType;
+	uint32_t format;
+	uint32_t width;
+	uint32_t height;
+	uint32_t depth;
+	uint32_t mipLevels;
+	uint32_t arrayLayers;
+	uint32_t samples;
+	uint32_t tiling;
+	uint32_t usage;
+	uint32_t sharingMode;
+	uint32_t queueFamilyIndexCount;
+	uint32_t* queueFAmilyIndices;
+	uint32_t initialLayout;
+};
+
+struct ImageViewCreateInfo
+{
+	Image* image;
+	uint32_t viewType;
+	uint32_t format;
+	uint32_t aspectMask;
+	uint32_t baseMipLevel;
+	uint32_t levelCount;
+	uint32_t baseArrayLayer;
+	uint32_t layerCount;
+};

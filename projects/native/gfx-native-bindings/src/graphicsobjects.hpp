@@ -82,6 +82,18 @@ struct Shader
 	ShaderModule* computeModule;
 };
 
+struct FixedDescriptorSetPool
+{
+	VkDescriptorPool pool;
+	std::unordered_map<VkDescriptorType, std::uint32_t> capacity;
+	std::unordered_map<VkDescriptorType, std::uint32_t> allocated;
+};
+
+struct DynamicDescriptorSetPool
+{
+	std::vector<FixedDescriptorSetPool> pools;
+};
+
 struct Device
 {
 	vkb::Instance instance;

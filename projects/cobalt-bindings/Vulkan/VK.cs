@@ -146,7 +146,6 @@ namespace Cobalt.Bindings.Vulkan
                 this.handle = handle;
             }
         }
-
         public struct Framebuffer
         {
             public IntPtr handle;
@@ -197,6 +196,24 @@ namespace Cobalt.Bindings.Vulkan
                 this.handle = handle;
             }
         }
+
+        public struct DescriptorSet
+        {
+            public IntPtr handle;
+
+            public static implicit operator IntPtr(DescriptorSet set)
+            {
+                return set.handle;
+            }
+
+            public static explicit operator DescriptorSet(IntPtr handle) => new DescriptorSet(handle);
+
+            public DescriptorSet(IntPtr handle)
+            {
+                this.handle = handle;
+            }
+        }
+
         #endregion
 
         #region DLL Loading

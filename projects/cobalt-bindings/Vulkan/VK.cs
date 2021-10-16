@@ -256,13 +256,13 @@ namespace Cobalt.Bindings.Vulkan
         public static extern Shader CreateShader(Device device, ShaderCreateInfo info);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_create_image", CallingConvention = CallingConvention.Cdecl)]
-        public static extern Image CreateImage(Device device, ImageCreateInfo info);
+        public static extern Image CreateImage(Device device, ImageCreateInfo info, string name, uint frame);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_destroy_image", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool DestroyImage(Device device, Image image);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_create_imageview", CallingConvention = CallingConvention.Cdecl)]
-        public static extern ImageView CreateImageView(Device device, ImageViewCreateInfo info);
+        public static extern ImageView CreateImageView(Device device, ImageViewCreateInfo info, string name, uint frame);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_destroy_imageview", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool DestroyImageView(Device device, ImageView imageView);

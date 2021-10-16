@@ -208,19 +208,6 @@ VK_BINDING_EXPORT bool cobalt_vkb_destroy_device(Device* device)
 	return false;
 }
 
-VK_BINDING_EXPORT bool cobalt_vkb_destroy_swapchain(Swapchain* swapchain)
-{
-	if (swapchain)
-	{
-		vkb::destroy_swapchain(swapchain->swapchain);
-		delete swapchain;
-
-		return true;
-	}
-
-	return false;
-}
-
 VK_BINDING_EXPORT Swapchain* cobalt_vkb_create_swapchain(Device* device, SwapchainCreateInfo info)
 {
 	const vkb::SwapchainBuilder bldr{ device->device };
@@ -240,11 +227,26 @@ VK_BINDING_EXPORT Swapchain* cobalt_vkb_create_swapchain(Device* device, Swapcha
 	}
 	else
 	{
-		cobalt_vkb_destroy_swapchain(swapchain);
+		vkb::destroy_swapchain(swapchain->swapchain);
+		delete swapchain;
+
 		return nullptr;
 	}
 
 	return swapchain;
+}
+
+VK_BINDING_EXPORT bool cobalt_vkb_destroy_swapchain(Swapchain* swapchain)
+{
+	if (swapchain)
+	{
+		vkb::destroy_swapchain(swapchain->swapchain);
+		delete swapchain;
+
+		return true;
+	}
+
+	return false;
 }
 
 VK_BINDING_EXPORT VkRenderPass cobalt_vkb_create_renderpass(Device* device, RenderPassCreateInfo info)
@@ -736,4 +738,156 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 	device->functionTable.createGraphicsPipelines(device->pipelineCache, 1, &pipelineInfo, device->device.allocation_callbacks, &shader->pipeline);
 
 	return shader;
+}
+
+VK_BINDING_EXPORT Image* cobalt_vkb_create_image(Device* device, ImageCreateInfo info, const char* name, uint32_t frame)
+{
+	const std::string objectName = std::string(name) + "_" + std::to_string(frame);
+	if(device->images.find(objectName) != device->images.end())
+	{
+		Image* i = device->images[objectName];
+		i->amount++;
+		return i;
+	}
+	
+	Image* image = new Image();
+	image->amount = 1;
+
+	VkImageCreateInfo imageInfo = {};
+	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	imageInfo.flags = 0;
+	imageInfo.pNext = nullptr;
+	imageInfo.arrayLayers = info.arrayLayers;
+	imageInfo.extent = VkExtent3D{ info.width, info.height, info.depth };
+	imageInfo.imageType = static_cast<VkImageType>(info.imageType);
+	imageInfo.format = static_cast<VkFormat>(info.format);
+	imageInfo.queueFamilyIndexCount = info.queueFamilyIndexCount;
+	imageInfo.pQueueFamilyIndices = info.queueFamilyIndices;
+	imageInfo.mipLevels = info.mipLevels;
+	imageInfo.initialLayout = static_cast<VkImageLayout>(info.initialLayout);
+	imageInfo.sharingMode = static_cast<VkSharingMode>(info.sharingMode);
+	imageInfo.tiling = static_cast<VkImageTiling>(info.tiling);
+	imageInfo.samples = static_cast<VkSampleCountFlagBits>(info.samples);
+	imageInfo.usage = info.usage;
+	
+	device->functionTable.createImage(&imageInfo, device->device.allocation_callbacks, &image->image);
+
+	device->images[objectName] = image;
+	
+	return image;
+}
+
+VK_BINDING_EXPORT bool cobalt_vkb_destroy_image(Device* device, Image* image)
+{
+	if (image)
+	{
+		image->amount--;
+
+		if (image->amount <= 0)
+		{
+
+			device->functionTable.destroyImage(image->image, device->device.allocation_callbacks);
+			delete image;
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+
+VK_BINDING_EXPORT ImageView* cobalt_vkb_create_imageview(Device* device, ImageViewCreateInfo info, const char* name, uint32_t frame)
+{
+	const std::string objectName = std::string(name) + "_" + std::to_string(frame);
+	if (device->imageViews.find(objectName) != device->imageViews.end())
+	{
+		ImageView* i = device->imageViews[objectName];
+		i->amount++;
+		return i;
+	}
+	
+	ImageView* view = new ImageView();
+	view->amount = 1;
+
+	VkImageViewCreateInfo viewInfo = {};
+	viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	viewInfo.flags = 0;
+	viewInfo.pNext = nullptr;
+	viewInfo.format = static_cast<VkFormat>(info.format);
+	viewInfo.image = info.image->image;
+	viewInfo.subresourceRange = VkImageSubresourceRange
+	{
+		info.aspectMask,
+		info.baseMipLevel,
+		info.levelCount,
+		info.baseArrayLayer,
+		info.layerCount
+	};
+	
+	viewInfo.viewType = static_cast<VkImageViewType>(info.viewType);
+	
+	device->functionTable.createImageView(&viewInfo, device->device.allocation_callbacks, &view->imageView);
+	device->imageViews[objectName] = view;
+	
+	return view;
+}
+
+VK_BINDING_EXPORT bool cobalt_vkb_destroy_imageview(Device* device, ImageView* view)
+{
+	if (view)
+	{
+		view->amount--;
+		
+		if (view->amount <= 0)
+		{
+			device->functionTable.destroyImageView(view->imageView, device->device.allocation_callbacks);
+			delete view;
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+VK_BINDING_EXPORT Framebuffer* cobalt_vkb_create_framebuffer(Device* device, FramebufferCreateInfo info)
+{
+	Framebuffer* framebuffer = new Framebuffer();
+
+	VkFramebufferCreateInfo bufferInfo = {};
+	bufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+	bufferInfo.flags = 0;
+	bufferInfo.pNext = nullptr;
+	bufferInfo.attachmentCount = info.attachmentCount;
+	bufferInfo.width = info.width;
+	bufferInfo.height = info.height;
+	bufferInfo.layers = info.layers;
+	bufferInfo.renderPass = info.pass->pass;
+
+	std::vector<VkImageView> attachments(info.attachmentCount);
+	for (int i = 0; i < info.attachmentCount; i++)
+	{
+		info.attachments[i]->amount++;
+		attachments.push_back(info.attachments[i]->imageView);
+	}
+	bufferInfo.pAttachments = attachments.data();
+
+	device->functionTable.createFramebuffer(&bufferInfo, device->device.allocation_callbacks, &framebuffer->framebuffer);
+
+	return framebuffer;
+}
+
+VK_BINDING_EXPORT bool cobalt_vkb_destroy_framebuffer(Device* device, Framebuffer* framebuffer)
+{
+	if (framebuffer)
+	{
+		device->functionTable.destroyFramebuffer(framebuffer->framebuffer, device->device.allocation_callbacks);
+
+		delete framebuffer;
+
+		return true;
+	}
+
+	return false;
 }

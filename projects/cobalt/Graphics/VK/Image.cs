@@ -8,10 +8,10 @@ namespace Cobalt.Graphics.VK
         internal readonly Bindings.Vulkan.VK.Image handle;
         internal readonly Bindings.Vulkan.VK.Device device;
 
-        internal Image(Bindings.Vulkan.VK.Device device, ImageCreateInfo info)
+        internal Image(Bindings.Vulkan.VK.Device device, ImageCreateInfo info, string name, uint frame)
         {
             this.device = device;
-            handle = Bindings.Vulkan.VK.CreateImage(device, info);
+            handle = Bindings.Vulkan.VK.CreateImage(device, info, name, frame);
         }
 
         public void Dispose()

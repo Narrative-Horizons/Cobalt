@@ -125,7 +125,7 @@ struct ImageCreateInfo
 	uint32_t usage;
 	uint32_t sharingMode;
 	uint32_t queueFamilyIndexCount;
-	uint32_t* queueFAmilyIndices;
+	uint32_t* queueFamilyIndices;
 	uint32_t initialLayout;
 };
 
@@ -139,4 +139,14 @@ struct ImageViewCreateInfo
 	uint32_t levelCount;
 	uint32_t baseArrayLayer;
 	uint32_t layerCount;
+};
+
+struct FramebufferCreateInfo
+{
+	RenderPass* pass;
+	uint32_t attachmentCount;
+	ImageView** attachments;
+	uint32_t width;
+	uint32_t height;
+	uint32_t layers;
 };

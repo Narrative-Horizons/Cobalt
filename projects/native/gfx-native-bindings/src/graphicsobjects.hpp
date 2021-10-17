@@ -1,10 +1,10 @@
 #pragma once
+
 #include <unordered_map>
 #include <vma/vk_mem_alloc.h>
 #include <vulkan/vulkan.h>
 
 #include "VkBootstrap.h"
-
 
 struct BufferCopy
 {
@@ -94,6 +94,23 @@ struct DynamicDescriptorSetPool
 	std::vector<FixedDescriptorSetPool> pools;
 };
 
+struct ImageView
+{
+	VkImageView imageView;
+	uint32_t amount;
+};
+
+struct Image
+{
+	VkImage image;
+	uint32_t amount;
+};
+
+struct Framebuffer
+{
+	VkFramebuffer framebuffer;
+};
+
 struct Device
 {
 	vkb::Instance instance;
@@ -116,14 +133,8 @@ struct Device
 	VkPipelineCache pipelineCache;
 
 	std::unordered_map<std::string, ShaderModule*> shaderModules;
+
+	std::unordered_map<std::string, Image*> images;
+	std::unordered_map<std::string, ImageView*> imageViews;
 };
 
-struct ImageView
-{
-	VkImageView imageView;
-};
-
-struct Image
-{
-	VkImage image;
-};

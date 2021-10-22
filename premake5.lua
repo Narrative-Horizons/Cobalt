@@ -28,6 +28,7 @@ workspace "Cobalt"
     group "Asset Management"
     include "projects/asset-management/asset-converter"
     include "projects/asset-management/asset-converter-cli"
+    include "projects/asset-management/shader-compiler"
     group ""
 
     include "projects/cobalt"

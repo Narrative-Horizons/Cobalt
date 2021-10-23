@@ -64,14 +64,26 @@ struct ShaderLayoutBinding
 	uint32_t stageFlags;
 };
 
+struct DescriptorSetLayout
+{
+	VkDescriptorSetLayout layout;
+	std::vector<ShaderLayoutBinding> bindings;
+};
+
+struct PipelineLayout
+{
+	VkPipelineLayout layout;
+
+	std::vector<DescriptorSetLayout> sets;
+};
+
 struct Shader
 {
 	RenderPass* pass;
 	uint32_t subPassIndex;
 	
 	VkPipeline pipeline;
-	VkPipelineLayout pipelineLayout;
-
+	PipelineLayout pipelineLayout;
 
 	ShaderModule* vertexModule;
 	ShaderModule* fragmentModule;
@@ -80,13 +92,55 @@ struct Shader
 	ShaderModule* tesselationControlModule;
 	
 	ShaderModule* computeModule;
+	DynamicDescriptorSetPool descPool;
+};
+
+struct DescriptorSet
+{
+	VkDescriptorSet set;
+
+	uint32_t samplerCount;
+	uint32_t combinedImageSamplerCount;
+	uint32_t sampledImageCount;
+	uint32_t storageImageCount;
+	uint32_t uniformTexelBufferCount;
+	uint32_t storageTexelBufferCount;
+	uint32_t uniformBufferCount;
+	uint32_t storageBufferCount;
+	uint32_t dynamicUniformBufferCount;
+	uint32_t dynamicStorageBufferCount;
+	uint32_t inputAttachmentCount;
 };
 
 struct FixedDescriptorSetPool
 {
 	VkDescriptorPool pool;
-	std::unordered_map<VkDescriptorType, std::uint32_t> capacity;
-	std::unordered_map<VkDescriptorType, std::uint32_t> allocated;
+	
+	uint32_t allocatedSamplerCount;
+	uint32_t allocatedCombinedImageSamplerCount;
+	uint32_t allocatedSampledImageCount;
+	uint32_t allocatedStorageImageCount;
+	uint32_t allocatedUniformTexelBufferCount;
+	uint32_t allocatedStorageTexelBufferCount;
+	uint32_t allocatedUniformBufferCount;
+	uint32_t allocatedStorageBufferCount;
+	uint32_t allocatedDynamicUniformBufferCount;
+	uint32_t allocatedDynamicStorageBufferCount;
+	uint32_t allocatedInputAttachmentCount;
+	
+	uint32_t samplerCount;
+	uint32_t combinedImageSamplerCount;
+	uint32_t sampledImageCount;
+	uint32_t storageImageCount;
+	uint32_t uniformTexelBufferCount;
+	uint32_t storageTexelBufferCount;
+	uint32_t uniformBufferCount;
+	uint32_t storageBufferCount;
+	uint32_t dynamicUniformBufferCount;
+	uint32_t dynamicStorageBufferCount;
+	uint32_t inputAttachmentCount;
+
+	DescriptorSet* tryAllocate(const VkDescriptorSetAllocateInfo& info);
 };
 
 struct DynamicDescriptorSetPool

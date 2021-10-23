@@ -77,24 +77,6 @@ struct PipelineLayout
 	std::vector<DescriptorSetLayout> sets;
 };
 
-struct Shader
-{
-	RenderPass* pass;
-	uint32_t subPassIndex;
-	
-	VkPipeline pipeline;
-	PipelineLayout pipelineLayout;
-
-	ShaderModule* vertexModule;
-	ShaderModule* fragmentModule;
-	ShaderModule* geometryModule;
-	ShaderModule* tesselationEvalModule;
-	ShaderModule* tesselationControlModule;
-	
-	ShaderModule* computeModule;
-	DynamicDescriptorSetPool descPool;
-};
-
 struct DescriptorSet
 {
 	VkDescriptorSet set;
@@ -146,6 +128,24 @@ struct FixedDescriptorSetPool
 struct DynamicDescriptorSetPool
 {
 	std::vector<FixedDescriptorSetPool> pools;
+};
+
+struct Shader
+{
+	RenderPass* pass;
+	uint32_t subPassIndex;
+
+	VkPipeline pipeline;
+	PipelineLayout pipelineLayout;
+
+	ShaderModule* vertexModule;
+	ShaderModule* fragmentModule;
+	ShaderModule* geometryModule;
+	ShaderModule* tesselationEvalModule;
+	ShaderModule* tesselationControlModule;
+
+	ShaderModule* computeModule;
+	DynamicDescriptorSetPool descPool;
 };
 
 struct ImageView

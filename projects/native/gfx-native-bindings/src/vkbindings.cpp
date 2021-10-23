@@ -328,7 +328,8 @@ VK_BINDING_EXPORT CommandBuffer* cobalt_vkb_create_commandbuffer(Device* device,
 
 	allocInfo.level = info.primary ? VK_COMMAND_BUFFER_LEVEL_PRIMARY : VK_COMMAND_BUFFER_LEVEL_SECONDARY;
 
-	std::vector<VkCommandBuffer> buffers(info.amount);
+	std::vector<VkCommandBuffer> buffers;
+	buffers.reserve(info.amount);
 	
 	if (device->functionTable.allocateCommandBuffers(&allocInfo, buffers.data()))
 	{
@@ -679,7 +680,10 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 	shader->pass = info.pass;
 	shader->subPassIndex = info.subPassIndex;
 
-	std::vector<VkDescriptorSetLayout> vkLayouts(info.layoutInfo.setCount);
+	std::vector<VkDescriptorSetLayout> vkLayouts;
+	std::vector<DescriptorSetLayout> layouts;
+
+	vkLayouts.reserve(info.layoutInfo.setCount);
 	for(int i = 0; i < info.layoutInfo.setCount; i++)
 	{
 		VkDescriptorSetLayoutCreateInfo setInfo = {};
@@ -692,7 +696,10 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 
 		setInfo.bindingCount = bindingCount;
 		
-		std::vector<VkDescriptorSetLayoutBinding> vkBindings(bindingCount);
+		std::vector<VkDescriptorSetLayoutBinding> vkBindings;
+		std::vector<ShaderLayoutBinding> bnds;
+
+		vkBindings.reserve(bindingCount);
 
 		for(uint32_t j = 0; j < bindingCount; j++)
 		{
@@ -705,6 +712,14 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 			vkBinding.stageFlags = stageFlags;
 
 			vkBindings.push_back(vkBinding);
+			
+			ShaderLayoutBinding binding;
+			binding.bindingIndex = bindingIndex;
+			binding.descriptorCount = descriptorCount;
+			binding.type = type;
+			binding.stageFlags = stageFlags;
+
+			bnds.push_back(binding);
 		}
 		
 		setInfo.pBindings = vkBindings.data();
@@ -712,6 +727,10 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 		VkDescriptorSetLayout layout;
 		device->functionTable.createDescriptorSetLayout(&setInfo, device->device.allocation_callbacks, &layout);
 		vkLayouts.push_back(layout);
+
+		DescriptorSetLayout setLayout;
+		setLayout.bindings = bnds;
+		setLayout.layout = layout;
 	}
 
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
@@ -721,13 +740,13 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 	pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(vkLayouts.size());
 	pipelineLayoutInfo.pSetLayouts = vkLayouts.data();
 
-	device->functionTable.createPipelineLayout(&pipelineLayoutInfo, device->device.allocation_callbacks, &shader->pipelineLayout);
+	device->functionTable.createPipelineLayout(&pipelineLayoutInfo, device->device.allocation_callbacks, &shader->pipelineLayout.layout);
 	
 	VkGraphicsPipelineCreateInfo pipelineInfo = {};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 	pipelineInfo.flags = 0;
 	pipelineInfo.pNext = nullptr;
-	pipelineInfo.layout = shader->pipelineLayout;
+	pipelineInfo.layout = shader->pipelineLayout.layout;
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 	pipelineInfo.basePipelineIndex = 0;
 	pipelineInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
@@ -738,6 +757,13 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 	device->functionTable.createGraphicsPipelines(device->pipelineCache, 1, &pipelineInfo, device->device.allocation_callbacks, &shader->pipeline);
 
 	return shader;
+}
+
+VK_BINDING_EXPORT DescriptorSet* cobalt_vkb_allocate_descriptors(Shader* shader)
+{
+	PipelineLayout& layout = shader->pipelineLayout;
+	DynamicDescriptorSetPool& pool = shader->descPool;
+	return nullptr;
 }
 
 VK_BINDING_EXPORT Image* cobalt_vkb_create_image(Device* device, ImageCreateInfo info, const char* name, uint32_t frame)
@@ -865,7 +891,8 @@ VK_BINDING_EXPORT Framebuffer* cobalt_vkb_create_framebuffer(Device* device, Fra
 	bufferInfo.layers = info.layers;
 	bufferInfo.renderPass = info.pass->pass;
 
-	std::vector<VkImageView> attachments(info.attachmentCount);
+	std::vector<VkImageView> attachments;
+	attachments.reserve(info.attachmentCount);
 	for (int i = 0; i < info.attachmentCount; i++)
 	{
 		info.attachments[i]->amount++;

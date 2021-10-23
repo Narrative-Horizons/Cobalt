@@ -46,9 +46,15 @@ int main(int argc, char** argv)
 		}
 	}
 
+
+	
 	for(Shader* shader : shaders)
 	{
-		std::string command = R"(C:\VulkanSDK\1.2.182.0\Bin32\glslc.exe )" + shader->loadPath + " -o " + shader->exportPath;
-		system(command.c_str());
+		std::string command = "glslc.exe " + shader->loadPath + " -o " + shader->exportPath;
+		int retcode = system(command.c_str());
+		if (retcode != 0)
+			return retcode;
 	}
+
+	return 0;
 }

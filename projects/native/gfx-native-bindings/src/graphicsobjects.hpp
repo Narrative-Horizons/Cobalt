@@ -6,6 +6,8 @@
 
 #include "VkBootstrap.h"
 
+struct Device;
+
 struct BufferCopy
 {
 	uint64_t bufferOffset;
@@ -77,9 +79,12 @@ struct PipelineLayout
 	std::vector<DescriptorSetLayout> sets;
 };
 
+struct FixedDescriptorSetPool;
+
 struct DescriptorSet
 {
 	VkDescriptorSet set;
+	FixedDescriptorSetPool* parent;
 
 	uint32_t samplerCount;
 	uint32_t combinedImageSamplerCount;
@@ -98,31 +103,32 @@ struct FixedDescriptorSetPool
 {
 	VkDescriptorPool pool;
 	
-	uint32_t allocatedSamplerCount;
-	uint32_t allocatedCombinedImageSamplerCount;
-	uint32_t allocatedSampledImageCount;
-	uint32_t allocatedStorageImageCount;
-	uint32_t allocatedUniformTexelBufferCount;
-	uint32_t allocatedStorageTexelBufferCount;
-	uint32_t allocatedUniformBufferCount;
-	uint32_t allocatedStorageBufferCount;
-	uint32_t allocatedDynamicUniformBufferCount;
-	uint32_t allocatedDynamicStorageBufferCount;
-	uint32_t allocatedInputAttachmentCount;
+	uint32_t samplerCapacity = 0;
+	uint32_t combinedImageSamplerCapacity = 0;
+	uint32_t sampledImageCapacity = 0;
+	uint32_t storageImageCapacity = 0;
+	uint32_t uniformTexelBufferCapacity = 0;
+	uint32_t storageTexelBufferCapacity = 0;
+	uint32_t uniformBufferCapacity = 0;
+	uint32_t storageBufferCapacity = 0;
+	uint32_t dynamicUniformBufferCapacity = 0;
+	uint32_t dynamicStorageBufferCapacity = 0;
+	uint32_t inputAttachmentCapacity = 0;
 	
-	uint32_t samplerCount;
-	uint32_t combinedImageSamplerCount;
-	uint32_t sampledImageCount;
-	uint32_t storageImageCount;
-	uint32_t uniformTexelBufferCount;
-	uint32_t storageTexelBufferCount;
-	uint32_t uniformBufferCount;
-	uint32_t storageBufferCount;
-	uint32_t dynamicUniformBufferCount;
-	uint32_t dynamicStorageBufferCount;
-	uint32_t inputAttachmentCount;
+	uint32_t samplerCount = 0;
+	uint32_t combinedImageSamplerCount = 0;
+	uint32_t sampledImageCount = 0;
+	uint32_t storageImageCount = 0;
+	uint32_t uniformTexelBufferCount = 0;
+	uint32_t storageTexelBufferCount = 0;
+	uint32_t uniformBufferCount = 0;
+	uint32_t storageBufferCount = 0;
+	uint32_t dynamicUniformBufferCount = 0;
+	uint32_t dynamicStorageBufferCount = 0;
+	uint32_t inputAttachmentCount = 0;
 
-	DescriptorSet* tryAllocate(const VkDescriptorSetAllocateInfo& info);
+	uint32_t maxSets = 0;
+	uint32_t allocatedSets = 0;
 };
 
 struct DynamicDescriptorSetPool
@@ -132,6 +138,8 @@ struct DynamicDescriptorSetPool
 
 struct Shader
 {
+	Device* device;
+
 	RenderPass* pass;
 	uint32_t subPassIndex;
 

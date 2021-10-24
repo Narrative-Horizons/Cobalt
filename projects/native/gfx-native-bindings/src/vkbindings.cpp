@@ -755,6 +755,7 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 	pipelineInfo.subpass = info.subPassIndex;
 
 	device->functionTable.createGraphicsPipelines(device->pipelineCache, 1, &pipelineInfo, device->device.allocation_callbacks, &shader->pipeline);
+	shader->device = device;
 
 	return shader;
 }
@@ -763,6 +764,120 @@ VK_BINDING_EXPORT DescriptorSet* cobalt_vkb_allocate_descriptors(Shader* shader)
 {
 	PipelineLayout& layout = shader->pipelineLayout;
 	DynamicDescriptorSetPool& pool = shader->descPool;
+	const auto setCount = layout.sets.size();
+	DescriptorSet* results = new DescriptorSet[setCount];
+
+	std::vector<VkDescriptorSetAllocateInfo> allocate;
+
+	for (size_t i = 0; i < setCount; ++i)
+	{
+		const auto& set = layout.sets[i];
+		std::unordered_map<VkDescriptorType, size_t> requiredCounts;
+		for (auto& binding : set.bindings)
+		{
+			requiredCounts[(VkDescriptorType)binding.type] += binding.descriptorCount;
+		}
+
+		bool successful = false;
+		for (auto& fixed : pool.pools)
+		{
+			if (fixed.maxSets == fixed.allocatedSets)
+			{
+				continue;
+			}
+
+			successful = fixed.combinedImageSamplerCount >= requiredCounts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER]
+				&& fixed.dynamicStorageBufferCount >= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC]
+				&& fixed.dynamicStorageBufferCount >= requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC]
+				&& fixed.inputAttachmentCount >= requiredCounts[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT]
+				&& fixed.sampledImageCount >= requiredCounts[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE]
+				&& fixed.samplerCount >= requiredCounts[VK_DESCRIPTOR_TYPE_SAMPLER]
+				&& fixed.storageBufferCount >= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER]
+				&& fixed.storageImageCount >= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_IMAGE]
+				&& fixed.storageTexelBufferCount >= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER]
+				&& fixed.uniformBufferCount >= requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER]
+				&& fixed.uniformTexelBufferCount >= requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER];
+
+			if (successful)
+			{
+				VkDescriptorSetAllocateInfo info;
+				info.descriptorPool = fixed.pool;
+				info.descriptorSetCount = 1;
+				info.pSetLayouts = &set.layout;
+				info.pNext = VK_NULL_HANDLE;
+				info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+
+				const auto result = shader->device->functionTable.allocateDescriptorSets(&info, &(results[i].set));
+				if (result != VK_SUCCESS)
+				{
+					// well shit
+					// TODO: figure out what to do here
+					break;
+				}
+
+				fixed.combinedImageSamplerCount -= requiredCounts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER];
+				fixed.dynamicStorageBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC];
+				fixed.dynamicUniformBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC];
+				fixed.inputAttachmentCount -= requiredCounts[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT];
+				fixed.sampledImageCount -= requiredCounts[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE];
+				fixed.samplerCount -= requiredCounts[VK_DESCRIPTOR_TYPE_SAMPLER];
+				fixed.storageBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER];
+				fixed.storageImageCount -= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_IMAGE];
+				fixed.storageTexelBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER];
+				fixed.uniformBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER];
+				fixed.uniformTexelBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER];
+				
+				++fixed.allocatedSets;
+				
+				break;
+			}
+		}
+
+		if (!successful)
+		{
+			// allocate new pool
+			VkDescriptorPoolCreateInfo poolInfo;
+			std::vector<VkDescriptorPoolSize> sizes;
+
+			for (const auto& [type, count] : requiredCounts)
+			{
+				if (count == 0)
+				{
+					continue;
+				}
+
+				VkDescriptorPoolSize sz;
+				sz.descriptorCount = count;
+				sz.type = type;
+
+				sizes.push_back(sz);
+			}
+
+			poolInfo.maxSets = 32;
+			poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+			poolInfo.pNext = VK_NULL_HANDLE;
+			poolInfo.poolSizeCount = static_cast<uint32_t>(sizes.size());
+			poolInfo.pPoolSizes = sizes.data();
+
+			FixedDescriptorSetPool p;
+			const auto result = shader->device->functionTable.createDescriptorPool(&poolInfo, shader->device->device.allocation_callbacks, &(p.pool));
+
+			if (result != VK_SUCCESS)
+			{
+				// what the dog doing
+				continue;
+			}
+
+			constexpr uint32_t multiplier = 32;
+			p.maxSets = poolInfo.maxSets;
+			p.samplerCapacity = requiredCounts[VK_DESCRIPTOR_TYPE_SAMPLER] * multiplier;
+			p.combinedImageSamplerCapacity = requiredCounts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] * multiplier;
+			p.sampledImageCapacity = requiredCounts[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE] * multiplier;
+
+			pool.pools.push_back(p);
+		}
+	}
+
 	return nullptr;
 }
 

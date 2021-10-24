@@ -86,13 +86,13 @@ struct ShaderLayoutBindingCreateInfo
 
 struct ShaderLayoutSetCreateInfo
 {
-	uint32_t bindingCount;
+	uint32_t bindingCount = 0;
 	ShaderLayoutBindingCreateInfo* bindingInfos;
 };
 
 struct ShaderLayoutCreateInfo
 {
-	uint32_t setCount;
+	uint32_t setCount = 0;
 	ShaderLayoutSetCreateInfo* setInfos;
 };
 

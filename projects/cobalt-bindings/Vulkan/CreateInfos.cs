@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 
 namespace Cobalt.Bindings.Vulkan
 {
@@ -72,20 +73,45 @@ namespace Cobalt.Bindings.Vulkan
         public uint pipelineBindPoint;
         [FieldOffset(8)]
         public uint inputAttachmentCount;
-        [FieldOffset(12)]
+        [FieldOffset(16)]
         public AttachmentReference[] attachments;
-        [FieldOffset(20)]
-        public uint colorAttachmentCount;
         [FieldOffset(24)]
-        public AttachmentReference[] colorAttachments;
+        public uint colorAttachmentCount;
         [FieldOffset(32)]
-        public AttachmentReference[] resolveAttachments;
+        public AttachmentReference[] colorAttachments;
         [FieldOffset(40)]
-        public AttachmentReference[] depthStencilAttachments;
+        public AttachmentReference[] resolveAttachments;
         [FieldOffset(48)]
+        public AttachmentReference[] depthStencilAttachments;
+        [FieldOffset(56)]
         public uint preserveAttachmentCount;
-        [FieldOffset(52)]
-        public uint[] preseveAttachments;
+        [FieldOffset(64)]
+        public uint[] preserveAttachments;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    internal unsafe struct SubpassDescriptionImpl
+    {
+        [FieldOffset(0)]
+        public uint flags;
+        [FieldOffset(4)]
+        public uint pipelineBindPoint;
+        [FieldOffset(8)]
+        public uint inputAttachmentCount;
+        [FieldOffset(16)]
+        public AttachmentReference* attachments;
+        [FieldOffset(24)]
+        public uint colorAttachmentCount;
+        [FieldOffset(32)]
+        public AttachmentReference* colorAttachments;
+        [FieldOffset(40)]
+        public AttachmentReference* resolveAttachments;
+        [FieldOffset(48)]
+        public AttachmentReference* depthStencilAttachments;
+        [FieldOffset(56)]
+        public uint preserveAttachmentCount;
+        [FieldOffset(64)]
+        public uint* preserveAttachments;
     }
 
     [StructLayout(LayoutKind.Explicit)]
@@ -112,16 +138,33 @@ namespace Cobalt.Bindings.Vulkan
     {
         [FieldOffset(0)] 
         public uint attachmentCount;
-        [FieldOffset(4)] 
+        [FieldOffset(8)] 
         public AttachmentDescription[] attachments;
-        [FieldOffset(12)] 
-        public uint subpassCount;
         [FieldOffset(16)] 
-        public SubpassDescription[] subpasses;
+        public uint subpassCount;
         [FieldOffset(24)] 
+        public SubpassDescription[] subpasses;
+        [FieldOffset(32)] 
         public uint dependencyCount;
-        [FieldOffset(28)] 
+        [FieldOffset(40)] 
         public SubpassDependency[] dependencies;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    internal unsafe struct RenderPassCreateInfoImpl
+    {
+        [FieldOffset(0)]
+        public uint attachmentCount;
+        [FieldOffset(8)]
+        public AttachmentDescription* attachments;
+        [FieldOffset(16)]
+        public uint subpassCount;
+        [FieldOffset(24)]
+        public SubpassDescriptionImpl* subpasses;
+        [FieldOffset(32)]
+        public uint dependencyCount;
+        [FieldOffset(40)]
+        public SubpassDependency* dependencies;
     }
 
     [StructLayout(LayoutKind.Explicit)]
@@ -188,7 +231,7 @@ namespace Cobalt.Bindings.Vulkan
     {
         [FieldOffset(0)]
         public uint bindingCount;
-        [FieldOffset(4)]
+        [FieldOffset(8)]
         public ShaderLayoutBindingCreateInfo[] bindingInfos;
     };
 
@@ -197,7 +240,7 @@ namespace Cobalt.Bindings.Vulkan
     {
         [FieldOffset(0)]
         public uint setCount;
-        [FieldOffset(4)]
+        [FieldOffset(8)]
         public ShaderLayoutSetCreateInfo[] setInfos;
     };
 
@@ -205,24 +248,24 @@ namespace Cobalt.Bindings.Vulkan
     public struct ShaderCreateInfo
     {
         [FieldOffset(0)]
-        public char[] vertexModulePath;
+        public string vertexModulePath;
         [FieldOffset(8)]
-        public char[] fragmentModulePath;
+        public string fragmentModulePath;
         [FieldOffset(16)]
-        public char[] geometryModulePath;
+        public string geometryModulePath;
         [FieldOffset(24)]
-        public char[] tesselationEvalModulePath;
+        public string tesselationEvalModulePath;
         [FieldOffset(32)]
-        public char[] tesselationControlModulePath;
+        public string tesselationControlModulePath;
         [FieldOffset(40)]
-        public char[] computeModulePath;
+        public string computeModulePath;
 
         [FieldOffset(48)]
         public VK.RenderPass pass;
         [FieldOffset(56)]
         public uint subPassIndex;
 
-        [FieldOffset(60)]
+        [FieldOffset(64)]
         public ShaderLayoutCreateInfo layoutInfo;
     };
 
@@ -287,13 +330,30 @@ namespace Cobalt.Bindings.Vulkan
         public VK.RenderPass pass;
         [FieldOffset(8)] 
         public uint attachmentCount;
-        [FieldOffset(12)] 
+        [FieldOffset(16)] 
         public VK.ImageView[] attachments;
-        [FieldOffset(20)] 
-        public uint width;
         [FieldOffset(24)] 
-        public uint height;
+        public uint width;
         [FieldOffset(28)] 
+        public uint height;
+        [FieldOffset(32)] 
+        public uint layers;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    internal unsafe struct FramebufferCreateInfoImpl
+    {
+        [FieldOffset(0)]
+        public VK.RenderPass pass;
+        [FieldOffset(8)]
+        public uint attachmentCount;
+        [FieldOffset(16)]
+        public VK.ImageView* attachments;
+        [FieldOffset(24)]
+        public uint width;
+        [FieldOffset(28)]
+        public uint height;
+        [FieldOffset(32)]
         public uint layers;
     }
 }

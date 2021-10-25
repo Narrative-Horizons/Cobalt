@@ -6,8 +6,9 @@ namespace Cobalt.Graphics.VK
     public class ImageView : IDisposable
     {
         internal readonly Bindings.Vulkan.VK.ImageView handle;
-        internal readonly Bindings.Vulkan.VK.Device device;
-        internal ImageView(Bindings.Vulkan.VK.Device device, ImageViewCreateInfo info, string name, uint frame)
+        internal readonly Bindings.Vulkan.VK.Instance device;
+
+        internal ImageView(Bindings.Vulkan.VK.Instance device, ImageViewCreateInfo info, string name, uint frame)
         {
             this.device = device;
             handle = Bindings.Vulkan.VK.CreateImageView(device, info, name, frame);

@@ -36,13 +36,13 @@ struct SwapchainCreateInfo
 
 struct RenderPassCreateInfo
 {
-	size_t attachmentCount;
+	uint32_t attachmentCount;
 	const VkAttachmentDescription* attachments;
 
-	size_t subpassCount;
+	uint32_t subpassCount;
 	const VkSubpassDescription* subpasses;
 
-	size_t dependencyCount;
+	uint32_t dependencyCount;
 	const VkSubpassDependency* dependencies;
 };
 

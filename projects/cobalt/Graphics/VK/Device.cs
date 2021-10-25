@@ -51,6 +51,7 @@ namespace Cobalt.Graphics.VK
                 useDefaultDebugger = true,
                 window = window.Native()
             };
+
             Instance handle = CreateInstance(createInfo);
             return handle != IntPtr.Zero ? new Device(handle) : null;
         }

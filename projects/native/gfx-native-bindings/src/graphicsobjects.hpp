@@ -25,10 +25,16 @@ struct PhysicalDevice
 	VkSurfaceKHR surface;
 };
 
+struct ImageView
+{
+	VkImageView imageView;
+	uint32_t amount;
+};
+
 struct Swapchain
 {
 	vkb::Swapchain swapchain;
-	std::vector<VkImageView> frameViews;
+	std::vector<ImageView*> frameViews;
 };
 
 struct RenderPass
@@ -38,7 +44,8 @@ struct RenderPass
 
 struct CommandBuffer
 {
-	std::vector<VkCommandBuffer> buffers;
+	VkCommandBuffer* buffers;
+	uint32_t amount;
 
 	VkCommandPool pool;
 	VkQueue queue;
@@ -154,12 +161,6 @@ struct Shader
 
 	ShaderModule* computeModule;
 	DynamicDescriptorSetPool descPool;
-};
-
-struct ImageView
-{
-	VkImageView imageView;
-	uint32_t amount;
 };
 
 struct Image

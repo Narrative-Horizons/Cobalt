@@ -223,7 +223,14 @@ VK_BINDING_EXPORT Swapchain* cobalt_vkb_create_swapchain(Device* device, Swapcha
 	const auto imageViews = swapchain->swapchain.get_image_views();
 	if(imageViews.has_value())
 	{
-		swapchain->frameViews = imageViews.value();
+		for(auto view : imageViews.value())
+		{
+			ImageView* v = new ImageView();
+			v->amount = 1;
+			v->imageView = view;
+
+			swapchain->frameViews.push_back(v);
+		}
 	}
 	else
 	{
@@ -249,7 +256,18 @@ VK_BINDING_EXPORT bool cobalt_vkb_destroy_swapchain(Swapchain* swapchain)
 	return false;
 }
 
-VK_BINDING_EXPORT VkRenderPass cobalt_vkb_create_renderpass(Device* device, RenderPassCreateInfo info)
+VK_BINDING_EXPORT ImageView* cobalt_vkb_get_swapchain_image_view(Swapchain* swapchain, uint32_t index)
+{
+	if(swapchain)
+	{
+		return swapchain->frameViews[index];
+	}
+
+	return nullptr;
+}
+
+
+VK_BINDING_EXPORT RenderPass* cobalt_vkb_create_renderpass(Device* device, RenderPassCreateInfo info)
 {
 	VkRenderPassCreateInfo renderPassInfo = {};
 	renderPassInfo.pNext = nullptr;
@@ -265,12 +283,15 @@ VK_BINDING_EXPORT VkRenderPass cobalt_vkb_create_renderpass(Device* device, Rend
 	renderPassInfo.dependencyCount = static_cast<uint32_t>(info.dependencyCount);
 	renderPassInfo.pDependencies = info.dependencies;
 
-	VkRenderPass pass;
-	if (device->functionTable.createRenderPass(&renderPassInfo, device->device.allocation_callbacks, &pass) != VK_SUCCESS)
+	VkRenderPass renderpass;
+	if (!device->functionTable.createRenderPass(&renderPassInfo, device->device.allocation_callbacks, &renderpass) == VK_SUCCESS)
 	{
 		return nullptr;
 	}
 
+	RenderPass* pass = new RenderPass();
+	pass->pass = renderpass;
+	
 	return pass;
 }
 
@@ -328,17 +349,16 @@ VK_BINDING_EXPORT CommandBuffer* cobalt_vkb_create_commandbuffer(Device* device,
 
 	allocInfo.level = info.primary ? VK_COMMAND_BUFFER_LEVEL_PRIMARY : VK_COMMAND_BUFFER_LEVEL_SECONDARY;
 
-	std::vector<VkCommandBuffer> buffers;
-	buffers.reserve(info.amount);
+	CommandBuffer* buffer = new CommandBuffer();
+	buffer->amount = allocInfo.commandBufferCount;
+	buffer->buffers = new VkCommandBuffer[buffer->amount];
 	
-	if (device->functionTable.allocateCommandBuffers(&allocInfo, buffers.data()))
+	if (!device->functionTable.allocateCommandBuffers(&allocInfo, buffer->buffers) == VK_SUCCESS)
 	{
 		return nullptr;
 	}
 
-	CommandBuffer* buffer = new CommandBuffer();
 	
-	buffer->buffers = std::move(buffers);
 	buffer->pool = allocInfo.commandPool;
 	buffer->queue = queue;
 
@@ -349,14 +369,105 @@ VK_BINDING_EXPORT bool cobalt_vkb_destroy_commandbuffer(Device* device, CommandB
 {
 	if (buffer)
 	{
-		device->functionTable.freeCommandBuffers(buffer->pool, 1, buffer->buffers.data() + index);
-		buffer->buffers.erase(buffer->buffers.begin() + index);
-
-		if (buffer->buffers.empty())
+		device->functionTable.freeCommandBuffers(buffer->pool, 1, buffer->buffers + index);
+		buffer->amount--;
+		
+		if (buffer->amount == 0)
 		{
+			delete buffer->buffers;
 			delete buffer;
 		}
 		
+		return true;
+	}
+
+	return false;
+}
+
+VK_BINDING_EXPORT bool cobalt_vkb_begin_commandbuffer(Device* device, CommandBuffer* buffer, const uint32_t index)
+{
+	if(buffer)
+	{
+		VkCommandBufferBeginInfo beginInfo = {};
+		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		beginInfo.flags = 0;
+		beginInfo.pNext = nullptr;
+		beginInfo.pInheritanceInfo = nullptr;
+		
+		device->functionTable.beginCommandBuffer(buffer->buffers[index], &beginInfo);
+
+		return true;
+	}
+
+	return false;
+}
+
+VK_BINDING_EXPORT bool cobalt_vkb_command_begin_renderpass(Device* device, CommandBuffer* buffer, const uint32_t index, RenderPass* pass, Framebuffer* framebuffer)
+{
+	if (buffer)
+	{
+		VkRenderPassBeginInfo renderPassInfo = {};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		renderPassInfo.pNext = nullptr;
+		renderPassInfo.renderPass = pass->pass;
+		renderPassInfo.framebuffer = framebuffer->framebuffer;
+		renderPassInfo.renderArea.offset = { 0, 0 };
+		renderPassInfo.renderArea.extent = { 1280, 720 };
+
+		VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0}} };
+		renderPassInfo.clearValueCount = 1;
+		renderPassInfo.pClearValues = &clearColor;
+
+		device->functionTable.cmdBeginRenderPass(buffer->buffers[index], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+		return true;
+	}
+
+	return false;
+}
+
+VK_BINDING_EXPORT bool cobalt_vkb_command_bind_pipeline(Device* device, CommandBuffer* buffer, const uint32_t index, Shader* shader)
+{
+	if(buffer)
+	{
+		device->functionTable.cmdBindPipeline(buffer->buffers[index], VK_PIPELINE_BIND_POINT_GRAPHICS, shader->pipeline);
+		
+		return true;
+	}
+
+	return false;
+}
+
+VK_BINDING_EXPORT bool cobalt_vkb_command_draw(Device* device, CommandBuffer* buffer, const uint32_t index)
+{
+	if (buffer)
+	{
+		device->functionTable.cmdDraw(buffer->buffers[index], 3, 1, 0, 0);
+
+		return true;
+	}
+
+	return false;
+}
+
+VK_BINDING_EXPORT bool cobalt_vkb_command_end_renderpass(Device* device, CommandBuffer* buffer, const uint32_t index)
+{
+	if (buffer)
+	{
+		device->functionTable.cmdEndRenderPass(buffer->buffers[index]);
+
+		return true;
+	}
+
+	return false;
+}
+
+VK_BINDING_EXPORT bool cobalt_vkb_commandbuffer_end(Device* device, CommandBuffer* buffer, const uint32_t index)
+{
+	if (buffer)
+	{
+		device->functionTable.endCommandBuffer(buffer->buffers[index]);
+
 		return true;
 	}
 
@@ -438,7 +549,7 @@ VK_BINDING_EXPORT ShaderModule* cobalt_vkb_create_shadermodule(Device* device, S
 
 	VkShaderModule vkshaderModule;
 
-	if(!device->functionTable.createShaderModule(&createInfo, device->device.allocation_callbacks, &vkshaderModule))
+	if(!device->functionTable.createShaderModule(&createInfo, device->device.allocation_callbacks, &vkshaderModule) == VK_SUCCESS)
 	{
 		return nullptr;
 	}
@@ -495,7 +606,7 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 		vertexStageInfo.flags = 0;
 		vertexStageInfo.pNext = nullptr;
 		vertexStageInfo.module = shader->vertexModule->shaderModule;
-		vertexStageInfo.pName = "Vertex Shader";
+		vertexStageInfo.pName = "main";
 		vertexStageInfo.pSpecializationInfo = nullptr;
 		vertexStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
 
@@ -529,7 +640,7 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 			fragmentStageInfo.flags = 0;
 			fragmentStageInfo.pNext = nullptr;
 			fragmentStageInfo.module = shader->fragmentModule->shaderModule;
-			fragmentStageInfo.pName = "Fragment Shader";
+			fragmentStageInfo.pName = "main";
 			fragmentStageInfo.pSpecializationInfo = nullptr;
 			fragmentStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
 
@@ -739,6 +850,7 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 	pipelineLayoutInfo.pNext = nullptr;
 	pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(vkLayouts.size());
 	pipelineLayoutInfo.pSetLayouts = vkLayouts.data();
+	pipelineLayoutInfo.pushConstantRangeCount = 0;
 
 	device->functionTable.createPipelineLayout(&pipelineLayoutInfo, device->device.allocation_callbacks, &shader->pipelineLayout.layout);
 	
@@ -753,6 +865,86 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 	pipelineInfo.pStages = shaderStages.data();
 	pipelineInfo.renderPass = info.pass->pass;
 	pipelineInfo.subpass = info.subPassIndex;
+
+	VkPipelineVertexInputStateCreateInfo vertexInfo = {};
+	vertexInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+	vertexInfo.flags = 0;
+	vertexInfo.pNext = nullptr;
+	vertexInfo.vertexBindingDescriptionCount = 0;
+	vertexInfo.vertexAttributeDescriptionCount = 0;
+
+	VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
+	inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+	inputAssembly.flags = 0;
+	inputAssembly.pNext = nullptr;
+	inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+	inputAssembly.primitiveRestartEnable = false;
+
+	VkViewport viewport = {};
+	viewport.x = 0.0f;
+	viewport.y = 0.0f;
+	viewport.width = 1280.0f;
+	viewport.height = 720.0f;
+	viewport.minDepth = 0.0f;
+	viewport.maxDepth = 1.0f;
+
+	VkRect2D scissor = {};
+	scissor.offset = { 0, 0 };
+	scissor.extent = { 1280, 720 };
+
+	VkPipelineViewportStateCreateInfo viewportState = {};
+	viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+	viewportState.flags = 0;
+	viewportState.pNext = nullptr;
+	viewportState.viewportCount = 1;
+	viewportState.pViewports = &viewport;
+	viewportState.scissorCount = 1;
+	viewportState.pScissors = &scissor;
+
+	VkPipelineRasterizationStateCreateInfo rasterizer = {};
+	rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+	rasterizer.flags = 0;
+	rasterizer.pNext = nullptr;
+	rasterizer.depthClampEnable = VK_FALSE;
+	rasterizer.rasterizerDiscardEnable = VK_FALSE;
+	rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+	rasterizer.lineWidth = 1.0f;
+	rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+	rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+	rasterizer.depthBiasEnable = VK_FALSE;
+
+	VkPipelineMultisampleStateCreateInfo multisampling = {};
+	multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+	multisampling.flags = 0;
+	multisampling.pNext = nullptr;
+	multisampling.sampleShadingEnable = VK_FALSE;
+	multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+
+	VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
+	colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	colorBlendAttachment.blendEnable = VK_FALSE;
+
+	VkPipelineColorBlendStateCreateInfo colorBlending = {};
+	colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+	colorBlending.flags = 0;
+	colorBlending.pNext = nullptr;
+	colorBlending.logicOpEnable = VK_FALSE;
+	colorBlending.logicOp = VK_LOGIC_OP_COPY;
+	colorBlending.attachmentCount = 1;
+	colorBlending.pAttachments = &colorBlendAttachment;
+	colorBlending.blendConstants[0] = 0.0f;
+	colorBlending.blendConstants[1] = 0.0f;
+	colorBlending.blendConstants[2] = 0.0f;
+	colorBlending.blendConstants[3] = 0.0f;
+
+	pipelineInfo.pVertexInputState = &vertexInfo;
+	pipelineInfo.pInputAssemblyState = &inputAssembly;
+	pipelineInfo.pViewportState = &viewportState;
+	pipelineInfo.pRasterizationState = &rasterizer;
+	pipelineInfo.pMultisampleState = &multisampling;
+	pipelineInfo.pDepthStencilState = nullptr;
+	pipelineInfo.pColorBlendState = &colorBlending;
+	pipelineInfo.pDynamicState = nullptr;
 
 	device->functionTable.createGraphicsPipelines(device->pipelineCache, 1, &pipelineInfo, device->device.allocation_callbacks, &shader->pipeline);
 	shader->device = device;

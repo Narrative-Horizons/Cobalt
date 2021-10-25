@@ -6,9 +6,9 @@ namespace Cobalt.Graphics.VK
     public class Image : IDisposable
     {
         internal readonly Bindings.Vulkan.VK.Image handle;
-        internal readonly Bindings.Vulkan.VK.Device device;
+        internal readonly Bindings.Vulkan.VK.Instance device;
 
-        internal Image(Bindings.Vulkan.VK.Device device, ImageCreateInfo info, string name, uint frame)
+        internal Image(Bindings.Vulkan.VK.Instance device, ImageCreateInfo info, string name, uint frame)
         {
             this.device = device;
             handle = Bindings.Vulkan.VK.CreateImage(device, info, name, frame);

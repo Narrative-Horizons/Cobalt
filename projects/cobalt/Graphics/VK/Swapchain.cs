@@ -6,7 +6,8 @@ namespace Cobalt.Graphics.VK
     internal class Swapchain : IDisposable
     {
         internal readonly Bindings.Vulkan.VK.SwapChain handle;
-        public Swapchain(Bindings.Vulkan.VK.Device device, SwapchainCreateInfo info)
+
+        public Swapchain(Bindings.Vulkan.VK.Instance device, SwapchainCreateInfo info)
         {
             handle = Bindings.Vulkan.VK.CreateSwapchain(device, info);
         }

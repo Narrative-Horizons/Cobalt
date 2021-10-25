@@ -6,9 +6,9 @@ namespace Cobalt.Graphics.VK
     public class Framebuffer : IDisposable
     {
         internal readonly Bindings.Vulkan.VK.Framebuffer handle;
-        internal readonly Bindings.Vulkan.VK.Device device;
+        internal readonly Bindings.Vulkan.VK.Instance device;
 
-        public Framebuffer(Bindings.Vulkan.VK.Device device, FramebufferCreateInfo info)
+        public Framebuffer(Bindings.Vulkan.VK.Instance device, FramebufferCreateInfo info)
         {
             this.device = device;
             handle = Bindings.Vulkan.VK.CreateFramebuffer(device, info);

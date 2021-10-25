@@ -197,6 +197,22 @@ namespace Cobalt.Bindings.Vulkan
             }
         }
 
+        public struct Semaphore
+        {
+            public IntPtr handle;
+
+            public static implicit operator IntPtr(Semaphore set)
+            {
+                return set.handle;
+            }
+
+            public static explicit operator Semaphore(IntPtr handle) => new Semaphore(handle);
+
+            public Semaphore(IntPtr handle)
+            {
+                this.handle = handle;
+            }
+        }
         #endregion
 
         #region DLL Loading
@@ -293,7 +309,100 @@ namespace Cobalt.Bindings.Vulkan
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_destroy_framebuffer", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool DestroyFramebuffer(Instance device, Framebuffer imageView);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_create_semaphore", CallingConvention = CallingConvention.Cdecl)]
+        public static extern Semaphore CreateSemaphore(Instance device, SemaphoreCreateInfo info);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_acquire_next_image", CallingConvention = CallingConvention.Cdecl)]
+        public static extern uint AcquireNextImage(Instance device, SwapChain swapchain, Semaphore semaphore);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_destroy_semaphore", CallingConvention = CallingConvention.Cdecl)]
+        public static extern bool DestroySemaphore(Instance device, Semaphore sempahore);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_submit_queue", CallingConvention = CallingConvention.Cdecl)]
+        private static extern bool SubmitQueueImpl(Instance device, SubmitInfoImpl info);
+
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_queue_present", CallingConvention = CallingConvention.Cdecl)]
+        private static extern bool PresentQueueImpl(Instance device, PresentInfoImpl info);
         #endregion
+
+        public static bool PresentQueue(Instance device, PresentInfo info)
+        {
+            PresentInfoImpl infoImpl = new PresentInfoImpl
+            {
+                swapchainCount = info.swapchainCount, waitSemaphoreCount = info.waitSemaphoreCount
+            };
+
+            unsafe
+            {
+                fixed (SwapChain* swapchains = &info.swapchains[0])
+                {
+                    infoImpl.swapchains = swapchains;
+                }
+
+                fixed (Semaphore* waitSemaphores = &info.waitSemaphores[0])
+                {
+                    infoImpl.waitSemaphores = waitSemaphores;
+                }
+
+                fixed (uint* imageIndices = &info.imageIndices[0])
+                {
+                    infoImpl.imageIndices = imageIndices;
+                }
+            }
+
+            return PresentQueueImpl(device, infoImpl);
+        }
+
+        public static bool SubmitQueue(Instance device, SubmitInfo info)
+        {
+            SubmitInfoImpl infoImpl = new SubmitInfoImpl
+            {
+                commandBufferCount = info.commandBufferCount,
+                signalSemaphoreCount = info.signalSemaphoreCount,
+                waitSemaphoreCount = info.waitSemaphoreCount,
+            };
+
+            unsafe
+            {
+                fixed (Semaphore* waitSemaphores = &info.waitSemaphores[0])
+                {
+                    infoImpl.waitSemaphores = waitSemaphores;
+                }
+
+                fixed (Semaphore* signalSemaphores = &info.signalSemaphores[0])
+                {
+                    infoImpl.signalSemaphores = signalSemaphores;
+                }
+
+                fixed (uint* waitDstStageMask = &info.waitDstStageMask[0])
+                {
+                    infoImpl.waitDstStageMask = waitDstStageMask;
+                }
+            }
+
+            unsafe
+            {
+                IndexedCommandBuffersImpl* implBuffers = stackalloc IndexedCommandBuffersImpl[(int)info.commandBufferCount];
+                int idx = 0;
+                foreach (IndexedCommandBuffers b in info.commandBuffer)
+                {
+                    IndexedCommandBuffersImpl i = new IndexedCommandBuffersImpl {commandbuffer = b.commandbuffer, amount = b.amount};
+
+                    fixed (uint* indices = &b.bufferIndices[0])
+                    {
+                        i.bufferIndices = indices;
+                    }
+
+                    implBuffers[idx++] = i;
+                }
+
+                infoImpl.commandBuffer = implBuffers;
+            }
+
+            return SubmitQueueImpl(device, infoImpl);
+        }
+
 
         public static Framebuffer CreateFramebuffer(Instance device, FramebufferCreateInfo info)
         {

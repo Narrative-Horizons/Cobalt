@@ -356,4 +356,112 @@ namespace Cobalt.Bindings.Vulkan
         [FieldOffset(32)]
         public uint layers;
     }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct SemaphoreCreateInfo
+    {
+        [FieldOffset(0)]
+        public uint flags;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct IndexedCommandBuffers
+    {
+        [FieldOffset(0)]
+        public VK.CommandBuffer commandbuffer;
+        [FieldOffset(8)]
+        public uint[] bufferIndices;
+
+        [FieldOffset(16)] public uint amount;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    internal unsafe struct IndexedCommandBuffersImpl
+    {
+        [FieldOffset(0)]
+        public VK.CommandBuffer commandbuffer;
+        [FieldOffset(8)]
+        public uint* bufferIndices;
+
+        [FieldOffset(16)] public uint amount;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct SubmitInfo
+    {
+        [FieldOffset(0)]
+        public uint waitSemaphoreCount;
+        [FieldOffset(8)]
+        public VK.Semaphore[] waitSemaphores;
+
+        [FieldOffset(16)]
+        public uint[] waitDstStageMask;
+
+        [FieldOffset(24)]
+        public uint commandBufferCount;
+        [FieldOffset(32)]
+        public IndexedCommandBuffers[] commandBuffer;
+
+        [FieldOffset(40)]
+        public uint signalSemaphoreCount;
+        [FieldOffset(48)]
+        public VK.Semaphore[] signalSemaphores;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    internal unsafe struct SubmitInfoImpl
+    {
+        [FieldOffset(0)]
+        public uint waitSemaphoreCount;
+        [FieldOffset(8)]
+        public VK.Semaphore* waitSemaphores;
+
+        [FieldOffset(16)]
+        public uint* waitDstStageMask;
+
+        [FieldOffset(24)]
+        public uint commandBufferCount;
+        [FieldOffset(32)]
+        public IndexedCommandBuffersImpl* commandBuffer;
+
+        [FieldOffset(40)]
+        public uint signalSemaphoreCount;
+        [FieldOffset(48)]
+        public VK.Semaphore* signalSemaphores;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct PresentInfo
+    {
+        [FieldOffset(0)]
+        public uint waitSemaphoreCount;
+        [FieldOffset(8)]
+        public VK.Semaphore[] waitSemaphores;
+
+        [FieldOffset(16)]
+        public uint swapchainCount;
+        [FieldOffset(24)]
+        public VK.SwapChain[] swapchains;
+
+        [FieldOffset(32)]
+        public uint[] imageIndices;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    internal unsafe struct PresentInfoImpl
+    {
+        [FieldOffset(0)]
+        public uint waitSemaphoreCount;
+        [FieldOffset(8)]
+        public VK.Semaphore* waitSemaphores;
+
+        [FieldOffset(16)]
+        public uint swapchainCount;
+        [FieldOffset(24)]
+        public VK.SwapChain* swapchains;
+
+        [FieldOffset(32)]
+        public uint* imageIndices;
+    }
 }
+

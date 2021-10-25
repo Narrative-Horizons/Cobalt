@@ -20,7 +20,7 @@ namespace Cobalt.Graphics
 
         public void Render()
         {
-
+            _context.Render();
         }
 
         public void PostRender()

@@ -1225,3 +1225,131 @@ VK_BINDING_EXPORT bool cobalt_vkb_destroy_framebuffer(Device* device, Framebuffe
 
 	return false;
 }
+
+VK_BINDING_EXPORT Semaphore* cobalt_vkb_create_semaphore(Device* device, SemaphoreCreateInfo info)
+{
+	VkSemaphoreCreateInfo semaphoreInfo = {};
+	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+	semaphoreInfo.flags = info.flags;
+	semaphoreInfo.pNext = nullptr;
+
+	VkSemaphore s;
+
+	if(!device->functionTable.createSemaphore(&semaphoreInfo, device->device.allocation_callbacks, &s) == VK_SUCCESS)
+	{
+		return nullptr;
+	}
+
+	Semaphore* semaphore = new Semaphore();
+	semaphore->semaphore = s;
+
+	return semaphore;
+}
+
+VK_BINDING_EXPORT bool cobalt_vkb_destroy_semaphore(Device* device, Semaphore* semaphore)
+{
+	if (semaphore)
+	{
+		device->functionTable.destroySemaphore(semaphore->semaphore, device->device.allocation_callbacks);
+
+		delete semaphore;
+
+		return true;
+	}
+
+	return false;
+}
+
+VK_BINDING_EXPORT uint32_t cobalt_vkb_acquire_next_image(Device* device, Swapchain* swapchain, Semaphore* semaphore)
+{
+	if(swapchain)
+	{
+		uint32_t imageIndex;
+		device->functionTable.acquireNextImageKHR(swapchain->swapchain, UINT64_MAX, semaphore->semaphore, VK_NULL_HANDLE, &imageIndex);
+
+		return imageIndex;
+	}
+
+	return UINT32_MAX;
+}
+
+VK_BINDING_EXPORT bool cobalt_vkb_submit_queue(Device* device, SubmitInfo info)
+{
+	VkSubmitInfo submitInfo = {};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.pNext = nullptr;
+
+	submitInfo.waitSemaphoreCount = info.waitSemaphoreCount;
+	submitInfo.signalSemaphoreCount = info.signalSemaphoreCount;
+	
+	VkSemaphore* waitSems = new VkSemaphore[info.waitSemaphoreCount];
+	for(int i = 0; i < info.waitSemaphoreCount; i++)
+	{
+		waitSems[i] = info.waitSemaphores[i]->semaphore;
+	}
+
+	VkSemaphore* signalSems = new VkSemaphore[info.signalSemaphoreCount];
+	for(int i = 0; i < info.signalSemaphoreCount; i++)
+	{
+		signalSems[i] = info.signalSemaphores[i]->semaphore;
+	}
+
+	submitInfo.pWaitSemaphores = waitSems;
+	submitInfo.pSignalSemaphores = signalSems;
+	submitInfo.pWaitDstStageMask = info.waitDstStageMask;
+
+	uint32_t amount = 0;
+	std::vector<VkCommandBuffer> uploadBuffers;
+	
+	for(int i = 0; i < info.commandbufferCount; i++)
+	{
+		IndexedCommandBuffers* buffers = info.commandbuffer[i];
+		amount += buffers->amount - 1;
+
+		for(int j = 0; j < buffers->amount - 1; j++)
+		{
+			uploadBuffers.push_back(buffers->commandbuffers->buffers[buffers->bufferIndices[j]]);
+		}
+	}
+	
+	submitInfo.commandBufferCount = info.commandbufferCount;
+	submitInfo.pCommandBuffers = uploadBuffers.data();
+
+	if(!device->functionTable.queueSubmit(device->graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE) == VK_SUCCESS)
+	{
+		return false;
+	}
+	
+	return true;
+}
+
+VK_BINDING_EXPORT bool cobalt_vkb_queue_present(Device* device, PresentInfo info)
+{
+	VkPresentInfoKHR presentInfo = {};
+	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+	presentInfo.pNext = nullptr;
+	presentInfo.waitSemaphoreCount = info.waitSemaphoreCount;
+
+	VkSemaphore* waitSems = new VkSemaphore[info.waitSemaphoreCount];
+	for (int i = 0; i < info.waitSemaphoreCount; i++)
+	{
+		waitSems[i] = info.waitSemaphores[i]->semaphore;
+	}
+
+	presentInfo.pWaitSemaphores = waitSems;
+
+	VkSwapchainKHR* swaps = new VkSwapchainKHR[info.swapchainCount];
+	for (int i = 0; i < info.swapchainCount; i++)
+	{
+		swaps[i] = info.swapchains[i]->swapchain;
+	}
+	
+	presentInfo.pSwapchains = swaps;
+
+	presentInfo.pImageIndices = info.imageIndices;
+	presentInfo.pResults = nullptr;
+
+	device->functionTable.queuePresentKHR(device->presentQueue, &presentInfo);
+
+	return true;
+}

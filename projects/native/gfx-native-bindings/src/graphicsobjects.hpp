@@ -201,3 +201,7 @@ struct Device
 	std::unordered_map<std::string, ImageView*> imageViews;
 };
 
+struct Semaphore
+{
+	VkSemaphore semaphore;
+};

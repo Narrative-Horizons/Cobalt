@@ -150,3 +150,40 @@ struct FramebufferCreateInfo
 	uint32_t height;
 	uint32_t layers;
 };
+
+struct SemaphoreCreateInfo
+{
+	uint32_t flags;
+};
+
+struct IndexedCommandBuffers
+{
+	CommandBuffer* commandbuffers;
+	uint32_t* bufferIndices;
+	uint32_t amount;
+};
+
+struct SubmitInfo
+{
+	uint32_t waitSemaphoreCount;
+	Semaphore** waitSemaphores;
+
+	uint32_t* waitDstStageMask;
+
+	uint32_t commandbufferCount;
+	IndexedCommandBuffers** commandbuffer;
+
+	uint32_t signalSemaphoreCount;
+	Semaphore** signalSemaphores;
+};
+
+struct PresentInfo
+{
+	uint32_t waitSemaphoreCount;
+	Semaphore** waitSemaphores;
+
+	uint32_t swapchainCount;
+	Swapchain** swapchains;
+
+	uint32_t* imageIndices;
+};

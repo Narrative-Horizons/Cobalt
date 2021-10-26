@@ -167,7 +167,7 @@ VK_BINDING_EXPORT Device* cobalt_vkb_create_device(InstanceCreateInfo info)
 
 	VkCommandPoolCreateInfo poolInfo = {};
 	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-	poolInfo.flags = 0;
+	poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 	poolInfo.pNext = nullptr;
 	poolInfo.queueFamilyIndex = device.device.get_queue_index(vkb::QueueType::graphics).value();
 	device.functionTable.createCommandPool(&poolInfo, device.device.allocation_callbacks, &device.graphicsPool);
@@ -576,7 +576,7 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 {
 	Shader* shader = new Shader();
 	std::vector< VkPipelineShaderStageCreateInfo> shaderStages;
-	
+
 	if(info.vertexModulePath != nullptr)
 	{
 		// Normal shader
@@ -1303,12 +1303,12 @@ VK_BINDING_EXPORT bool cobalt_vkb_submit_queue(Device* device, SubmitInfo info)
 	
 	for(int i = 0; i < info.commandbufferCount; i++)
 	{
-		IndexedCommandBuffers* buffers = info.commandbuffer[i];
-		amount += buffers->amount - 1;
+		IndexedCommandBuffers buffers = info.commandbuffer[i];
+		amount += buffers.amount;
 
-		for(int j = 0; j < buffers->amount - 1; j++)
+		for(int j = 0; j < buffers.amount; j++)
 		{
-			uploadBuffers.push_back(buffers->commandbuffers->buffers[buffers->bufferIndices[j]]);
+			uploadBuffers.push_back(buffers.commandbuffers->buffers[buffers.bufferIndices[j]]);
 		}
 	}
 	
@@ -1343,7 +1343,8 @@ VK_BINDING_EXPORT bool cobalt_vkb_queue_present(Device* device, PresentInfo info
 	{
 		swaps[i] = info.swapchains[i]->swapchain;
 	}
-	
+
+	presentInfo.swapchainCount = info.swapchainCount;
 	presentInfo.pSwapchains = swaps;
 
 	presentInfo.pImageIndices = info.imageIndices;

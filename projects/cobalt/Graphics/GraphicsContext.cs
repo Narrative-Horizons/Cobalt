@@ -16,8 +16,8 @@ namespace Cobalt.Graphics
         public Cobalt.Bindings.Vulkan.VK.SwapChain swapchain;
         public Cobalt.Bindings.Vulkan.VK.Framebuffer[] framebuffers = new Bindings.Vulkan.VK.Framebuffer[2];
         public Cobalt.Bindings.Vulkan.VK.CommandBuffer commandbuffer;
-        public Cobalt.Bindings.Vulkan.VK.Semaphore imageAvailableSemaphore;
-        public Cobalt.Bindings.Vulkan.VK.Semaphore renderFinishedSemaphore;
+        public Cobalt.Bindings.Vulkan.VK.Semaphore[] imageAvailableSemaphore;
+        public Cobalt.Bindings.Vulkan.VK.Semaphore[] renderFinishedSemaphore;
 
         public GraphicsContext(Window window)
         {
@@ -102,6 +102,9 @@ namespace Cobalt.Graphics
 
             commandbuffer = Bindings.Vulkan.VK.CreateCommandBuffer(ContextDevice.handle, bufferInfo);
 
+            imageAvailableSemaphore = new Bindings.Vulkan.VK.Semaphore[2];
+            renderFinishedSemaphore = new Bindings.Vulkan.VK.Semaphore[2];
+
             for (int i = 0; i < 2; i++)
             {
                 Bindings.Vulkan.VK.BeginCommandBuffer(ContextDevice.handle, commandbuffer, (uint)i);
@@ -115,11 +118,11 @@ namespace Cobalt.Graphics
                 Bindings.Vulkan.VK.EndRenderPass(ContextDevice.handle, commandbuffer, (uint) i);
 
                 Bindings.Vulkan.VK.EndCommandBuffer(ContextDevice.handle, commandbuffer, (uint) i);
-            }
 
-            SemaphoreCreateInfo semInfo = new SemaphoreCreateInfo();
-            imageAvailableSemaphore = Bindings.Vulkan.VK.CreateSemaphore(ContextDevice.handle, semInfo);
-            renderFinishedSemaphore = Bindings.Vulkan.VK.CreateSemaphore(ContextDevice.handle, semInfo);
+                SemaphoreCreateInfo semInfo = new SemaphoreCreateInfo();
+                imageAvailableSemaphore[i] = Bindings.Vulkan.VK.CreateSemaphore(ContextDevice.handle, semInfo);
+                renderFinishedSemaphore[i] = Bindings.Vulkan.VK.CreateSemaphore(ContextDevice.handle, semInfo);
+            }
         }
 
         uint currentFrame = 0;
@@ -127,14 +130,14 @@ namespace Cobalt.Graphics
         public void Render()
         {
             uint imageIndex =
-                Bindings.Vulkan.VK.AcquireNextImage(ContextDevice.handle, swapchain, imageAvailableSemaphore);
+                Bindings.Vulkan.VK.AcquireNextImage(ContextDevice.handle, swapchain, imageAvailableSemaphore[currentFrame]);
 
             SubmitInfo submitInfo = new SubmitInfo();
             submitInfo.waitSemaphoreCount = 1;
-            submitInfo.waitSemaphores = new[] {imageAvailableSemaphore};
+            submitInfo.waitSemaphores = new[] {imageAvailableSemaphore[currentFrame] };
 
             submitInfo.signalSemaphoreCount = 1;
-            submitInfo.signalSemaphores = new[] {renderFinishedSemaphore};
+            submitInfo.signalSemaphores = new[] {renderFinishedSemaphore[currentFrame] };
 
             submitInfo.waitSemaphoreCount = 1;
             submitInfo.waitDstStageMask = new[] {(uint)PipelineStageFlagBits.ColorAttachmentOutputBit};
@@ -142,7 +145,7 @@ namespace Cobalt.Graphics
             submitInfo.commandBufferCount = 1;
             IndexedCommandBuffers indexedBuffer = new IndexedCommandBuffers
             {
-                amount = 1, bufferIndices = new[] {imageIndex}, commandbuffer = commandbuffer
+                amount = 1, bufferIndices = new[] { currentFrame }, commandbuffer = commandbuffer
             };
 
             submitInfo.commandBuffer = new []{ indexedBuffer};
@@ -151,7 +154,7 @@ namespace Cobalt.Graphics
 
             PresentInfo presentInfo = new PresentInfo();
             presentInfo.waitSemaphoreCount = 1;
-            presentInfo.waitSemaphores = new[] {renderFinishedSemaphore};
+            presentInfo.waitSemaphores = new[] {renderFinishedSemaphore[currentFrame] };
             presentInfo.swapchainCount = 1;
             presentInfo.swapchains = new[] {swapchain};
             presentInfo.imageIndices = new[] {imageIndex};

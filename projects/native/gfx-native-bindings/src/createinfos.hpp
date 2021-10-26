@@ -171,7 +171,7 @@ struct SubmitInfo
 	uint32_t* waitDstStageMask;
 
 	uint32_t commandbufferCount;
-	IndexedCommandBuffers** commandbuffer;
+	IndexedCommandBuffers* commandbuffer;
 
 	uint32_t signalSemaphoreCount;
 	Semaphore** signalSemaphores;

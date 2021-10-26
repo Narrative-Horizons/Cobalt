@@ -365,39 +365,50 @@ namespace Cobalt.Bindings.Vulkan
 
             unsafe
             {
-                fixed (Semaphore* waitSemaphores = &info.waitSemaphores[0])
+                if (info.waitSemaphores != null)
                 {
-                    infoImpl.waitSemaphores = waitSemaphores;
-                }
-
-                fixed (Semaphore* signalSemaphores = &info.signalSemaphores[0])
-                {
-                    infoImpl.signalSemaphores = signalSemaphores;
-                }
-
-                fixed (uint* waitDstStageMask = &info.waitDstStageMask[0])
-                {
-                    infoImpl.waitDstStageMask = waitDstStageMask;
-                }
-            }
-
-            unsafe
-            {
-                IndexedCommandBuffersImpl* implBuffers = stackalloc IndexedCommandBuffersImpl[(int)info.commandBufferCount];
-                int idx = 0;
-                foreach (IndexedCommandBuffers b in info.commandBuffer)
-                {
-                    IndexedCommandBuffersImpl i = new IndexedCommandBuffersImpl {commandbuffer = b.commandbuffer, amount = b.amount};
-
-                    fixed (uint* indices = &b.bufferIndices[0])
+                    fixed (Semaphore* waitSemaphores = &info.waitSemaphores[0])
                     {
-                        i.bufferIndices = indices;
+                        infoImpl.waitSemaphores = waitSemaphores;
+                    }
+                }
+
+                if (info.signalSemaphores != null)
+                {
+                    fixed (Semaphore* signalSemaphores = &info.signalSemaphores[0])
+                    {
+                        infoImpl.signalSemaphores = signalSemaphores;
+                    }
+                }
+
+                if (info.waitDstStageMask != null)
+                {
+                    fixed (uint* waitDstStageMask = &info.waitDstStageMask[0])
+                    {
+                        infoImpl.waitDstStageMask = waitDstStageMask;
+                    }
+                }
+
+                if (info.commandBuffer != null)
+                {
+                    IndexedCommandBuffersImpl* implBuffers =
+                        stackalloc IndexedCommandBuffersImpl[(int) info.commandBufferCount];
+                    int idx = 0;
+                    foreach (IndexedCommandBuffers b in info.commandBuffer)
+                    {
+                        IndexedCommandBuffersImpl i = new IndexedCommandBuffersImpl
+                            {commandbuffer = b.commandbuffer, amount = b.amount};
+
+                        fixed (uint* indices = &b.bufferIndices[0])
+                        {
+                            i.bufferIndices = indices;
+                        }
+
+                        implBuffers[idx++] = i;
                     }
 
-                    implBuffers[idx++] = i;
+                    infoImpl.commandBuffer = implBuffers;
                 }
-
-                infoImpl.commandBuffer = implBuffers;
             }
 
             return SubmitQueueImpl(device, infoImpl);

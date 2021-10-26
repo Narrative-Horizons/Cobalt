@@ -6,6 +6,7 @@ namespace Cobalt.Bindings.Vulkan
     public static class VK
     {
         #region Named Pointers
+
         public struct Instance
         {
             public IntPtr handle;
@@ -129,6 +130,7 @@ namespace Cobalt.Bindings.Vulkan
                 this.handle = handle;
             }
         }
+
         public struct Framebuffer
         {
             public IntPtr handle;
@@ -213,9 +215,11 @@ namespace Cobalt.Bindings.Vulkan
                 this.handle = handle;
             }
         }
+
         #endregion
 
         #region DLL Loading
+
 #if COBALT_PLATFORM_WINDOWS
         public const string LIBRARY = "bin/gfx-native-bindings.dll";
 #elif COBALT_PLATFORM_MACOS
@@ -223,14 +227,16 @@ namespace Cobalt.Bindings.Vulkan
 #else
         public const string LIBRARY = "bin/gfx-native-bindings";
 #endif
+
         #endregion
 
         #region DLL Imports
+
         [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_create_device", CallingConvention = CallingConvention.Cdecl)]
         public static extern Instance CreateInstance(InstanceCreateInfo info);
 
-		[DllImport(LIBRARY, EntryPoint = "cobalt_vkb_destroy_device", CallingConvention = CallingConvention.Cdecl)]
-		private static extern bool DestroyInstance(Instance instance);
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_destroy_device", CallingConvention = CallingConvention.Cdecl)]
+        private static extern bool DestroyInstance(Instance instance);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_create_swapchain", CallingConvention = CallingConvention.Cdecl)]
         public static extern SwapChain CreateSwapchain(Instance device, SwapchainCreateInfo info);
@@ -238,7 +244,8 @@ namespace Cobalt.Bindings.Vulkan
         [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_destroy_swapchain", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool DestroySwapchain(SwapChain swapchain);
 
-        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_get_swapchain_image_view", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_get_swapchain_image_view",
+            CallingConvention = CallingConvention.Cdecl)]
         public static extern ImageView GetSwapChainImageView(SwapChain swapchain, uint index);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_create_renderpass", CallingConvention = CallingConvention.Cdecl)]
@@ -247,32 +254,39 @@ namespace Cobalt.Bindings.Vulkan
         [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_destroy_renderpass", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool DestroyRenderPass(Instance device, RenderPass renderpass);
 
-        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_create_commandbuffer", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_create_commandbuffer",
+            CallingConvention = CallingConvention.Cdecl)]
         public static extern CommandBuffer CreateCommandBuffer(Instance device, CommandBufferCreateInfo info);
 
-        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_destroy_commandbuffer", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_destroy_commandbuffer",
+            CallingConvention = CallingConvention.Cdecl)]
         public static extern bool DestroyCommandBuffer(Instance device, CommandBuffer buffer, uint index);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_begin_commandbuffer", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool BeginCommandBuffer(Instance device, CommandBuffer buffer, uint index);
 
-        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_command_begin_renderpass", CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool BeginRenderPass(Instance device, CommandBuffer buffer, uint index, RenderPass pass, Framebuffer framebuffer);
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_command_begin_renderpass",
+            CallingConvention = CallingConvention.Cdecl)]
+        public static extern bool BeginRenderPass(Instance device, CommandBuffer buffer, uint index, RenderPass pass,
+            Framebuffer framebuffer);
 
-        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_command_bind_pipeline", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_command_bind_pipeline",
+            CallingConvention = CallingConvention.Cdecl)]
         public static extern bool BindPipeline(Instance device, CommandBuffer buffer, uint index, Shader shader);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_command_draw", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool Draw(Instance device, CommandBuffer buffer, uint index);
 
-        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_command_end_renderpass", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_command_end_renderpass",
+            CallingConvention = CallingConvention.Cdecl)]
         public static extern bool EndRenderPass(Instance device, CommandBuffer buffer, uint index);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_commandbuffer_end", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool EndCommandBuffer(Instance device, CommandBuffer buffer, uint index);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_create_buffer", CallingConvention = CallingConvention.Cdecl)]
-        public static extern Buffer CreateBuffer(Instance device, BufferCreateInfo info, BufferMemoryCreateInfo memoryInfo);
+        public static extern Buffer CreateBuffer(Instance device, BufferCreateInfo info,
+            BufferMemoryCreateInfo memoryInfo);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_destroy_buffer", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool DestroyBuffer(Instance device, Buffer buffer);
@@ -286,7 +300,8 @@ namespace Cobalt.Bindings.Vulkan
         [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_create_shadermodule", CallingConvention = CallingConvention.Cdecl)]
         public static extern ShaderModule CreateShaderModule(Instance device, ShaderModuleCreateInfo info);
 
-        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_destroy_shadermodule", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_destroy_shadermodule",
+            CallingConvention = CallingConvention.Cdecl)]
         public static extern bool DestroyShaderModule(Instance device, ShaderModule module);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_create_shader", CallingConvention = CallingConvention.Cdecl)]
@@ -299,7 +314,8 @@ namespace Cobalt.Bindings.Vulkan
         public static extern bool DestroyImage(Instance device, Image image);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_create_imageview", CallingConvention = CallingConvention.Cdecl)]
-        public static extern ImageView CreateImageView(Instance device, ImageViewCreateInfo info, string name, uint frame);
+        public static extern ImageView CreateImageView(Instance device, ImageViewCreateInfo info, string name,
+            uint frame);
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_destroy_imageview", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool DestroyImageView(Instance device, ImageView imageView);
@@ -324,6 +340,7 @@ namespace Cobalt.Bindings.Vulkan
 
         [DllImport(LIBRARY, EntryPoint = "cobalt_vkb_queue_present", CallingConvention = CallingConvention.Cdecl)]
         private static extern bool PresentQueueImpl(Instance device, PresentInfoImpl info);
+
         #endregion
 
         public static bool PresentQueue(Instance device, PresentInfo info)
@@ -335,23 +352,41 @@ namespace Cobalt.Bindings.Vulkan
 
             unsafe
             {
-                fixed (SwapChain* swapchains = &info.swapchains[0])
+                if (info.swapchains != null)
                 {
+                    SwapChain* swapchains = stackalloc SwapChain[info.swapchains.Length];
+                    for (int i = 0; i < info.swapchains.Length; i++)
+                    {
+                        swapchains[i] = info.swapchains[i];
+                    }
+
                     infoImpl.swapchains = swapchains;
                 }
 
-                fixed (Semaphore* waitSemaphores = &info.waitSemaphores[0])
+                if (info.waitSemaphores != null)
                 {
+                    Semaphore* waitSemaphores = stackalloc Semaphore[info.waitSemaphores.Length];
+                    for (int i = 0; i < info.waitSemaphores.Length; i++)
+                    {
+                        waitSemaphores[i] = info.waitSemaphores[i];
+                    }
+
                     infoImpl.waitSemaphores = waitSemaphores;
                 }
 
-                fixed (uint* imageIndices = &info.imageIndices[0])
+                if (info.imageIndices != null)
                 {
+                    uint* imageIndices = stackalloc uint[info.imageIndices.Length];
+                    for (int i = 0; i < info.imageIndices.Length; i++)
+                    {
+                        imageIndices[i] = info.imageIndices[i];
+                    }
+
                     infoImpl.imageIndices = imageIndices;
                 }
-            }
 
-            return PresentQueueImpl(device, infoImpl);
+                return PresentQueueImpl(device, infoImpl);
+            }
         }
 
         public static bool SubmitQueue(Instance device, SubmitInfo info)
@@ -367,53 +402,69 @@ namespace Cobalt.Bindings.Vulkan
             {
                 if (info.waitSemaphores != null)
                 {
-                    fixed (Semaphore* waitSemaphores = &info.waitSemaphores[0])
+                    Semaphore* waitSemaphores = stackalloc Semaphore[info.waitSemaphores.Length];
+                    for (int i = 0; i < info.waitSemaphores.Length; i++)
                     {
-                        infoImpl.waitSemaphores = waitSemaphores;
+                        waitSemaphores[i] = info.waitSemaphores[i];
                     }
+
+                    infoImpl.waitSemaphores = waitSemaphores;
                 }
 
                 if (info.signalSemaphores != null)
                 {
-                    fixed (Semaphore* signalSemaphores = &info.signalSemaphores[0])
+                    Semaphore* signalSemaphores = stackalloc Semaphore[info.signalSemaphores.Length];
+                    for (int i = 0; i < info.signalSemaphores.Length; i++)
                     {
-                        infoImpl.signalSemaphores = signalSemaphores;
+                        signalSemaphores[i] = info.signalSemaphores[i];
                     }
+
+                    infoImpl.signalSemaphores = signalSemaphores;
                 }
 
                 if (info.waitDstStageMask != null)
                 {
-                    fixed (uint* waitDstStageMask = &info.waitDstStageMask[0])
+                    uint* waitDstStageMask = stackalloc uint[info.waitDstStageMask.Length];
+                    for (int i = 0; i < info.waitDstStageMask.Length; i++)
                     {
-                        infoImpl.waitDstStageMask = waitDstStageMask;
+                        waitDstStageMask[i] = info.waitDstStageMask[i];
                     }
+
+                    infoImpl.waitDstStageMask = waitDstStageMask;
                 }
 
                 if (info.commandBuffer != null)
                 {
                     IndexedCommandBuffersImpl* implBuffers =
-                        stackalloc IndexedCommandBuffersImpl[(int) info.commandBufferCount];
+                        stackalloc IndexedCommandBuffersImpl[info.commandBuffer.Length];
+
                     int idx = 0;
                     foreach (IndexedCommandBuffers b in info.commandBuffer)
                     {
-                        IndexedCommandBuffersImpl i = new IndexedCommandBuffersImpl
-                            {commandbuffer = b.commandbuffer, amount = b.amount};
+                        IndexedCommandBuffersImpl* i = stackalloc IndexedCommandBuffersImpl[1];
+                        i->amount = b.amount;
+                        i->commandbuffer = b.commandbuffer;
 
-                        fixed (uint* indices = &b.bufferIndices[0])
+                        if (b.bufferIndices != null)
                         {
-                            i.bufferIndices = indices;
+                            uint* indices = stackalloc uint[b.bufferIndices.Length];
+                            for (int j = 0; j < b.bufferIndices.Length; j++)
+                            {
+                                indices[j] = b.bufferIndices[j];
+                            }
+
+                            i->bufferIndices = indices;
                         }
 
-                        implBuffers[idx++] = i;
+                        implBuffers[idx++] = *i;
                     }
 
                     infoImpl.commandBuffer = implBuffers;
                 }
+
+                return SubmitQueueImpl(device, infoImpl);
             }
-
-            return SubmitQueueImpl(device, infoImpl);
         }
-
 
         public static Framebuffer CreateFramebuffer(Instance device, FramebufferCreateInfo info)
         {
@@ -428,13 +479,12 @@ namespace Cobalt.Bindings.Vulkan
 
             unsafe
             {
-                fixed (ImageView* attachments = &info.attachments[0])
+                fixed (ImageView* attachments = info.attachments)
                 {
                     infoImpl.attachments = attachments;
+                    return CreateFramebufferImpl(device, infoImpl);
                 }
             }
-
-            return CreateFramebufferImpl(device, infoImpl);
         }
 
 
@@ -447,98 +497,122 @@ namespace Cobalt.Bindings.Vulkan
                 dependencyCount = info.dependencyCount
             };
 
-            int idx = 0;
-            SubpassDescriptionImpl[] subs = null;
-            if (info.subpasses != null)
+            unsafe
             {
-                subs = new SubpassDescriptionImpl[info.subpassCount];
-
-                foreach (SubpassDescription sub in info.subpasses)
+                int idx = 0;
+                SubpassDescriptionImpl[] subs = null;
+                if (info.subpasses != null)
                 {
-                    SubpassDescriptionImpl newSub = new SubpassDescriptionImpl
-                    {
-                        colorAttachmentCount = sub.colorAttachmentCount,
-                        flags = sub.flags,
-                        inputAttachmentCount = sub.inputAttachmentCount,
-                        pipelineBindPoint = sub.pipelineBindPoint,
-                        preserveAttachmentCount = sub.preserveAttachmentCount
-                    };
+                    subs = new SubpassDescriptionImpl[info.subpassCount];
 
-                    unsafe
+                    foreach (SubpassDescription sub in info.subpasses)
                     {
+                        SubpassDescriptionImpl newSub = new SubpassDescriptionImpl
+                        {
+                            colorAttachmentCount = sub.colorAttachmentCount,
+                            flags = sub.flags,
+                            inputAttachmentCount = sub.inputAttachmentCount,
+                            pipelineBindPoint = sub.pipelineBindPoint,
+                            preserveAttachmentCount = sub.preserveAttachmentCount
+                        };
+
                         if (sub.attachments != null)
                         {
-                            fixed (AttachmentReference* attachments = &sub.attachments[0])
+                            AttachmentReference* attachments = stackalloc AttachmentReference[sub.attachments.Length];
+                            for (int i = 0; i < sub.attachments.Length; i++)
                             {
-                                newSub.attachments = attachments;
+                                attachments[i] = sub.attachments[i];
                             }
+
+                            newSub.attachments = attachments;
                         }
 
                         if (sub.colorAttachments != null)
                         {
-                            fixed (AttachmentReference* colorAttachments = &sub.colorAttachments[0])
+                            AttachmentReference* colorAttachments =
+                                stackalloc AttachmentReference[sub.colorAttachments.Length];
+                            for (int i = 0; i < sub.colorAttachments.Length; i++)
                             {
-                                newSub.colorAttachments = colorAttachments;
+                                colorAttachments[i] = sub.colorAttachments[i];
                             }
+
+                            newSub.colorAttachments = colorAttachments;
                         }
 
                         if (sub.resolveAttachments != null)
                         {
-                            fixed (AttachmentReference* resolveAttachments = &sub.resolveAttachments[0])
+                            AttachmentReference* resolveAttachments =
+                                stackalloc AttachmentReference[sub.resolveAttachments.Length];
+                            for (int i = 0; i < sub.resolveAttachments.Length; i++)
                             {
-                                newSub.resolveAttachments = resolveAttachments;
+                                resolveAttachments[i] = sub.resolveAttachments[i];
                             }
+
+                            newSub.resolveAttachments = resolveAttachments;
                         }
 
                         if (sub.depthStencilAttachments != null)
                         {
-                            fixed (AttachmentReference* depthStencilAttachments = &sub.depthStencilAttachments[0])
+                            AttachmentReference* depthStencilAttachments =
+                                stackalloc AttachmentReference[sub.depthStencilAttachments.Length];
+                            for (int i = 0; i < sub.depthStencilAttachments.Length; i++)
                             {
-                                newSub.depthStencilAttachments = depthStencilAttachments;
+                                depthStencilAttachments[i] = sub.depthStencilAttachments[i];
                             }
+
+                            newSub.depthStencilAttachments = depthStencilAttachments;
                         }
 
                         if (sub.preserveAttachments != null)
                         {
-                            fixed (uint* preserveAttachments = &sub.preserveAttachments[0])
+                            uint* preserveAttachments = stackalloc uint[sub.preserveAttachments.Length];
+                            for (int i = 0; i < sub.preserveAttachments.Length; i++)
                             {
-                                newSub.preserveAttachments = preserveAttachments;
+                                preserveAttachments[i] = sub.preserveAttachments[i];
                             }
+
+                            newSub.preserveAttachments = preserveAttachments;
                         }
+
+                        subs[idx++] = newSub;
                     }
-
-                    subs[idx++] = newSub;
                 }
-            }
 
-            unsafe
-            {
                 if (info.attachments != null)
                 {
-                    fixed (AttachmentDescription* attachments = &info.attachments[0])
+                    AttachmentDescription* attachmentsDescs = stackalloc AttachmentDescription[info.attachments.Length];
+                    for (int i = 0; i < info.attachments.Length; i++)
                     {
-                        infoImpl.attachments = attachments;
+                        attachmentsDescs[i] = info.attachments[i];
                     }
+
+                    infoImpl.attachments = attachmentsDescs;
                 }
 
                 if (subs != null)
                 {
-                    fixed (SubpassDescriptionImpl* subpasses = &subs[0])
+                    SubpassDescriptionImpl* subpasses = stackalloc SubpassDescriptionImpl[subs.Length];
+                    for (int i = 0; i < subs.Length; i++)
                     {
-                        infoImpl.subpasses = subpasses;
+                        subpasses[i] = subs[i];
                     }
+
+                    infoImpl.subpasses = subpasses;
                 }
 
                 if (info.dependencies != null)
                 {
-                    fixed (SubpassDependency* dependencies = &info.dependencies[0])
+                    SubpassDependency* dependencies = stackalloc SubpassDependency[info.dependencies.Length];
+                    for (int i = 0; i < info.dependencies.Length; i++)
                     {
-                        infoImpl.dependencies = dependencies;
+                        dependencies[i] = info.dependencies[i];
                     }
-                }
-            }
 
-            return CreateRenderPassImpl(device, infoImpl);
+                    infoImpl.dependencies = dependencies;
+                }
+
+                return CreateRenderPassImpl(device, infoImpl);
+            }
         }
     }
 }

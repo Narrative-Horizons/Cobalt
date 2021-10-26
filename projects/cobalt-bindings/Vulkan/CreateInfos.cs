@@ -372,7 +372,8 @@ namespace Cobalt.Bindings.Vulkan
         [FieldOffset(8)]
         public uint[] bufferIndices;
 
-        [FieldOffset(16)] public uint amount;
+        [FieldOffset(16)] 
+        public uint amount;
     }
 
     [StructLayout(LayoutKind.Explicit)]
@@ -383,7 +384,8 @@ namespace Cobalt.Bindings.Vulkan
         [FieldOffset(8)]
         public uint* bufferIndices;
 
-        [FieldOffset(16)] public uint amount;
+        [FieldOffset(16)] 
+        public uint amount;
     }
 
     [StructLayout(LayoutKind.Explicit)]

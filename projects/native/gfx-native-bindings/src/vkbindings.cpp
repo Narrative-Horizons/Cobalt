@@ -6,8 +6,6 @@
 
 #include <GLFW/glfw3.h>
 
-#include <stdio.h>
-#include <stdbool.h>
 #include <fstream>
 #include <string>
 
@@ -26,12 +24,12 @@ VK_BINDING_EXPORT Device* cobalt_vkb_create_device(InstanceCreateInfo info)
 		.require_api_version(info.requiredVersion.major, info.requiredVersion.major, info.requiredVersion.patch)
 		.enable_validation_layers(info.requireValidationLayers);
 
-	for (auto i = 0; i < info.enabledLayerCount; ++i)
+	for (size_t i = 0; i < info.enabledLayerCount; ++i)
 	{
 		bldr.enable_layer(info.enabledLayers[i]);
 	}
 
-	for (auto i = 0; i < info.enabledExtensionCount; ++i)
+	for (size_t i = 0; i < info.enabledExtensionCount; ++i)
 	{
 		bldr.enable_extension(info.enabledExtensions[i]);
 	}
@@ -48,7 +46,6 @@ VK_BINDING_EXPORT Device* cobalt_vkb_create_device(InstanceCreateInfo info)
 	}
 
 	Device device;
-
 	device.instance = instanceResult.value();
 
 	// create surface
@@ -57,7 +54,7 @@ VK_BINDING_EXPORT Device* cobalt_vkb_create_device(InstanceCreateInfo info)
 
 	if (surfaceResult != VK_SUCCESS)
 	{
-		vkb::destroy_instance(device.instance);
+		destroy_instance(device.instance);
 		return nullptr;
 	}
 	device.surface = surface;
@@ -71,8 +68,8 @@ VK_BINDING_EXPORT Device* cobalt_vkb_create_device(InstanceCreateInfo info)
 
 	if (!physicalDeviceResult)
 	{
-		vkb::destroy_surface(device.instance, device.surface);
-		vkb::destroy_instance(device.instance);
+		destroy_surface(device.instance, device.surface);
+		destroy_instance(device.instance);
 		return nullptr;
 	}
 	device.physicalDevice = physicalDeviceResult.value();
@@ -82,8 +79,8 @@ VK_BINDING_EXPORT Device* cobalt_vkb_create_device(InstanceCreateInfo info)
 
 	if (!deviceResult)
 	{
-		vkb::destroy_surface(device.instance, device.surface);
-		vkb::destroy_instance(device.instance);
+		destroy_surface(device.instance, device.surface);
+		destroy_instance(device.instance);
 		return nullptr;
 	}
 
@@ -92,8 +89,8 @@ VK_BINDING_EXPORT Device* cobalt_vkb_create_device(InstanceCreateInfo info)
 	auto gq = device.device.get_queue(vkb::QueueType::graphics);
 	if (!gq.has_value())
 	{
-		vkb::destroy_surface(device.instance, device.surface);
-		vkb::destroy_instance(device.instance);
+		destroy_surface(device.instance, device.surface);
+		destroy_instance(device.instance);
 		return nullptr;
 	}
 	device.graphicsQueue = gq.value();
@@ -101,8 +98,8 @@ VK_BINDING_EXPORT Device* cobalt_vkb_create_device(InstanceCreateInfo info)
 	auto pq = device.device.get_queue(vkb::QueueType::present);
 	if (!pq.has_value())
 	{
-		vkb::destroy_surface(device.instance, device.surface);
-		vkb::destroy_instance(device.instance);
+		destroy_surface(device.instance, device.surface);
+		destroy_instance(device.instance);
 		return nullptr;
 	}
 
@@ -111,8 +108,8 @@ VK_BINDING_EXPORT Device* cobalt_vkb_create_device(InstanceCreateInfo info)
 	auto cq = device.device.get_queue(vkb::QueueType::compute);
 	if (!cq.has_value())
 	{
-		vkb::destroy_surface(device.instance, device.surface);
-		vkb::destroy_instance(device.instance);
+		destroy_surface(device.instance, device.surface);
+		destroy_instance(device.instance);
 		return nullptr;
 	}
 
@@ -121,8 +118,8 @@ VK_BINDING_EXPORT Device* cobalt_vkb_create_device(InstanceCreateInfo info)
 	auto tq = device.device.get_queue(vkb::QueueType::transfer);
 	if (!tq.has_value())
 	{
-		vkb::destroy_surface(device.instance, device.surface);
-		vkb::destroy_instance(device.instance);
+		destroy_surface(device.instance, device.surface);
+		destroy_instance(device.instance);
 		return nullptr;
 	}
 
@@ -136,8 +133,10 @@ VK_BINDING_EXPORT Device* cobalt_vkb_create_device(InstanceCreateInfo info)
 	allocatorInfo.device = device.device;
 
 	VmaVulkanFunctions funcs = {};
-	funcs.vkGetPhysicalDeviceProperties = (PFN_vkGetPhysicalDeviceProperties)device.instance.fp_vkGetInstanceProcAddr(device.instance.instance, "vkGetPhysicalDeviceProperties");
-	funcs.vkGetPhysicalDeviceMemoryProperties = (PFN_vkGetPhysicalDeviceMemoryProperties)device.instance.fp_vkGetInstanceProcAddr(device.instance.instance, "vkGetPhysicalDeviceMemoryProperties");
+	funcs.vkGetPhysicalDeviceProperties = reinterpret_cast<PFN_vkGetPhysicalDeviceProperties>(device.instance.fp_vkGetInstanceProcAddr(
+		device.instance.instance, "vkGetPhysicalDeviceProperties"));
+	funcs.vkGetPhysicalDeviceMemoryProperties = reinterpret_cast<PFN_vkGetPhysicalDeviceMemoryProperties>(device.instance.fp_vkGetInstanceProcAddr(
+		device.instance.instance, "vkGetPhysicalDeviceMemoryProperties"));
 	funcs.vkAllocateMemory = device.functionTable.fp_vkAllocateMemory;
 	funcs.vkFreeMemory = device.functionTable.fp_vkFreeMemory;
 	funcs.vkMapMemory = device.functionTable.fp_vkMapMemory;
@@ -157,7 +156,8 @@ VK_BINDING_EXPORT Device* cobalt_vkb_create_device(InstanceCreateInfo info)
 	funcs.vkGetImageMemoryRequirements2KHR = device.functionTable.fp_vkGetImageMemoryRequirements2KHR;
 	funcs.vkBindBufferMemory2KHR = device.functionTable.fp_vkBindBufferMemory2KHR;
 	funcs.vkBindImageMemory2KHR = device.functionTable.fp_vkBindImageMemory2KHR;
-	funcs.vkGetPhysicalDeviceMemoryProperties2KHR = (PFN_vkGetPhysicalDeviceMemoryProperties2KHR)device.instance.fp_vkGetInstanceProcAddr(device.instance.instance, "vkGetPhysicalDeviceMemoryProperties2KHR");
+	funcs.vkGetPhysicalDeviceMemoryProperties2KHR = reinterpret_cast<PFN_vkGetPhysicalDeviceMemoryProperties2KHR>(device.instance.fp_vkGetInstanceProcAddr(
+		device.instance.instance, "vkGetPhysicalDeviceMemoryProperties2KHR"));
 
 	allocatorInfo.pVulkanFunctions = &funcs;
 	allocatorInfo.instance = device.instance;
@@ -198,10 +198,12 @@ VK_BINDING_EXPORT bool cobalt_vkb_destroy_device(Device* device)
 {
 	if (device)
 	{
-		vkb::destroy_device(device->device);
-		vkb::destroy_surface(device->instance, device->surface);
-		vkb::destroy_instance(device->instance);
+		destroy_device(device->device);
+		destroy_surface(device->instance, device->surface);
+		destroy_instance(device->instance);
+		
 		delete device;
+		
 		return true;
 	}
 
@@ -234,7 +236,7 @@ VK_BINDING_EXPORT Swapchain* cobalt_vkb_create_swapchain(Device* device, Swapcha
 	}
 	else
 	{
-		vkb::destroy_swapchain(swapchain->swapchain);
+		destroy_swapchain(swapchain->swapchain);
 		delete swapchain;
 
 		return nullptr;
@@ -247,7 +249,7 @@ VK_BINDING_EXPORT bool cobalt_vkb_destroy_swapchain(Swapchain* swapchain)
 {
 	if (swapchain)
 	{
-		vkb::destroy_swapchain(swapchain->swapchain);
+		destroy_swapchain(swapchain->swapchain);
 		delete swapchain;
 
 		return true;
@@ -269,22 +271,22 @@ VK_BINDING_EXPORT ImageView* cobalt_vkb_get_swapchain_image_view(Swapchain* swap
 
 VK_BINDING_EXPORT RenderPass* cobalt_vkb_create_renderpass(Device* device, RenderPassCreateInfo info)
 {
-	VkRenderPassCreateInfo renderPassInfo = {};
+	VkRenderPassCreateInfo renderPassInfo;
 	renderPassInfo.pNext = nullptr;
 	renderPassInfo.flags = 0;
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 
-	renderPassInfo.attachmentCount = static_cast<uint32_t>(info.attachmentCount);
+	renderPassInfo.attachmentCount = info.attachmentCount;
 	renderPassInfo.pAttachments = info.attachments;
 
-	renderPassInfo.subpassCount = static_cast<uint32_t>(info.subpassCount);
+	renderPassInfo.subpassCount = info.subpassCount;
 	renderPassInfo.pSubpasses = info.subpasses;
 	
-	renderPassInfo.dependencyCount = static_cast<uint32_t>(info.dependencyCount);
+	renderPassInfo.dependencyCount = info.dependencyCount;
 	renderPassInfo.pDependencies = info.dependencies;
 
 	VkRenderPass renderpass;
-	if (!device->functionTable.createRenderPass(&renderPassInfo, device->device.allocation_callbacks, &renderpass) == VK_SUCCESS)
+	if (device->functionTable.createRenderPass(&renderPassInfo, device->device.allocation_callbacks, &renderpass) != VK_SUCCESS)
 	{
 		return nullptr;
 	}
@@ -295,12 +297,13 @@ VK_BINDING_EXPORT RenderPass* cobalt_vkb_create_renderpass(Device* device, Rende
 	return pass;
 }
 
-VK_BINDING_EXPORT bool cobalt_vkb_destroy_renderpass(Device* device, VkRenderPass renderpass)
+VK_BINDING_EXPORT bool cobalt_vkb_destroy_renderpass(Device* device, RenderPass* renderpass)
 {
 	if (renderpass)
 	{
-		device->functionTable.destroyRenderPass(renderpass, device->device.allocation_callbacks);
-
+		device->functionTable.destroyRenderPass(renderpass->pass, device->device.allocation_callbacks);
+		delete renderpass;
+		
 		return true;
 	}
 
@@ -353,12 +356,14 @@ VK_BINDING_EXPORT CommandBuffer* cobalt_vkb_create_commandbuffer(Device* device,
 	buffer->amount = allocInfo.commandBufferCount;
 	buffer->buffers = new VkCommandBuffer[buffer->amount];
 	
-	if (!device->functionTable.allocateCommandBuffers(&allocInfo, buffer->buffers) == VK_SUCCESS)
+	if (device->functionTable.allocateCommandBuffers(&allocInfo, buffer->buffers) != VK_SUCCESS)
 	{
+		delete[] buffer->buffers;
+		delete buffer;
+		
 		return nullptr;
 	}
 
-	
 	buffer->pool = allocInfo.commandPool;
 	buffer->queue = queue;
 
@@ -374,7 +379,7 @@ VK_BINDING_EXPORT bool cobalt_vkb_destroy_commandbuffer(Device* device, CommandB
 		
 		if (buffer->amount == 0)
 		{
-			delete buffer->buffers;
+			delete[] buffer->buffers;
 			delete buffer;
 		}
 		
@@ -388,7 +393,7 @@ VK_BINDING_EXPORT bool cobalt_vkb_begin_commandbuffer(Device* device, CommandBuf
 {
 	if(buffer)
 	{
-		VkCommandBufferBeginInfo beginInfo = {};
+		VkCommandBufferBeginInfo beginInfo;
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		beginInfo.flags = 0;
 		beginInfo.pNext = nullptr;
@@ -402,11 +407,12 @@ VK_BINDING_EXPORT bool cobalt_vkb_begin_commandbuffer(Device* device, CommandBuf
 	return false;
 }
 
+// TODO: Use RenderPassBeginInfo & SubpassContents
 VK_BINDING_EXPORT bool cobalt_vkb_command_begin_renderpass(Device* device, CommandBuffer* buffer, const uint32_t index, RenderPass* pass, Framebuffer* framebuffer)
 {
 	if (buffer)
 	{
-		VkRenderPassBeginInfo renderPassInfo = {};
+		VkRenderPassBeginInfo renderPassInfo;
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		renderPassInfo.pNext = nullptr;
 		renderPassInfo.renderPass = pass->pass;
@@ -426,11 +432,11 @@ VK_BINDING_EXPORT bool cobalt_vkb_command_begin_renderpass(Device* device, Comma
 	return false;
 }
 
-VK_BINDING_EXPORT bool cobalt_vkb_command_bind_pipeline(Device* device, CommandBuffer* buffer, const uint32_t index, Shader* shader)
+VK_BINDING_EXPORT bool cobalt_vkb_command_bind_pipeline(Device* device, CommandBuffer* buffer, const uint32_t bindpoint, const uint32_t index, Shader* shader)
 {
 	if(buffer)
 	{
-		device->functionTable.cmdBindPipeline(buffer->buffers[index], VK_PIPELINE_BIND_POINT_GRAPHICS, shader->pipeline);
+		device->functionTable.cmdBindPipeline(buffer->buffers[index], static_cast<VkPipelineBindPoint>(bindpoint), shader->pipeline);
 		
 		return true;
 	}
@@ -438,11 +444,12 @@ VK_BINDING_EXPORT bool cobalt_vkb_command_bind_pipeline(Device* device, CommandB
 	return false;
 }
 
-VK_BINDING_EXPORT bool cobalt_vkb_command_draw(Device* device, CommandBuffer* buffer, const uint32_t index)
+VK_BINDING_EXPORT bool cobalt_vkb_command_draw(Device* device, CommandBuffer* buffer, const uint32_t index, const uint32_t vertexCount, const uint32_t instanceCount,
+	const uint32_t firstVertex, const uint32_t firstInstance)
 {
 	if (buffer)
 	{
-		device->functionTable.cmdDraw(buffer->buffers[index], 3, 1, 0, 0);
+		device->functionTable.cmdDraw(buffer->buffers[index], vertexCount, instanceCount, firstVertex, firstInstance);
 
 		return true;
 	}
@@ -476,7 +483,7 @@ VK_BINDING_EXPORT bool cobalt_vkb_commandbuffer_end(Device* device, CommandBuffe
 
 VK_BINDING_EXPORT Buffer* cobalt_vkb_create_buffer(Device* device, BufferCreateInfo createInfo, BufferMemoryCreateInfo memoryInfo)
 {
-	VkBufferCreateInfo info = {};
+	VkBufferCreateInfo info;
 	
 	info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	info.flags = 0;
@@ -494,8 +501,8 @@ VK_BINDING_EXPORT Buffer* cobalt_vkb_create_buffer(Device* device, BufferCreateI
 	allocInfo.preferredFlags = memoryInfo.preferredFlags;
 	allocInfo.requiredFlags = memoryInfo.requiredFlags;
 
-	VkBuffer vkbuffer;
-	VmaAllocation allocation;
+	VkBuffer vkbuffer = VK_NULL_HANDLE;
+	VmaAllocation allocation = VMA_NULL;
 	
 	vmaCreateBuffer(device->allocator, &info, &allocInfo, &vkbuffer, &allocation, nullptr);
 
@@ -533,14 +540,15 @@ VK_BINDING_EXPORT void cobalt_vkb_unmap_buffer(Device* device, Buffer* buffer)
 	vmaUnmapMemory(device->allocator, buffer->allocation);
 }
 
-VK_BINDING_EXPORT void cobalt_vkb_copy_buffer(Device* device, CommandBuffer* buffer, uint32_t index, Buffer* src, Buffer* dst, uint32_t regionCount, BufferCopy* regions)
+VK_BINDING_EXPORT void cobalt_vkb_copy_buffer(Device* device, CommandBuffer* buffer, const uint32_t index, 
+	Buffer* src, Buffer* dst, const uint32_t regionCount, BufferCopy* regions)
 {
 	device->functionTable.cmdCopyBuffer(buffer->buffers[index], src->buffer, dst->buffer, regionCount, reinterpret_cast<VkBufferCopy*>(regions));
 }
 
-VK_BINDING_EXPORT ShaderModule* cobalt_vkb_create_shadermodule(Device* device, ShaderModuleCreateInfo info)
+VK_BINDING_EXPORT ShaderModule* cobalt_vkb_create_shadermodule(Device* device, const ShaderModuleCreateInfo info)
 {
-	VkShaderModuleCreateInfo createInfo = {};
+	VkShaderModuleCreateInfo createInfo;
 	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 	createInfo.flags = 0;
 	createInfo.pNext = nullptr;
@@ -549,7 +557,7 @@ VK_BINDING_EXPORT ShaderModule* cobalt_vkb_create_shadermodule(Device* device, S
 
 	VkShaderModule vkshaderModule;
 
-	if(!device->functionTable.createShaderModule(&createInfo, device->device.allocation_callbacks, &vkshaderModule) == VK_SUCCESS)
+	if(device->functionTable.createShaderModule(&createInfo, device->device.allocation_callbacks, &vkshaderModule) != VK_SUCCESS)
 	{
 		return nullptr;
 	}
@@ -675,7 +683,7 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 			geometryStageInfo.flags = 0;
 			geometryStageInfo.pNext = nullptr;
 			geometryStageInfo.module = shader->geometryModule->shaderModule;
-			geometryStageInfo.pName = "Geometry Shader";
+			geometryStageInfo.pName = "main";
 			geometryStageInfo.pSpecializationInfo = nullptr;
 			geometryStageInfo.stage = VK_SHADER_STAGE_GEOMETRY_BIT;
 
@@ -710,7 +718,7 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 			tessControlStageInfo.flags = 0;
 			tessControlStageInfo.pNext = nullptr;
 			tessControlStageInfo.module = shader->tesselationControlModule->shaderModule;
-			tessControlStageInfo.pName = "Tesselation Control Shader";
+			tessControlStageInfo.pName = "main";
 			tessControlStageInfo.pSpecializationInfo = nullptr;
 			tessControlStageInfo.stage = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
 
@@ -745,7 +753,7 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 			tessEvalStageInfo.flags = 0;
 			tessEvalStageInfo.pNext = nullptr;
 			tessEvalStageInfo.module = shader->tesselationEvalModule->shaderModule;
-			tessEvalStageInfo.pName = "Tesselation Eval Shader";
+			tessEvalStageInfo.pName = "main";
 			tessEvalStageInfo.pSpecializationInfo = nullptr;
 			tessEvalStageInfo.stage = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
 
@@ -781,7 +789,7 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 		computeStageInfo.flags = 0;
 		computeStageInfo.pNext = nullptr;
 		computeStageInfo.module = shader->computeModule->shaderModule;
-		computeStageInfo.pName = "Compute Shader";
+		computeStageInfo.pName = "main";
 		computeStageInfo.pSpecializationInfo = nullptr;
 		computeStageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
 
@@ -795,7 +803,7 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 	std::vector<DescriptorSetLayout> layouts;
 
 	vkLayouts.reserve(info.layoutInfo.setCount);
-	for(int i = 0; i < info.layoutInfo.setCount; i++)
+	for(uint32_t i = 0; i < info.layoutInfo.setCount; i++)
 	{
 		VkDescriptorSetLayoutCreateInfo setInfo = {};
 		setInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -954,48 +962,53 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 
 VK_BINDING_EXPORT DescriptorSet* cobalt_vkb_allocate_descriptors(Shader* shader)
 {
-	PipelineLayout& layout = shader->pipelineLayout;
-	DynamicDescriptorSetPool& pool = shader->descPool;
-	const auto setCount = layout.sets.size();
+	auto& [layout, sets] = shader->pipelineLayout;
+	auto& [pools] = shader->descPool;
+	const auto setCount = sets.size();
 	DescriptorSet* results = new DescriptorSet[setCount];
 
 	std::vector<VkDescriptorSetAllocateInfo> allocate;
 
 	for (size_t i = 0; i < setCount; ++i)
 	{
-		const auto& set = layout.sets[i];
+		auto& [layout, bindings] = sets[i];
 		std::unordered_map<VkDescriptorType, size_t> requiredCounts;
-		for (auto& binding : set.bindings)
+		for (auto& [bindingIndex, type, descriptorCount, stageFlags] : bindings)
 		{
-			requiredCounts[(VkDescriptorType)binding.type] += binding.descriptorCount;
+			requiredCounts[static_cast<VkDescriptorType>(type)] += descriptorCount;
 		}
 
 		bool successful = false;
-		for (auto& fixed : pool.pools)
+		for (auto& [pool, samplerCapacity, combinedImageSamplerCapacity, sampledImageCapacity, 
+			storageImageCapacity, uniformTexelBufferCapacity, storageTexelBufferCapacity, uniformBufferCapacity, 
+			storageBufferCapacity, dynamicUniformBufferCapacity, dynamicStorageBufferCapacity, inputAttachmentCapacity, 
+			samplerCount, combinedImageSamplerCount, sampledImageCount, storageImageCount, uniformTexelBufferCount, 
+			storageTexelBufferCount, uniformBufferCount, storageBufferCount, dynamicUniformBufferCount, dynamicStorageBufferCount, 
+			inputAttachmentCount, maxSets, allocatedSets] : pools)
 		{
-			if (fixed.maxSets == fixed.allocatedSets)
+			if (maxSets == allocatedSets)
 			{
 				continue;
 			}
 
-			successful = fixed.combinedImageSamplerCount >= requiredCounts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER]
-				&& fixed.dynamicStorageBufferCount >= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC]
-				&& fixed.dynamicStorageBufferCount >= requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC]
-				&& fixed.inputAttachmentCount >= requiredCounts[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT]
-				&& fixed.sampledImageCount >= requiredCounts[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE]
-				&& fixed.samplerCount >= requiredCounts[VK_DESCRIPTOR_TYPE_SAMPLER]
-				&& fixed.storageBufferCount >= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER]
-				&& fixed.storageImageCount >= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_IMAGE]
-				&& fixed.storageTexelBufferCount >= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER]
-				&& fixed.uniformBufferCount >= requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER]
-				&& fixed.uniformTexelBufferCount >= requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER];
+			successful = combinedImageSamplerCount >= requiredCounts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER]
+				&& dynamicStorageBufferCount >= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC]
+				&& dynamicStorageBufferCount >= requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC]
+				&& inputAttachmentCount >= requiredCounts[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT]
+				&& sampledImageCount >= requiredCounts[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE]
+				&& samplerCount >= requiredCounts[VK_DESCRIPTOR_TYPE_SAMPLER]
+				&& storageBufferCount >= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER]
+				&& storageImageCount >= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_IMAGE]
+				&& storageTexelBufferCount >= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER]
+				&& uniformBufferCount >= requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER]
+				&& uniformTexelBufferCount >= requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER];
 
 			if (successful)
 			{
 				VkDescriptorSetAllocateInfo info;
-				info.descriptorPool = fixed.pool;
+				info.descriptorPool = pool;
 				info.descriptorSetCount = 1;
-				info.pSetLayouts = &set.layout;
+				info.pSetLayouts = &layout;
 				info.pNext = VK_NULL_HANDLE;
 				info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 
@@ -1007,19 +1020,19 @@ VK_BINDING_EXPORT DescriptorSet* cobalt_vkb_allocate_descriptors(Shader* shader)
 					break;
 				}
 
-				fixed.combinedImageSamplerCount -= requiredCounts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER];
-				fixed.dynamicStorageBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC];
-				fixed.dynamicUniformBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC];
-				fixed.inputAttachmentCount -= requiredCounts[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT];
-				fixed.sampledImageCount -= requiredCounts[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE];
-				fixed.samplerCount -= requiredCounts[VK_DESCRIPTOR_TYPE_SAMPLER];
-				fixed.storageBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER];
-				fixed.storageImageCount -= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_IMAGE];
-				fixed.storageTexelBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER];
-				fixed.uniformBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER];
-				fixed.uniformTexelBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER];
+				combinedImageSamplerCount -= requiredCounts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER];
+				dynamicStorageBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC];
+				dynamicUniformBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC];
+				inputAttachmentCount -= requiredCounts[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT];
+				sampledImageCount -= requiredCounts[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE];
+				samplerCount -= requiredCounts[VK_DESCRIPTOR_TYPE_SAMPLER];
+				storageBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER];
+				storageImageCount -= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_IMAGE];
+				storageTexelBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER];
+				uniformBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER];
+				uniformTexelBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER];
 				
-				++fixed.allocatedSets;
+				++allocatedSets;
 				
 				break;
 			}
@@ -1039,7 +1052,7 @@ VK_BINDING_EXPORT DescriptorSet* cobalt_vkb_allocate_descriptors(Shader* shader)
 				}
 
 				VkDescriptorPoolSize sz;
-				sz.descriptorCount = count;
+				sz.descriptorCount = static_cast<uint32_t>(count);
 				sz.type = type;
 
 				sizes.push_back(sz);
@@ -1060,20 +1073,21 @@ VK_BINDING_EXPORT DescriptorSet* cobalt_vkb_allocate_descriptors(Shader* shader)
 				continue;
 			}
 
-			constexpr uint32_t multiplier = 32;
+			constexpr size_t multiplier = 32;
 			p.maxSets = poolInfo.maxSets;
-			p.samplerCapacity = requiredCounts[VK_DESCRIPTOR_TYPE_SAMPLER] * multiplier;
-			p.combinedImageSamplerCapacity = requiredCounts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] * multiplier;
-			p.sampledImageCapacity = requiredCounts[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE] * multiplier;
+			p.samplerCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_SAMPLER] * multiplier);
+			p.combinedImageSamplerCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] * multiplier);
+			p.sampledImageCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE] * multiplier);
 
-			pool.pools.push_back(p);
+			pools.push_back(p);
 		}
 	}
 
+	delete[] results;
 	return nullptr;
 }
 
-VK_BINDING_EXPORT Image* cobalt_vkb_create_image(Device* device, ImageCreateInfo info, const char* name, uint32_t frame)
+VK_BINDING_EXPORT Image* cobalt_vkb_create_image(Device* device, ImageCreateInfo info, const char* name, const uint32_t frame)
 {
 	const std::string objectName = std::string(name) + "_" + std::to_string(frame);
 	if(device->images.find(objectName) != device->images.end())
@@ -1086,7 +1100,7 @@ VK_BINDING_EXPORT Image* cobalt_vkb_create_image(Device* device, ImageCreateInfo
 	Image* image = new Image();
 	image->amount = 1;
 
-	VkImageCreateInfo imageInfo = {};
+	VkImageCreateInfo imageInfo;
 	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	imageInfo.flags = 0;
 	imageInfo.pNext = nullptr;
@@ -1130,7 +1144,7 @@ VK_BINDING_EXPORT bool cobalt_vkb_destroy_image(Device* device, Image* image)
 }
 
 
-VK_BINDING_EXPORT ImageView* cobalt_vkb_create_imageview(Device* device, ImageViewCreateInfo info, const char* name, uint32_t frame)
+VK_BINDING_EXPORT ImageView* cobalt_vkb_create_imageview(Device* device, ImageViewCreateInfo info, const char* name, const uint32_t frame)
 {
 	const std::string objectName = std::string(name) + "_" + std::to_string(frame);
 	if (device->imageViews.find(objectName) != device->imageViews.end())
@@ -1184,11 +1198,11 @@ VK_BINDING_EXPORT bool cobalt_vkb_destroy_imageview(Device* device, ImageView* v
 	return false;
 }
 
-VK_BINDING_EXPORT Framebuffer* cobalt_vkb_create_framebuffer(Device* device, FramebufferCreateInfo info)
+VK_BINDING_EXPORT Framebuffer* cobalt_vkb_create_framebuffer(Device* device, const FramebufferCreateInfo info)
 {
 	Framebuffer* framebuffer = new Framebuffer();
 
-	VkFramebufferCreateInfo bufferInfo = {};
+	VkFramebufferCreateInfo bufferInfo;
 	bufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 	bufferInfo.flags = 0;
 	bufferInfo.pNext = nullptr;
@@ -1200,7 +1214,7 @@ VK_BINDING_EXPORT Framebuffer* cobalt_vkb_create_framebuffer(Device* device, Fra
 
 	std::vector<VkImageView> attachments;
 	attachments.reserve(info.attachmentCount);
-	for (int i = 0; i < info.attachmentCount; i++)
+	for (uint32_t i = 0; i < info.attachmentCount; i++)
 	{
 		info.attachments[i]->amount++;
 		attachments.push_back(info.attachments[i]->imageView);
@@ -1228,14 +1242,14 @@ VK_BINDING_EXPORT bool cobalt_vkb_destroy_framebuffer(Device* device, Framebuffe
 
 VK_BINDING_EXPORT Semaphore* cobalt_vkb_create_semaphore(Device* device, SemaphoreCreateInfo info)
 {
-	VkSemaphoreCreateInfo semaphoreInfo = {};
+	VkSemaphoreCreateInfo semaphoreInfo;
 	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 	semaphoreInfo.flags = info.flags;
 	semaphoreInfo.pNext = nullptr;
 
 	VkSemaphore s;
 
-	if(!device->functionTable.createSemaphore(&semaphoreInfo, device->device.allocation_callbacks, &s) == VK_SUCCESS)
+	if(device->functionTable.createSemaphore(&semaphoreInfo, device->device.allocation_callbacks, &s) != VK_SUCCESS)
 	{
 		return nullptr;
 	}
@@ -1260,12 +1274,12 @@ VK_BINDING_EXPORT bool cobalt_vkb_destroy_semaphore(Device* device, Semaphore* s
 	return false;
 }
 
-VK_BINDING_EXPORT uint32_t cobalt_vkb_acquire_next_image(Device* device, Swapchain* swapchain, Semaphore* semaphore)
+VK_BINDING_EXPORT uint32_t cobalt_vkb_acquire_next_image_fenced(Device* device, Swapchain* swapchain, const uint64_t timeout, Semaphore* semaphore, Fence* fence)
 {
-	if(swapchain)
+	if (swapchain)
 	{
 		uint32_t imageIndex;
-		device->functionTable.acquireNextImageKHR(swapchain->swapchain, UINT64_MAX, semaphore->semaphore, VK_NULL_HANDLE, &imageIndex);
+		device->functionTable.acquireNextImageKHR(swapchain->swapchain, timeout, semaphore->semaphore, fence != nullptr ? fence->fence : VK_NULL_HANDLE, &imageIndex);
 
 		return imageIndex;
 	}
@@ -1273,9 +1287,14 @@ VK_BINDING_EXPORT uint32_t cobalt_vkb_acquire_next_image(Device* device, Swapcha
 	return UINT32_MAX;
 }
 
-VK_BINDING_EXPORT bool cobalt_vkb_submit_queue(Device* device, SubmitInfo info)
+VK_BINDING_EXPORT uint32_t cobalt_vkb_acquire_next_image(Device* device, Swapchain* swapchain, const uint64_t timeout, Semaphore* semaphore)
 {
-	VkSubmitInfo submitInfo = {};
+	return cobalt_vkb_acquire_next_image_fenced(device, swapchain, timeout, semaphore, nullptr);
+}
+
+VK_BINDING_EXPORT bool cobalt_vkb_submit_queue(Device* device, const SubmitInfo info, Fence* fence)
+{
+	VkSubmitInfo submitInfo;
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 	submitInfo.pNext = nullptr;
 
@@ -1283,13 +1302,13 @@ VK_BINDING_EXPORT bool cobalt_vkb_submit_queue(Device* device, SubmitInfo info)
 	submitInfo.signalSemaphoreCount = info.signalSemaphoreCount;
 	
 	VkSemaphore* waitSems = new VkSemaphore[info.waitSemaphoreCount];
-	for(int i = 0; i < info.waitSemaphoreCount; i++)
+	for(uint32_t i = 0; i < info.waitSemaphoreCount; i++)
 	{
 		waitSems[i] = info.waitSemaphores[i]->semaphore;
 	}
 
 	VkSemaphore* signalSems = new VkSemaphore[info.signalSemaphoreCount];
-	for(int i = 0; i < info.signalSemaphoreCount; i++)
+	for(uint32_t i = 0; i < info.signalSemaphoreCount; i++)
 	{
 		signalSems[i] = info.signalSemaphores[i]->semaphore;
 	}
@@ -1301,21 +1320,21 @@ VK_BINDING_EXPORT bool cobalt_vkb_submit_queue(Device* device, SubmitInfo info)
 	uint32_t amount = 0;
 	std::vector<VkCommandBuffer> uploadBuffers;
 	
-	for(int i = 0; i < info.commandbufferCount; i++)
+	for(uint32_t i = 0; i < info.commandbufferCount; i++)
 	{
-		IndexedCommandBuffers buffers = info.commandbuffer[i];
-		amount += buffers.amount;
+		auto [commandbuffers, bufferIndices, bufferamount] = info.commandbuffer[i];
+		amount += bufferamount;
 
-		for(int j = 0; j < buffers.amount; j++)
+		for(uint32_t j = 0; j < bufferamount; j++)
 		{
-			uploadBuffers.push_back(buffers.commandbuffers->buffers[buffers.bufferIndices[j]]);
+			uploadBuffers.push_back(commandbuffers->buffers[bufferIndices[j]]);
 		}
 	}
 	
-	submitInfo.commandBufferCount = info.commandbufferCount;
+	submitInfo.commandBufferCount = amount;
 	submitInfo.pCommandBuffers = uploadBuffers.data();
 
-	if(!device->functionTable.queueSubmit(device->graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE) == VK_SUCCESS)
+	if(device->functionTable.queueSubmit(device->graphicsQueue, 1, &submitInfo, fence != nullptr ? fence->fence : VK_NULL_HANDLE) != VK_SUCCESS)
 	{
 		return false;
 	}
@@ -1323,15 +1342,15 @@ VK_BINDING_EXPORT bool cobalt_vkb_submit_queue(Device* device, SubmitInfo info)
 	return true;
 }
 
-VK_BINDING_EXPORT bool cobalt_vkb_queue_present(Device* device, PresentInfo info)
+VK_BINDING_EXPORT bool cobalt_vkb_queue_present(Device* device, const PresentInfo info)
 {
-	VkPresentInfoKHR presentInfo = {};
+	VkPresentInfoKHR presentInfo;
 	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 	presentInfo.pNext = nullptr;
 	presentInfo.waitSemaphoreCount = info.waitSemaphoreCount;
 
 	VkSemaphore* waitSems = new VkSemaphore[info.waitSemaphoreCount];
-	for (int i = 0; i < info.waitSemaphoreCount; i++)
+	for (uint32_t i = 0; i < info.waitSemaphoreCount; i++)
 	{
 		waitSems[i] = info.waitSemaphores[i]->semaphore;
 	}
@@ -1339,7 +1358,7 @@ VK_BINDING_EXPORT bool cobalt_vkb_queue_present(Device* device, PresentInfo info
 	presentInfo.pWaitSemaphores = waitSems;
 
 	VkSwapchainKHR* swaps = new VkSwapchainKHR[info.swapchainCount];
-	for (int i = 0; i < info.swapchainCount; i++)
+	for (uint32_t i = 0; i < info.swapchainCount; i++)
 	{
 		swaps[i] = info.swapchains[i]->swapchain;
 	}
@@ -1353,4 +1372,71 @@ VK_BINDING_EXPORT bool cobalt_vkb_queue_present(Device* device, PresentInfo info
 	device->functionTable.queuePresentKHR(device->presentQueue, &presentInfo);
 
 	return true;
+}
+
+VK_BINDING_EXPORT Fence* cobalt_vkb_create_fence(Device* device, const FenceCreateInfo info)
+{
+	VkFenceCreateInfo fenceInfo;
+	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	fenceInfo.flags = info.flags;
+	fenceInfo.pNext = nullptr;
+
+	Fence* fence = new Fence();
+	device->functionTable.createFence(&fenceInfo, device->device.allocation_callbacks, &fence->fence);
+	return fence;
+}
+
+VK_BINDING_EXPORT bool cobalt_vkb_destroy_fence(Device* device, Fence* fence)
+{
+	if (fence)
+	{
+		device->functionTable.destroyFence(fence->fence, device->device.allocation_callbacks);
+
+		delete fence;
+		return true;
+	}
+
+	return false;
+}
+
+VK_BINDING_EXPORT bool cobalt_vkb_wait_for_fences(Device* device, const uint32_t count, Fence** fence, const bool waitAll, const uint64_t timeout)
+{
+	if(fence != nullptr)
+	{
+		std::vector<VkFence> fences;
+		for(uint32_t i = 0; i < count; i++)
+		{
+			fences.push_back(fence[i]->fence);
+		}
+		
+		if(device->functionTable.waitForFences(count, fences.data(), waitAll, timeout) != VK_SUCCESS)
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+VK_BINDING_EXPORT bool cobalt_vkb_reset_fences(Device* device, const uint32_t count, Fence** fence)
+{
+	if (fence != nullptr)
+	{
+		std::vector<VkFence> fences;
+		for (uint32_t i = 0; i < count; i++)
+		{
+			fences.push_back(fence[i]->fence);
+		}
+
+		if (device->functionTable.resetFences(count, fences.data()) != VK_SUCCESS)
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	return false;
 }

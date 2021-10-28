@@ -205,3 +205,8 @@ struct Semaphore
 {
 	VkSemaphore semaphore;
 };
+
+struct Fence
+{
+	VkFence fence;
+};

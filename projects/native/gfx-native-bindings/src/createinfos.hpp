@@ -187,3 +187,8 @@ struct PresentInfo
 
 	uint32_t* imageIndices;
 };
+
+struct FenceCreateInfo
+{
+	uint32_t flags;
+};

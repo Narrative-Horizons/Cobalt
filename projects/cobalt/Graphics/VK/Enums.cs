@@ -441,4 +441,17 @@ namespace Cobalt.Graphics.VK.Enums
         FlagBitsMaxEnum = 0x7FFFFFFF
     }
 
+    [Flags]
+    public enum FenceCreateFlagBits
+    {
+        SignaledBit = 0x00000001,
+    }
+
+    public enum CommandBufferPoolType : uint
+    {
+        Present = 0,
+        Graphics,
+        Transfer,
+        Compute
+    }
 }

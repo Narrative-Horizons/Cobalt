@@ -14,10 +14,13 @@ namespace Cobalt.Graphics
         public Bindings.Vulkan.VK.Shader shader;
         public Cobalt.Bindings.Vulkan.VK.RenderPass pass;
         public Cobalt.Bindings.Vulkan.VK.SwapChain swapchain;
-        public Cobalt.Bindings.Vulkan.VK.Framebuffer[] framebuffers = new Bindings.Vulkan.VK.Framebuffer[2];
+        public Cobalt.Bindings.Vulkan.VK.Framebuffer[] framebuffers;
         public Cobalt.Bindings.Vulkan.VK.CommandBuffer commandbuffer;
         public Cobalt.Bindings.Vulkan.VK.Semaphore[] imageAvailableSemaphore;
         public Cobalt.Bindings.Vulkan.VK.Semaphore[] renderFinishedSemaphore;
+        public Cobalt.Bindings.Vulkan.VK.Fence[] inFlightFences;
+        public Cobalt.Bindings.Vulkan.VK.Fence[] imagesInFlight;
+        public uint frameCount = 3;
 
         public GraphicsContext(Window window)
         {
@@ -25,8 +28,6 @@ namespace Cobalt.Graphics
 
             SwapchainCreateInfo swapchainInfo = new SwapchainCreateInfo();
             swapchain = Bindings.Vulkan.VK.CreateSwapchain(ContextDevice.handle, swapchainInfo);
-
-            RenderPassCreateInfo renderpassInfo = new RenderPassCreateInfo();
 
             AttachmentReference colorAttachmentRef = new AttachmentReference
             {
@@ -52,23 +53,25 @@ namespace Cobalt.Graphics
                 finalLayout = (uint) ImageLayout.PresentSrcKHR
             };
 
-            SubpassDependency dependency = new SubpassDependency();
-            dependency.srcSubpass = (~0U);
-            dependency.dstSubpass = 0;
+            SubpassDependency dependency = new SubpassDependency
+            {
+                srcSubpass = (~0U),
+                dstSubpass = 0,
+                srcStageMask = (uint) PipelineStageFlagBits.ColorAttachmentOutputBit,
+                srcAccessMask = 0,
+                dstStageMask = (uint) PipelineStageFlagBits.ColorAttachmentOutputBit,
+                dstAccessMask = (uint) AccessFlagBits.ColorAttachmentWriteBit
+            };
 
-            dependency.srcStageMask = (uint)PipelineStageFlagBits.ColorAttachmentOutputBit;
-            dependency.srcAccessMask = 0;
-
-            dependency.dstStageMask = (uint)PipelineStageFlagBits.ColorAttachmentOutputBit;
-            dependency.dstAccessMask = (uint) AccessFlagBits.ColorAttachmentWriteBit;
-
-            renderpassInfo.subpassCount = 1;
-            renderpassInfo.subpasses = new[] {subpass};
-            renderpassInfo.attachmentCount = 1;
-            renderpassInfo.attachments = new[] {colorAttachment};
-
-            renderpassInfo.dependencyCount = 1;
-            renderpassInfo.dependencies = new[] {dependency};
+            RenderPassCreateInfo renderpassInfo = new RenderPassCreateInfo
+            {
+                subpassCount = 1,
+                subpasses = new[] {subpass},
+                attachmentCount = 1,
+                attachments = new[] {colorAttachment},
+                dependencyCount = 1,
+                dependencies = new[] {dependency}
+            };
 
             pass = Bindings.Vulkan.VK.CreateRenderPass(ContextDevice.handle, renderpassInfo);
 
@@ -82,7 +85,8 @@ namespace Cobalt.Graphics
 
             shader = Bindings.Vulkan.VK.CreateShader(ContextDevice.handle, shaderInfo);
 
-            for (int i = 0; i < 2; i++)
+            framebuffers = new Bindings.Vulkan.VK.Framebuffer[frameCount];
+            for (int i = 0; i < frameCount; i++)
             {
 
                 FramebufferCreateInfo framebufferInfo = new FramebufferCreateInfo
@@ -98,46 +102,58 @@ namespace Cobalt.Graphics
                 framebuffers[i] = Bindings.Vulkan.VK.CreateFramebuffer(ContextDevice.handle, framebufferInfo);
             }
 
-            CommandBufferCreateInfo bufferInfo = new CommandBufferCreateInfo {amount = 2, pool = 1, primary = true};
-
+            CommandBufferCreateInfo bufferInfo = new CommandBufferCreateInfo {amount = frameCount, pool = (uint)CommandBufferPoolType.Graphics, primary = true};
             commandbuffer = Bindings.Vulkan.VK.CreateCommandBuffer(ContextDevice.handle, bufferInfo);
 
-            imageAvailableSemaphore = new Bindings.Vulkan.VK.Semaphore[2];
-            renderFinishedSemaphore = new Bindings.Vulkan.VK.Semaphore[2];
+            imageAvailableSemaphore = new Bindings.Vulkan.VK.Semaphore[frameCount];
+            renderFinishedSemaphore = new Bindings.Vulkan.VK.Semaphore[frameCount];
 
-            for (int i = 0; i < 2; i++)
+            inFlightFences = new Bindings.Vulkan.VK.Fence[frameCount];
+            imagesInFlight = new Bindings.Vulkan.VK.Fence[frameCount];
+
+            for (int i = 0; i < frameCount; i++)
             {
                 Bindings.Vulkan.VK.BeginCommandBuffer(ContextDevice.handle, commandbuffer, (uint)i);
-
                 Bindings.Vulkan.VK.BeginRenderPass(ContextDevice.handle, commandbuffer, (uint)i, pass, framebuffers[i]);
-
-                Bindings.Vulkan.VK.BindPipeline(ContextDevice.handle, commandbuffer, (uint) i, shader);
-
-                Bindings.Vulkan.VK.Draw(ContextDevice.handle, commandbuffer, (uint) i);
-
+                Bindings.Vulkan.VK.BindPipeline(ContextDevice.handle, commandbuffer, (uint)PipelineBindPoint.Graphics, (uint) i, shader);
+                Bindings.Vulkan.VK.Draw(ContextDevice.handle, commandbuffer, (uint) i, 3, 1, 0, 0);
                 Bindings.Vulkan.VK.EndRenderPass(ContextDevice.handle, commandbuffer, (uint) i);
-
                 Bindings.Vulkan.VK.EndCommandBuffer(ContextDevice.handle, commandbuffer, (uint) i);
 
                 SemaphoreCreateInfo semInfo = new SemaphoreCreateInfo();
                 imageAvailableSemaphore[i] = Bindings.Vulkan.VK.CreateSemaphore(ContextDevice.handle, semInfo);
                 renderFinishedSemaphore[i] = Bindings.Vulkan.VK.CreateSemaphore(ContextDevice.handle, semInfo);
+
+                FenceCreateInfo fenceInfo = new FenceCreateInfo {flags = (uint) FenceCreateFlagBits.SignaledBit};
+
+                inFlightFences[i] = Bindings.Vulkan.VK.CreateFence(ContextDevice.handle, fenceInfo);
+                imagesInFlight[i] = new Bindings.Vulkan.VK.Fence(IntPtr.Zero);
             }
         }
 
-        uint currentFrame = 0;
+        public uint currentFrame = 0;
 
         public void Render()
         {
+            Bindings.Vulkan.VK.WaitForFences(ContextDevice.handle, 1, new []{inFlightFences[currentFrame]}, true, UInt64.MaxValue);
+
             uint imageIndex =
-                Bindings.Vulkan.VK.AcquireNextImage(ContextDevice.handle, swapchain, imageAvailableSemaphore[currentFrame]);
+                Bindings.Vulkan.VK.AcquireNextImage(ContextDevice.handle, swapchain, UInt64.MaxValue, imageAvailableSemaphore[currentFrame]);
 
-            SubmitInfo submitInfo = new SubmitInfo();
-            submitInfo.waitSemaphoreCount = 1;
-            submitInfo.waitSemaphores = new[] {imageAvailableSemaphore[currentFrame] };
+            if (imagesInFlight[imageIndex].handle != IntPtr.Zero)
+            {
+                Bindings.Vulkan.VK.WaitForFences(ContextDevice.handle, 1, new[] {imagesInFlight[imageIndex]}, true,
+                        UInt64.MaxValue);
+            }
+            imagesInFlight[imageIndex] = inFlightFences[currentFrame];
 
-            submitInfo.signalSemaphoreCount = 1;
-            submitInfo.signalSemaphores = new[] {renderFinishedSemaphore[currentFrame] };
+            SubmitInfo submitInfo = new SubmitInfo
+            {
+                waitSemaphoreCount = 1,
+                waitSemaphores = new[] {imageAvailableSemaphore[currentFrame]},
+                signalSemaphoreCount = 1,
+                signalSemaphores = new[] {renderFinishedSemaphore[currentFrame]}
+            };
 
             submitInfo.waitSemaphoreCount = 1;
             submitInfo.waitDstStageMask = new[] {(uint)PipelineStageFlagBits.ColorAttachmentOutputBit};
@@ -150,21 +166,22 @@ namespace Cobalt.Graphics
 
             submitInfo.commandBuffer = new []{ indexedBuffer};
 
-            Bindings.Vulkan.VK.SubmitQueue(ContextDevice.handle, submitInfo);
+            Bindings.Vulkan.VK.ResetFences(ContextDevice.handle, 1, new[]{inFlightFences[currentFrame]});
 
-            PresentInfo presentInfo = new PresentInfo();
-            presentInfo.waitSemaphoreCount = 1;
-            presentInfo.waitSemaphores = new[] {renderFinishedSemaphore[currentFrame] };
-            presentInfo.swapchainCount = 1;
-            presentInfo.swapchains = new[] {swapchain};
-            presentInfo.imageIndices = new[] {imageIndex};
+            Bindings.Vulkan.VK.SubmitQueue(ContextDevice.handle, submitInfo, inFlightFences[currentFrame]);
+
+            PresentInfo presentInfo = new PresentInfo
+            {
+                waitSemaphoreCount = 1,
+                waitSemaphores = new[] {renderFinishedSemaphore[currentFrame]},
+                swapchainCount = 1,
+                swapchains = new[] {swapchain},
+                imageIndices = new[] {imageIndex}
+            };
 
             Bindings.Vulkan.VK.PresentQueue(ContextDevice.handle, presentInfo);
 
-            currentFrame++;
-
-            if (currentFrame == 2)
-                currentFrame = 0;
+            currentFrame = (currentFrame + 1) % frameCount;
         }
 
         public void Dispose()

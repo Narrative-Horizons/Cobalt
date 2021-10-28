@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 using System.Runtime.InteropServices;
 
 namespace Cobalt.Bindings.Vulkan
@@ -465,5 +466,36 @@ namespace Cobalt.Bindings.Vulkan
         [FieldOffset(32)]
         public uint* imageIndices;
     }
-}
 
+    [StructLayout(LayoutKind.Explicit)]
+    public struct FenceCreateInfo
+    {
+        [FieldOffset(0)]
+        public uint flags;
+    }
+
+    public struct Rect2D
+    {
+        public float x;
+        public float y;
+        public float width;
+        public float height;
+    }
+
+    public struct ClearValue
+    {
+        public Vector4 color;
+        public float? depth;
+    }
+
+    public struct RenderPassBeginInfo
+    {
+        public VK.RenderPass renderpass;
+        public VK.Framebuffer framebuffer;
+
+        public Rect2D renderArea;
+        public uint clearValueCount;
+
+        public ClearValue[] clearValues;
+    }
+}

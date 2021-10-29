@@ -540,12 +540,6 @@ VK_BINDING_EXPORT void cobalt_vkb_unmap_buffer(Device* device, Buffer* buffer)
 	vmaUnmapMemory(device->allocator, buffer->allocation);
 }
 
-VK_BINDING_EXPORT void cobalt_vkb_copy_buffer(Device* device, CommandBuffer* buffer, const uint32_t index, 
-	Buffer* src, Buffer* dst, const uint32_t regionCount, BufferCopy* regions)
-{
-	device->functionTable.cmdCopyBuffer(buffer->buffers[index], src->buffer, dst->buffer, regionCount, reinterpret_cast<VkBufferCopy*>(regions));
-}
-
 VK_BINDING_EXPORT ShaderModule* cobalt_vkb_create_shadermodule(Device* device, const ShaderModuleCreateInfo info)
 {
 	VkShaderModuleCreateInfo createInfo;
@@ -1440,3 +1434,163 @@ VK_BINDING_EXPORT bool cobalt_vkb_reset_fences(Device* device, const uint32_t co
 
 	return false;
 }
+
+VK_BINDING_EXPORT bool cobalt_vkb_copy_buffer(Device* device, CommandBuffer* buffer, const uint32_t index, Buffer* srcBuffer, Buffer* dstBuffer,
+	const uint32_t regionCount, BufferCopy* regions)
+{
+	std::vector<VkBufferCopy> reg;
+	for(uint32_t i = 0; i < regionCount; i++)
+	{
+		VkBufferCopy r = {
+			regions[i].srcOffset,
+			regions[i].dstOffset,
+			regions[i].size
+		};
+
+		reg.push_back(r);
+	}
+	
+	device->functionTable.cmdCopyBuffer(buffer->buffers[index], srcBuffer->buffer, dstBuffer->buffer, regionCount, reg.data());
+	
+	return true;
+}
+
+VK_BINDING_EXPORT bool cobalt_vkb_copy_buffer_to_image(Device* device, CommandBuffer* buffer, const uint32_t index, Buffer* srcBuffer, Image* dstImage,
+	uint32_t dstImageLayout, const uint32_t regionCount, BufferImageCopy* regions)
+{
+	std::vector<VkBufferImageCopy> reg;
+	for (uint32_t i = 0; i < regionCount; i++)
+	{
+		const VkImageSubresourceLayers layers = {
+			regions[i].imageSubresource.aspectMask,
+			regions[i].imageSubresource.mipLevel,
+			regions[i].imageSubresource.baseArrayLayer,
+			regions[i].imageSubresource.layerCount
+		};
+		
+		VkBufferImageCopy r = {
+			regions[i].bufferOffset,
+			regions[i].bufferRowLength,
+			regions[i].bufferImageHeight,
+		layers,
+		{
+				regions[i].imageOffset.x,
+				regions[i].imageOffset.y,
+				regions[i].imageOffset.z,
+			},
+		{
+				static_cast<uint32_t>(regions[i].imageExtent.width),
+				static_cast<uint32_t>(regions[i].imageExtent.height),
+				static_cast<uint32_t>(regions[i].imageExtent.depth)
+			}
+		};
+
+		reg.push_back(r);
+	}
+
+	device->functionTable.cmdCopyBufferToImage(buffer->buffers[index], srcBuffer->buffer, dstImage->image, static_cast<VkImageLayout>(dstImageLayout), 
+		regionCount, reg.data());
+
+	return true;
+}
+
+VK_BINDING_EXPORT bool cobalt_vkb_pipeline_barrier(Device* device, CommandBuffer* buffer, const uint32_t index, const uint32_t srcStageMask, const uint32_t dstStageMask,
+	const uint32_t dependencyFlags, const uint32_t memoryBarrierCount, MemoryBarrier* memoryBarriers, const uint32_t bufferMemoryBarrierCount, BufferMemoryBarrier* bufferMemoryBarriers,
+	const uint32_t imageMemoryBarrierCount, ImageMemoryBarrier* imageMemoryBarriers)
+{
+	std::vector<VkMemoryBarrier> memBars;
+	for(uint32_t i = 0; i < memoryBarrierCount; i++)
+	{
+		VkMemoryBarrier bar = {
+			VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+			nullptr,
+			memoryBarriers[i].srcAccessMask,
+			memoryBarriers[i].dstAccessMask
+		};
+
+		memBars.push_back(bar);
+	}
+
+	std::vector<VkBufferMemoryBarrier> bufferMemBars;
+	for (uint32_t i = 0; i < bufferMemoryBarrierCount; i++)
+	{
+		VkBufferMemoryBarrier bar = {
+			VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+			nullptr,
+			bufferMemoryBarriers[i].srcAccessMask,
+			bufferMemoryBarriers[i].dstAccessMask,
+			bufferMemoryBarriers[i].srcQueueFamilyIndex,
+			bufferMemoryBarriers[i].dstQueueFamilyIndex,
+			bufferMemoryBarriers[i].buffer->buffer,
+			bufferMemoryBarriers[i].offset,
+			bufferMemoryBarriers[i].size
+		};
+
+		bufferMemBars.push_back(bar);
+	}
+
+	std::vector<VkImageMemoryBarrier> imageMemBars;
+	for (uint32_t i = 0; i < imageMemoryBarrierCount; i++)
+	{
+		const VkImageSubresourceRange range = {
+			imageMemoryBarriers[i].subresourceRange.aspectMask,
+			imageMemoryBarriers[i].subresourceRange.baseMipLevel,
+			imageMemoryBarriers[i].subresourceRange.levelCount,
+			imageMemoryBarriers[i].subresourceRange.baseArrayLayer,
+			imageMemoryBarriers[i].subresourceRange.layerCount
+		};
+		
+		VkImageMemoryBarrier bar = {
+			VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+			nullptr,
+			imageMemoryBarriers[i].srcAccessMask,
+			imageMemoryBarriers[i].dstAccessMask,
+			static_cast<VkImageLayout>(imageMemoryBarriers[i].oldLayout),
+			static_cast<VkImageLayout>(imageMemoryBarriers[i].newLayout),
+			imageMemoryBarriers[i].srcQueueFamilyIndex,
+			imageMemoryBarriers[i].dstQueueFamilyIndex,
+			imageMemoryBarriers[i].image->image,
+			range
+		};
+
+		imageMemBars.push_back(bar);
+	}
+	
+	device->functionTable.cmdPipelineBarrier(buffer->buffers[index], srcStageMask, dstStageMask, dependencyFlags, memoryBarrierCount, memBars.data(),
+		bufferMemoryBarrierCount, bufferMemBars.data(), imageMemoryBarrierCount, imageMemBars.data());
+
+	return true;
+}
+
+VK_BINDING_EXPORT bool cobalt_vkb_draw_indirect(Device* device, CommandBuffer* buffer, const uint32_t index,
+	Buffer* srcBuffer, const uint64_t offset, const uint32_t drawCount, const uint32_t stride)
+{
+	device->functionTable.cmdDrawIndirect(buffer->buffers[index], srcBuffer->buffer, offset, drawCount, stride);
+
+	return true;
+}
+
+VK_BINDING_EXPORT bool cobalt_vkb_draw_indexed_indirect_count(Device* device, CommandBuffer* buffer, const uint32_t index, Buffer* srcBuffer,
+	const uint64_t offset, Buffer* countBuffer, const uint64_t countBufferOffset, const uint32_t maxDrawCount, const uint32_t stride)
+{
+	device->functionTable.cmdDrawIndexedIndirectCount(buffer->buffers[index], srcBuffer->buffer, offset, countBuffer->buffer,
+		countBufferOffset, maxDrawCount, stride);
+
+	return true;
+}
+
+VK_BINDING_EXPORT bool cobalt_vkb_bind_descriptor_sets(Device* device, CommandBuffer* buffer, const  uint32_t index, uint32_t pipelineBindPoint,
+	Shader* pipeline, const uint32_t firstSet, const uint32_t descriptorSetCount, DescriptorSet** sets, const uint32_t dynamicOffsetCount, uint32_t* dynamicOffsets)
+{
+	std::vector<VkDescriptorSet> descSets;
+	for(uint32_t i = 0; i < descriptorSetCount; i++)
+	{
+		descSets.push_back(sets[i]->set);
+	}
+	
+	device->functionTable.cmdBindDescriptorSets(buffer->buffers[index], static_cast<VkPipelineBindPoint>(pipelineBindPoint), pipeline->pipelineLayout.layout, firstSet,
+		descriptorSetCount, descSets.data(), dynamicOffsetCount, dynamicOffsets);
+	
+	return true;
+}
+

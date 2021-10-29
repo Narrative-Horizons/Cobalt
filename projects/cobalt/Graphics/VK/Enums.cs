@@ -454,4 +454,65 @@ namespace Cobalt.Graphics.VK.Enums
         Transfer,
         Compute
     }
+
+    [Flags]
+    public enum BufferUsageFlagBits
+    {
+        TransferSrcBit = 0x00000001,
+        TransferDstBit = 0x00000002,
+        UniformTexelBufferBit = 0x00000004,
+        StorageTexelBufferBit = 0x00000008,
+        UniformBufferBit = 0x00000010,
+        StorageBufferBit = 0x00000020,
+        IndexBufferBit = 0x00000040,
+        VertexBufferBit = 0x00000080,
+        IndirectBufferBit = 0x00000100,
+        ShaderDeviceAddressBit = 0x00020000,
+        VideoDecodeSrcBitKHR = 0x00002000,
+        VideoDecodeDstBitKHR = 0x00004000,
+        TransformFeedbackBufferBitExt = 0x00000800,
+        TransformFeedbackCounterBufferBitExt = 0x00001000,
+        ConditionalRenderingBitExt = 0x00000200,
+        AccelerationStructureBuildInputReadOnlyBitKHR = 0x00080000,
+        AccelerationStructureStorageBitKHR = 0x00100000,
+        ShaderBindingTableBitKHR = 0x00000400,
+        VideoEncodeDstBitKHR = 0x00008000,
+        VideoEncodeSrcBitKHR = 0x00010000,
+        RayTracingBitNV = ShaderBindingTableBitKHR,
+        ShaderDeviceAddressBitExt = ShaderDeviceAddressBit,
+        ShaderDeviceAddressBitKHR = ShaderDeviceAddressBit,
+    }
+
+    public enum SharingMode
+    {
+        Exclusive = 0,
+        Concurrent = 1,
+    }
+
+    [Flags]
+    public enum MemoryPropertyFlagBits
+    {
+        DeviceLocalBit = 0x00000001,
+        HostVisibleBit = 0x00000002,
+        HostCoherentBit = 0x00000004,
+        HostCachedBit = 0x00000008,
+        LazilyAllocatedBit = 0x00000010,
+        ProtectedBit = 0x00000020,
+        DeviceCoherentBitAmd = 0x00000040,
+        DeviceUncachedBitAmd = 0x00000080,
+        RdmaCapableBitNV = 0x00000100,
+        FlagBitsMaxEnum = 0x7FFFFFFF
+    }
+
+    public enum MemoryUsage
+    {
+        Unknown = 0,
+        GpuOnly = 1,
+        CpuOnly = 2,
+        CpuToGpu = 3,
+        GpuToCpu = 4,
+        CpuCopy = 5,
+        GpuLazilyAllocated = 6,
+        MaxEnum = 0x7FFFFFFF
+    }
 }

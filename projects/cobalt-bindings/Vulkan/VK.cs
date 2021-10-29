@@ -363,6 +363,29 @@ namespace Cobalt.Bindings.Vulkan
         [DllImport(Library, EntryPoint = "cobalt_vkb_reset_fences", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool ResetFences(Instance device, uint count, Fence[] fences);
 
+        [DllImport(Library, EntryPoint = "cobalt_vkb_copy_buffer", CallingConvention = CallingConvention.Cdecl)]
+        public static extern bool CopyBuffer(Instance device, CommandBuffer buffer, uint index, 
+            Buffer srcBuffer, Buffer dstBuffer, uint regionCount, BufferCopy[] regions);
+
+        [DllImport(Library, EntryPoint = "cobalt_vkb_copy_buffer_to_image", CallingConvention = CallingConvention.Cdecl)]
+        public static extern bool CopyBufferToImage(Instance device, CommandBuffer buffer, uint index, 
+            Buffer srcBuffer, Image dstImage, uint dstImageLayout, uint regionCount, BufferImageCopy[] regions);
+
+        [DllImport(Library, EntryPoint = "cobalt_vkb_pipeline_barrier", CallingConvention = CallingConvention.Cdecl)]
+        public static extern bool PipelineBarrier(Instance device, CommandBuffer buffer, uint index, uint srcStageMask, uint dstStageMask, uint dependencyFlags,
+            uint memoryBarrierCount, MemoryBarrier[] memoryBarriers, uint bufferMemoryBarrierCount, BufferMemoryBarrier[] bufferMemoryBarriers,
+            uint imageMemoryBarrierCount, ImageMemoryBarrier[] imageMemoryBarriers);
+
+        [DllImport(Library, EntryPoint = "cobalt_vkb_draw_indirect", CallingConvention = CallingConvention.Cdecl)]
+        public static extern bool DrawIndirect(Instance device, CommandBuffer buffer, uint index, Buffer srcBuffer, ulong offset, uint drawCount, uint stride);
+
+        [DllImport(Library, EntryPoint = "cobalt_vkb_draw_indexed_indirect_count", CallingConvention = CallingConvention.Cdecl)]
+        public static extern bool DrawIndexedIndirectCount(Instance device, CommandBuffer buffer, uint index, Buffer srcBuffer, ulong offset, 
+            Buffer countBuffer, ulong countBufferOffset, uint maxDrawCount, uint stride);
+
+        [DllImport(Library, EntryPoint = "cobalt_vkb_bind_descriptor_sets", CallingConvention = CallingConvention.Cdecl)]
+        public static extern bool BindDescriptorSets(Instance device, CommandBuffer buffer, uint index,
+            uint pipelineBindPoint, Shader pipeline, uint firstSet, uint descriptorSetCount, DescriptorSet[] sets, uint dynamicOffsetCount, uint[] dynamicOffsets);
         #endregion
 
         public static bool PresentQueue(Instance device, PresentInfo info)

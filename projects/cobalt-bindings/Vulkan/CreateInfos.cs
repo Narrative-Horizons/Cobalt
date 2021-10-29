@@ -184,13 +184,13 @@ namespace Cobalt.Bindings.Vulkan
     {
         [FieldOffset(0)] 
         public uint usage;
-        [FieldOffset(4)] 
+        [FieldOffset(8)] 
         public ulong size;
-        [FieldOffset(12)]
-        public uint sharingMode;
         [FieldOffset(16)]
-        public uint indexCount;
+        public uint sharingMode;
         [FieldOffset(24)]
+        public uint indexCount;
+        [FieldOffset(32)]
         public uint[] indices;
     }
 
@@ -488,6 +488,28 @@ namespace Cobalt.Bindings.Vulkan
         public float? depth;
     }
 
+    [StructLayout(LayoutKind.Explicit)]
+    public struct Offset3D
+    {
+        [FieldOffset(0)]
+        public int x;
+        [FieldOffset(4)]
+        public int y;
+        [FieldOffset(8)]
+        public int z;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct Extent3D
+    {
+        [FieldOffset(0)]
+        public int width;
+        [FieldOffset(4)]
+        public int depth;
+        [FieldOffset(8)]
+        public int height;
+    }
+
     public struct RenderPassBeginInfo
     {
         public VK.RenderPass renderpass;
@@ -497,5 +519,118 @@ namespace Cobalt.Bindings.Vulkan
         public uint clearValueCount;
 
         public ClearValue[] clearValues;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct BufferCopy
+    {
+        [FieldOffset(0)]
+        public ulong srcOffset;
+        [FieldOffset(8)]
+        public ulong dstOffset;
+        [FieldOffset(16)]
+        public ulong size;
+    }
+
+    public struct ImageSubresourceLayers
+    {
+        public uint aspectMask;
+        public uint mipLevel;
+        public uint baseArrayLayer;
+        public uint layerCount;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct BufferImageCopy
+    {
+        [FieldOffset(0)]
+        public ulong bufferOffset;
+        [FieldOffset(8)]
+        public uint bufferRowLength;
+        [FieldOffset(12)]
+        public uint bufferImageHeight;
+        [FieldOffset(16)] 
+        public ImageSubresourceLayers imageSubresource;
+        [FieldOffset(24)] 
+        public Offset3D imageOffset;
+        [FieldOffset(32)] 
+        public Extent3D imageExtent;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct MemoryBarrier
+    {
+        [FieldOffset(0)]
+        public uint srcAccessMask;
+        [FieldOffset(4)]
+        public uint dstAccessMask;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct BufferMemoryBarrier
+    {
+        [FieldOffset(0)]
+        public uint srcAccessMask;
+        [FieldOffset(4)]
+        public uint dstAccessMask;
+        [FieldOffset(8)] 
+        public uint srcQueueFamilyIndex;
+        [FieldOffset(12)] 
+        public uint dstQueueFamilyIndex;
+        [FieldOffset(16)] 
+        public VK.Buffer buffer;
+        [FieldOffset(24)] 
+        public ulong offset;
+        [FieldOffset(32)] 
+        public ulong size;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct ImageSubresourceRange
+    {
+        [FieldOffset(0)]
+        public uint aspectMask;
+        [FieldOffset(4)]
+        public uint baseMipLevel;
+        [FieldOffset(8)]
+        public uint levelCount;
+        [FieldOffset(12)]
+        public uint baseArrayLayer;
+        [FieldOffset(16)]
+        public uint layerCount;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct ImageMemoryBarrier
+    {
+        [FieldOffset(0)]
+        public uint srcAccessMask;
+        [FieldOffset(4)]
+        public uint dstAccessMask;
+        [FieldOffset(8)]
+        public uint oldLayout;
+        [FieldOffset(12)]
+        public uint newLayout;
+        [FieldOffset(16)]
+        public uint srcQueueFamilyIndex;
+        [FieldOffset(24)]
+        public uint dstQueueFamilyIndex;
+        [FieldOffset(32)]
+        public VK.Image image;
+        [FieldOffset(40)]
+        public ImageSubresourceRange subresoueRange;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct DrawIndirectCommand
+    {
+        [FieldOffset(0)]
+        public uint vertexCount;
+        [FieldOffset(4)]
+        public uint instanceCount;
+        [FieldOffset(8)]
+        public uint firstVertex;
+        [FieldOffset(12)]
+        public uint firstInstance;
     }
 }

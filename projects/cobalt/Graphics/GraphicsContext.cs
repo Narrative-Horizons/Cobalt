@@ -1,6 +1,7 @@
 ﻿using Cobalt.Graphics.VK;
 using System;
 using Cobalt.Bindings.Vulkan;
+using Cobalt.Core;
 using Cobalt.Graphics.VK.Enums;
 
 namespace Cobalt.Graphics
@@ -20,6 +21,7 @@ namespace Cobalt.Graphics
         public Cobalt.Bindings.Vulkan.VK.Semaphore[] renderFinishedSemaphore;
         public Cobalt.Bindings.Vulkan.VK.Fence[] inFlightFences;
         public Cobalt.Bindings.Vulkan.VK.Fence[] imagesInFlight;
+        public Cobalt.Bindings.Vulkan.VK.Buffer[] indirectBuffer;
         public uint frameCount = 3;
 
         public GraphicsContext(Window window)
@@ -84,10 +86,38 @@ namespace Cobalt.Graphics
             };
 
             shader = Bindings.Vulkan.VK.CreateShader(ContextDevice.handle, shaderInfo);
+            indirectBuffer = new Bindings.Vulkan.VK.Buffer[frameCount];
 
             framebuffers = new Bindings.Vulkan.VK.Framebuffer[frameCount];
             for (int i = 0; i < frameCount; i++)
             {
+                BufferCreateInfo indirectInfo = new BufferCreateInfo();
+                indirectInfo.usage = (uint)(BufferUsageFlagBits.StorageBufferBit | BufferUsageFlagBits.IndirectBufferBit);
+                indirectInfo.sharingMode = (uint)SharingMode.Exclusive;
+                indirectInfo.size = 16;
+
+                BufferMemoryCreateInfo indirectMemoryInfo = new BufferMemoryCreateInfo
+                {
+                    requiredFlags =
+                        (uint) (MemoryPropertyFlagBits.HostVisibleBit | MemoryPropertyFlagBits.HostCoherentBit),
+                    preferredFlags = 0,
+                    usage = (uint) MemoryUsage.CpuToGpu
+                };
+
+                indirectBuffer[i] =
+                    Bindings.Vulkan.VK.CreateBuffer(ContextDevice.handle, indirectInfo, indirectMemoryInfo);
+
+                DrawIndirectCommand drawCommand = new DrawIndirectCommand()
+                {
+                    firstInstance = 0,
+                    firstVertex = 0,
+                    instanceCount = 1,
+                    vertexCount = 3
+                };
+
+                NativeBuffer<DrawIndirectCommand> nativeBuffer = new NativeBuffer<DrawIndirectCommand>(Bindings.Vulkan.VK.MapBuffer(ContextDevice.handle, indirectBuffer[i]));
+                nativeBuffer.Set(drawCommand);
+                Bindings.Vulkan.VK.UnmapBuffer(ContextDevice.handle, indirectBuffer[i]);
 
                 FramebufferCreateInfo framebufferInfo = new FramebufferCreateInfo
                 {
@@ -111,12 +141,14 @@ namespace Cobalt.Graphics
             inFlightFences = new Bindings.Vulkan.VK.Fence[frameCount];
             imagesInFlight = new Bindings.Vulkan.VK.Fence[frameCount];
 
+
             for (int i = 0; i < frameCount; i++)
             {
                 Bindings.Vulkan.VK.BeginCommandBuffer(ContextDevice.handle, commandbuffer, (uint)i);
                 Bindings.Vulkan.VK.BeginRenderPass(ContextDevice.handle, commandbuffer, (uint)i, pass, framebuffers[i]);
                 Bindings.Vulkan.VK.BindPipeline(ContextDevice.handle, commandbuffer, (uint)PipelineBindPoint.Graphics, (uint) i, shader);
-                Bindings.Vulkan.VK.Draw(ContextDevice.handle, commandbuffer, (uint) i, 3, 1, 0, 0);
+                //Bindings.Vulkan.VK.Draw(ContextDevice.handle, commandbuffer, (uint) i, 3, 1, 0, 0);
+                Bindings.Vulkan.VK.DrawIndirect(ContextDevice.handle, commandbuffer, (uint) i, indirectBuffer[i], 0, 1, 16);
                 Bindings.Vulkan.VK.EndRenderPass(ContextDevice.handle, commandbuffer, (uint) i);
                 Bindings.Vulkan.VK.EndCommandBuffer(ContextDevice.handle, commandbuffer, (uint) i);
 
@@ -131,19 +163,19 @@ namespace Cobalt.Graphics
             }
         }
 
-        public uint currentFrame = 0;
+        public uint currentFrame;
 
         public void Render()
         {
-            Bindings.Vulkan.VK.WaitForFences(ContextDevice.handle, 1, new []{inFlightFences[currentFrame]}, true, UInt64.MaxValue);
+            Bindings.Vulkan.VK.WaitForFences(ContextDevice.handle, 1, new []{inFlightFences[currentFrame]}, true, ulong.MaxValue);
 
             uint imageIndex =
-                Bindings.Vulkan.VK.AcquireNextImage(ContextDevice.handle, swapchain, UInt64.MaxValue, imageAvailableSemaphore[currentFrame]);
+                Bindings.Vulkan.VK.AcquireNextImage(ContextDevice.handle, swapchain, ulong.MaxValue, imageAvailableSemaphore[currentFrame]);
 
             if (imagesInFlight[imageIndex].handle != IntPtr.Zero)
             {
                 Bindings.Vulkan.VK.WaitForFences(ContextDevice.handle, 1, new[] {imagesInFlight[imageIndex]}, true,
-                        UInt64.MaxValue);
+                    ulong.MaxValue);
             }
             imagesInFlight[imageIndex] = inFlightFences[currentFrame];
 

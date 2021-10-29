@@ -8,16 +8,6 @@
 
 struct Device;
 
-struct BufferCopy
-{
-	uint64_t bufferOffset;
-	uint32_t bufferRowLength;
-	uint32_t bufferImageHeight;
-	VkImageSubresourceLayers imageSubresource;
-	VkOffset3D imageOffset;
-	VkExtent3D imageExtent;
-};
-
 struct PhysicalDevice
 {
 	vkb::Instance* parent;

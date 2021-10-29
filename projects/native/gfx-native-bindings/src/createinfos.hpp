@@ -56,7 +56,7 @@ struct CommandBufferCreateInfo
 struct BufferCreateInfo
 {
 	uint32_t usage;
-	size_t size;
+	uint64_t size;
 	uint32_t sharingMode;
 
 	uint32_t indexCount;
@@ -191,4 +191,111 @@ struct PresentInfo
 struct FenceCreateInfo
 {
 	uint32_t flags;
+};
+
+struct Rect2D
+{
+	float x;
+	float y;
+	float width;
+	float height;
+};
+
+struct Vector4
+{
+	float x, y, z, w;
+};
+
+struct ClearValue
+{
+	Vector4 color;
+	float depth;
+};
+
+struct Offset3D
+{
+	int x;
+	int y;
+	int z;
+};
+
+struct Extent3D
+{
+	int width;
+	int depth;
+	int height;
+};
+
+struct RenderPassBeginInfo
+{
+	RenderPass* renderpass;
+	Framebuffer* framebuffer;
+
+	Rect2D renderArea;
+	uint32_t clearValueCount;
+
+	ClearValue* clearValues;
+};
+
+struct BufferCopy
+{
+	uint64_t srcOffset;
+	uint64_t dstOffset;
+	uint64_t size;
+};
+
+struct ImageSubresourceLayers
+{
+	uint32_t aspectMask;
+	uint32_t mipLevel;
+	uint32_t baseArrayLayer;
+	uint32_t layerCount;
+};
+
+struct BufferImageCopy
+{
+	uint64_t bufferOffset;
+	uint32_t bufferRowLength;
+	uint32_t bufferImageHeight;
+	ImageSubresourceLayers imageSubresource;
+	Offset3D imageOffset;
+	Extent3D imageExtent;
+};
+
+struct MemoryBarrier
+{
+	uint32_t srcAccessMask;
+	uint32_t dstAccessMask;
+};
+
+struct BufferMemoryBarrier
+{
+	uint32_t srcAccessMask;
+	uint32_t dstAccessMask;
+	uint32_t srcQueueFamilyIndex;
+	uint32_t dstQueueFamilyIndex;
+	Buffer* buffer;
+	uint64_t offset;
+	uint64_t size;
+};
+
+struct ImageSubresourceRange
+{
+	uint32_t aspectMask;
+	uint32_t baseMipLevel;
+	uint32_t levelCount;
+	uint32_t baseArrayLayer;
+	uint32_t layerCount;
+};
+
+struct ImageMemoryBarrier
+{
+	uint32_t srcAccessMask;
+	uint32_t dstAccessMask;
+	uint32_t oldLayout;
+	uint32_t newLayout;
+	uint32_t srcQueueFamilyIndex;
+	uint32_t dstQueueFamilyIndex;
+	Image* image;
+	ImageSubresourceRange subresourceRange;
 };

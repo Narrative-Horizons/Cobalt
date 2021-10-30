@@ -872,8 +872,20 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 	vertexInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 	vertexInfo.flags = 0;
 	vertexInfo.pNext = nullptr;
-	vertexInfo.vertexBindingDescriptionCount = 0;
-	vertexInfo.vertexAttributeDescriptionCount = 0;
+	vertexInfo.vertexBindingDescriptionCount = 1;
+	vertexInfo.vertexAttributeDescriptionCount = 5;
+
+	VkVertexInputBindingDescription vbBinding = { 0, sizeof(float) * 14, VK_VERTEX_INPUT_RATE_VERTEX };
+	vertexInfo.pVertexBindingDescriptions = &vbBinding;
+
+	std::vector<VkVertexInputAttributeDescription> vbAttrs;
+	vbAttrs.emplace_back(VkVertexInputAttributeDescription{ 0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0 });
+	vbAttrs.emplace_back(VkVertexInputAttributeDescription{ 1, 0, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 3 });
+	vbAttrs.emplace_back(VkVertexInputAttributeDescription{ 2, 0, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 5 });
+	vbAttrs.emplace_back(VkVertexInputAttributeDescription{ 3, 0, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 8 });
+	vbAttrs.emplace_back(VkVertexInputAttributeDescription{ 4, 0, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 11 });
+
+	vertexInfo.pVertexAttributeDescriptions = vbAttrs.data();
 
 	VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
 	inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;

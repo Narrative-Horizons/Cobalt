@@ -1165,6 +1165,11 @@ VK_BINDING_EXPORT void cobalt_vkb_destroy_descriptors(Shader* shader, Descriptor
 	delete sets;
 }
 
+VK_BINDING_EXPORT void cobalt_vkb_write_descriptors(DescriptorSet* sets, size_t count, DescriptorWriteInfo* infos)
+{
+
+}
+
 VK_BINDING_EXPORT Image* cobalt_vkb_create_image(Device* device, ImageCreateInfo info, const char* name, const uint32_t frame)
 {
 	const std::string objectName = std::string(name) + "_" + std::to_string(frame);

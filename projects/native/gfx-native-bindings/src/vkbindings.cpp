@@ -1068,17 +1068,57 @@ VK_BINDING_EXPORT DescriptorSet* cobalt_vkb_allocate_descriptors(Shader* shader)
 			}
 
 			constexpr size_t multiplier = 32;
+			p.allocatedSets = 0;
 			p.maxSets = poolInfo.maxSets;
-			p.samplerCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_SAMPLER] * multiplier);
-			p.combinedImageSamplerCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] * multiplier);
-			p.sampledImageCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE] * multiplier);
+			p.samplerCount = p.samplerCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_SAMPLER] * multiplier);
+			p.combinedImageSamplerCount = p.combinedImageSamplerCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] * multiplier);
+			p.sampledImageCount = p.sampledImageCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE] * multiplier);
+			p.storageImageCount = p.storageImageCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_IMAGE]) * multiplier;
+			p.uniformTexelBufferCount = p.uniformTexelBufferCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER]) * multiplier;
+			p.storageTexelBufferCount = p.storageTexelBufferCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER]) * multiplier;
+			p.uniformBufferCount = p.uniformBufferCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER]) * multiplier;
+			p.storageBufferCount = p.storageBufferCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER]) * multiplier;
+			p.dynamicUniformBufferCount = p.dynamicUniformBufferCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC]) * multiplier;
+			p.dynamicStorageBufferCount = p.dynamicStorageBufferCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC]) * multiplier;
+			p.inputAttachmentCount = p.inputAttachmentCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT]) * multiplier;
 
 			pools.push_back(p);
 		}
 	}
 
-	delete[] results;
-	return nullptr;
+	return results;
+}
+
+VK_BINDING_EXPORT void cobalt_vkb_destroy_descriptors(Shader* shader, DescriptorSet* sets)
+{
+	if (!sets)
+	{
+		// print error?
+		return;
+	}
+
+	const size_t sz = shader->pipelineLayout.sets.size();
+
+	for (size_t i = 0; i < sz; ++i)
+	{
+		DescriptorSet set = sets[i];
+		shader->device->functionTable.freeDescriptorSets(set.parent->pool, 1, &(set.set));
+
+		set.parent->allocatedSets -= 1;
+		set.parent->samplerCount += set.samplerCount;
+		set.parent->combinedImageSamplerCount += set.combinedImageSamplerCount;
+		set.parent->sampledImageCount += set.sampledImageCount;
+		set.parent->storageImageCount += set.storageImageCount;
+		set.parent->uniformTexelBufferCount += set.uniformTexelBufferCount;
+		set.parent->storageTexelBufferCount += set.storageTexelBufferCount;
+		set.parent->uniformBufferCount += set.uniformBufferCount;
+		set.parent->storageBufferCount += set.storageBufferCount;
+		set.parent->dynamicUniformBufferCount += set.dynamicUniformBufferCount;
+		set.parent->dynamicStorageBufferCount += set.dynamicStorageBufferCount;
+		set.parent->inputAttachmentCount += set.inputAttachmentCount;
+	}
+
+	delete sets;
 }
 
 VK_BINDING_EXPORT Image* cobalt_vkb_create_image(Device* device, ImageCreateInfo info, const char* name, const uint32_t frame)

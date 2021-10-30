@@ -469,6 +469,38 @@ VK_BINDING_EXPORT bool cobalt_vkb_command_end_renderpass(Device* device, Command
 	return false;
 }
 
+VK_BINDING_EXPORT bool cobalt_vkb_command_bind_vertex_buffers(Device* device, CommandBuffer* buffer, const uint32_t index, const uint32_t firstBinding,
+	const uint32_t bindingCount, Buffer** buffers, uint64_t* offsets)
+{
+	if (buffer)
+	{
+		std::vector<VkBuffer> vkBuffers;
+		for(uint32_t i = 0; i < bindingCount; i++)
+		{
+			vkBuffers.push_back(buffers[index]->buffer);
+		}
+		
+		device->functionTable.cmdBindVertexBuffers(buffer->buffers[index], firstBinding, bindingCount, vkBuffers.data(), offsets);
+
+		return true;
+	}
+
+	return false;
+}
+
+VK_BINDING_EXPORT bool cobalt_vkb_command_bind_index_buffer(Device* device, CommandBuffer* buffer, const uint32_t index, Buffer* indexBuffer, 
+	const uint64_t offset, uint32_t indexType)
+{
+	if (buffer)
+	{
+		device->functionTable.cmdBindIndexBuffer(buffer->buffers[index], indexBuffer->buffer, offset, static_cast<VkIndexType>(indexType));
+
+		return true;
+	}
+
+	return false;
+}
+
 VK_BINDING_EXPORT bool cobalt_vkb_commandbuffer_end(Device* device, CommandBuffer* buffer, const uint32_t index)
 {
 	if (buffer)

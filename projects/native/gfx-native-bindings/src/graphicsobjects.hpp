@@ -222,10 +222,9 @@ struct BufferWriteInfo
 	size_t range;
 };
 
-union TypedWriteInfo
-{
-	ImageWriteInfo* images;
-	BufferWriteInfo* buffers;
+union TypedWriteInfo {
+	ImageWriteInfo images;
+	BufferWriteInfo buffers;
 };
 
 struct DescriptorWriteInfo

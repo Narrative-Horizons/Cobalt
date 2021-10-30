@@ -1165,9 +1165,72 @@ VK_BINDING_EXPORT void cobalt_vkb_destroy_descriptors(Shader* shader, Descriptor
 	delete sets;
 }
 
-VK_BINDING_EXPORT void cobalt_vkb_write_descriptors(DescriptorSet* sets, size_t count, DescriptorWriteInfo* infos)
+VK_BINDING_EXPORT void cobalt_vkb_write_descriptors(Device* device, size_t count, DescriptorWriteInfo* infos)
 {
+	std::vector<VkWriteDescriptorSet> writes;
+	for (size_t i = 0; i < count; ++i)
+	{
+		DescriptorWriteInfo info = infos[i];
+		VkWriteDescriptorSet write;
 
+		write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		write.pNext = VK_NULL_HANDLE;
+		write.dstSet = info.sets[info.set].set;
+		write.dstBinding = info.binding;
+		write.descriptorCount = info.count;
+		write.descriptorType = info.type;
+		write.pBufferInfo = VK_NULL_HANDLE;
+		write.pImageInfo = VK_NULL_HANDLE;
+		write.pTexelBufferView = VK_NULL_HANDLE;
+
+		switch (write.descriptorType)
+		{
+		case VK_DESCRIPTOR_TYPE_SAMPLER:
+		case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
+		case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+		case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT: {
+			auto images = new VkDescriptorImageInfo[write.descriptorCount];
+			for (size_t j = 0; j < write.descriptorCount; ++i)
+			{
+				auto sampler = info.infos[j].images.sampler;
+				auto view = info.infos[j].images.view;
+				auto layout = info.infos[j].images.layout;
+
+				images[j].sampler = sampler ? sampler->sampler : VK_NULL_HANDLE;
+				images[j].imageView = view ? view->imageView : VK_NULL_HANDLE;
+				images[j].imageLayout = layout;
+			}
+			write.pImageInfo = images;
+		}
+		case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+		case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
+		case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
+		case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC: {
+			auto buffers = new VkDescriptorBufferInfo[write.descriptorCount];
+			for (size_t j = 0; j < write.descriptorCount; ++j)
+			{
+				auto buffer = info.infos[j].buffers.buf;
+				auto offset = info.infos[j].buffers.offset;
+				auto range = info.infos[j].buffers.range;
+
+				buffers[j].buffer = buffer ? buffer->buffer : VK_NULL_HANDLE;
+				buffers[j].offset = offset;
+				buffers[j].range = range;
+			}
+			write.pBufferInfo = buffers;
+		}
+		}
+
+		writes.push_back(write);
+	}
+
+	device->functionTable.updateDescriptorSets(static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
+
+	for (auto write : writes) {
+		if (write.pBufferInfo) delete[] write.pBufferInfo;
+		if (write.pImageInfo) delete[] write.pImageInfo;
+		if (write.pTexelBufferView) delete[] write.pTexelBufferView;
+	}
 }
 
 VK_BINDING_EXPORT Image* cobalt_vkb_create_image(Device* device, ImageCreateInfo info, const char* name, const uint32_t frame)

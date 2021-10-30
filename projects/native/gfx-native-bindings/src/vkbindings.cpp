@@ -1281,6 +1281,63 @@ VK_BINDING_EXPORT bool cobalt_vkb_destroy_imageview(Device* device, ImageView* v
 	return false;
 }
 
+VK_BINDING_EXPORT Sampler* cobalt_vkb_create_sampler(Device* device, const SamplerCreateInfo info, const char* name)
+{
+	if (device->samplers.find(name) != device->samplers.end())
+	{
+		Sampler* i = device->samplers[name];
+		i->refs++;
+		return i;
+	}
+
+	Sampler* sampler = new Sampler();
+	sampler->refs = 1;
+
+	VkSamplerCreateInfo samplerInfo = {};
+	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+	samplerInfo.flags = info.flags;
+	samplerInfo.pNext = nullptr;
+	samplerInfo.minFilter = static_cast<VkFilter>(info.minFilter);
+	samplerInfo.magFilter = static_cast<VkFilter>(info.magFilter);
+	samplerInfo.mipmapMode = static_cast<VkSamplerMipmapMode>(info.mipmapMode);
+	samplerInfo.addressModeU = static_cast<VkSamplerAddressMode>(info.addressModeU);
+	samplerInfo.addressModeV = static_cast<VkSamplerAddressMode>(info.addressModeV);
+	samplerInfo.addressModeW = static_cast<VkSamplerAddressMode>(info.addressModeW);
+	samplerInfo.mipLodBias = info.mipLodBias;
+	samplerInfo.anisotropyEnable = info.anisotropyEnable;
+	samplerInfo.maxAnisotropy = info.maxAnisotropy;
+	samplerInfo.compareEnable = info.compareEnable;
+	samplerInfo.compareOp = static_cast<VkCompareOp>(info.compareOp);
+	samplerInfo.minLod = info.minLod;
+	samplerInfo.maxLod = info.maxLod;
+	samplerInfo.borderColor = static_cast<VkBorderColor>(info.borderColor);
+	samplerInfo.unnormalizedCoordinates = info.unnormalizedCoordinates;
+
+	device->functionTable.createSampler(&samplerInfo, device->device.allocation_callbacks, &sampler->sampler);
+	device->samplers[name] = sampler;
+
+	return sampler;
+}
+
+VK_BINDING_EXPORT bool cobalt_vkb_destroy_sampler(Device* device, Sampler* sampler)
+{
+	if (sampler)
+	{
+		sampler->refs--;
+
+		if (sampler->refs <= 0)
+		{
+			device->functionTable.destroySampler(sampler->sampler, device->device.allocation_callbacks);
+			delete sampler;
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+
 VK_BINDING_EXPORT Framebuffer* cobalt_vkb_create_framebuffer(Device* device, const FramebufferCreateInfo info)
 {
 	Framebuffer* framebuffer = new Framebuffer();

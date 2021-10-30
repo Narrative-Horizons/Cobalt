@@ -233,12 +233,29 @@ namespace Cobalt.Bindings.Vulkan
             }
         }
 
+        public struct Sampler
+        {
+            public IntPtr handle;
+
+            public static implicit operator IntPtr(Sampler sampler)
+            {
+                return sampler.handle;
+            }
+
+            public static explicit operator Sampler(IntPtr handle) => new Sampler(handle);
+
+            public Sampler(IntPtr handle)
+            {
+                this.handle = handle;
+            }
+        }
+
         #endregion
 
         #region DLL Loading
 
 #if COBALT_PLATFORM_WINDOWS
-            public const string Library = "bin/gfx-native-bindings.dll";
+        public const string Library = "bin/gfx-native-bindings.dll";
 #elif COBALT_PLATFORM_MACOS
         public const string Library = "bin/gfx-native-bindings";
 #else
@@ -326,6 +343,12 @@ namespace Cobalt.Bindings.Vulkan
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_destroy_imageview", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool DestroyImageView(Instance device, ImageView imageView);
+
+        [DllImport(Library, EntryPoint = "cobalt_vkb_create_sampler", CallingConvention = CallingConvention.Cdecl)]
+        public static extern Sampler CreateSampler(Instance device, SamplerCreateInfo info, string name);
+
+        [DllImport(Library, EntryPoint = "cobalt_vkb_destroy_sampler", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void DestroySampler(Instance device, Sampler sampler);
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_create_framebuffer", CallingConvention = CallingConvention.Cdecl)]
         private static extern Framebuffer CreateFramebufferImpl(Instance device, FramebufferCreateInfoImpl info);

@@ -164,6 +164,12 @@ struct Framebuffer
 	VkFramebuffer framebuffer;
 };
 
+struct Sampler
+{
+	VkSampler sampler;
+	size_t refs;
+};
+
 struct Device
 {
 	vkb::Instance instance;
@@ -189,6 +195,7 @@ struct Device
 
 	std::unordered_map<std::string, Image*> images;
 	std::unordered_map<std::string, ImageView*> imageViews;
+	std::unordered_map<std::string, Sampler*> samplers;
 };
 
 struct Semaphore
@@ -201,29 +208,28 @@ struct Fence
 	VkFence fence;
 };
 
-struct Sampler {
-	VkSampler sampler;
-	size_t refs;
-};
-
-struct ImageWriteInfo {
+struct ImageWriteInfo
+{
 	Sampler* sampler;
 	ImageView* view;
 	VkImageLayout layout;
 };
 
-struct BufferWriteInfo {
+struct BufferWriteInfo
+{
 	Buffer* buf;
 	size_t offset;
 	size_t range;
 };
 
-union TypedWriteInfo {
+union TypedWriteInfo
+{
 	ImageWriteInfo* images;
 	BufferWriteInfo* buffers;
 };
 
-struct DescriptorWriteInfo {
+struct DescriptorWriteInfo
+{
 	DescriptorSet* sets;
 	uint32_t set;
 	uint32_t binding;

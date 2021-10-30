@@ -633,4 +633,41 @@ namespace Cobalt.Bindings.Vulkan
         [FieldOffset(12)]
         public uint firstInstance;
     }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct SamplerCreateInfo
+    {
+        [FieldOffset(0)]
+        public uint flags;
+        [FieldOffset(4)]
+        public uint minFilter;
+        [FieldOffset(8)]
+        public uint magFilter;
+        [FieldOffset(12)]
+        public uint mipmapMode;
+        [FieldOffset(16)]
+        public uint addressModeU;
+        [FieldOffset(20)]
+        public uint addressModeV;
+        [FieldOffset(24)]
+        public uint addressModeW;
+        [FieldOffset(28)]
+        public float mipLodBias;
+        [FieldOffset(32)]
+        public bool anisotropyEnable;
+        [FieldOffset(36)]
+        public float maxAnisotropy;
+        [FieldOffset(40)]
+        public bool compareEnable;
+        [FieldOffset(44)]
+        public uint compareOp;
+        [FieldOffset(48)]
+        public float minLoad;
+        [FieldOffset(52)]
+        public float maxLod;
+        [FieldOffset(56)]
+        public uint borderColor;
+        [FieldOffset(60)]
+        public bool unnormalizedCoordinates;
+    }
 }

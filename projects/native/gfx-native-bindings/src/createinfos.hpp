@@ -299,3 +299,23 @@ struct ImageMemoryBarrier
 	Image* image;
 	ImageSubresourceRange subresourceRange;
 };
+
+struct SamplerCreateInfo
+{
+	uint32_t flags;
+	uint32_t minFilter;
+	uint32_t magFilter;
+	uint32_t mipmapMode;
+	uint32_t addressModeU;
+	uint32_t addressModeV;
+	uint32_t addressModeW;
+	float mipLodBias;
+	bool anisotropyEnable;
+	float maxAnisotropy;
+	bool compareEnable;
+	uint32_t compareOp;
+	float minLod;
+	float maxLod;
+	uint32_t borderColor;
+	bool unnormalizedCoordinates;
+};

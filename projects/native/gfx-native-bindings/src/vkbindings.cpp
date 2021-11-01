@@ -1019,6 +1019,7 @@ VK_BINDING_EXPORT DescriptorSet* cobalt_vkb_allocate_descriptors(Shader* shader)
 		}
 
 		bool successful = false;
+		uint32_t idx = 0;
 		for (auto& [pool, samplerCapacity, combinedImageSamplerCapacity, sampledImageCapacity, 
 			storageImageCapacity, uniformTexelBufferCapacity, storageTexelBufferCapacity, uniformBufferCapacity, 
 			storageBufferCapacity, dynamicUniformBufferCapacity, dynamicStorageBufferCapacity, inputAttachmentCapacity, 
@@ -1071,11 +1072,14 @@ VK_BINDING_EXPORT DescriptorSet* cobalt_vkb_allocate_descriptors(Shader* shader)
 				storageTexelBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER];
 				uniformBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER];
 				uniformTexelBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER];
+
+				results[i].parent = &pools[idx];
 				
 				++allocatedSets;
 				
 				break;
 			}
+			idx++;
 		}
 
 		if (!successful)
@@ -1130,6 +1134,8 @@ VK_BINDING_EXPORT DescriptorSet* cobalt_vkb_allocate_descriptors(Shader* shader)
 			p.inputAttachmentCount = p.inputAttachmentCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT]) * multiplier;
 
 			pools.push_back(p);
+
+			return cobalt_vkb_allocate_descriptors(shader);
 		}
 	}
 

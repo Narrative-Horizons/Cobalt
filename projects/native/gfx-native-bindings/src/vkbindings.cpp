@@ -1191,6 +1191,7 @@ VK_BINDING_EXPORT void cobalt_vkb_write_descriptors(Device* device, size_t count
 		write.pBufferInfo = VK_NULL_HANDLE;
 		write.pImageInfo = VK_NULL_HANDLE;
 		write.pTexelBufferView = VK_NULL_HANDLE;
+		write.dstArrayElement = info.element;
 
 		switch (write.descriptorType)
 		{

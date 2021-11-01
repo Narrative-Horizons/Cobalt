@@ -148,7 +148,7 @@ namespace Cobalt.Graphics
                 set[i] = Bindings.Vulkan.VK.AllocateDescriptors(shader);
 
                 DescriptorWriteInfo writeInfo = new DescriptorWriteInfo();
-                writeInfo.sets = new[] {set[i]};
+                writeInfo.sets = set[i];
                 writeInfo.binding = 0;
                 writeInfo.count = 1;
                 writeInfo.element = 0;

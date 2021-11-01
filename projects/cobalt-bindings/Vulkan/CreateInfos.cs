@@ -749,7 +749,7 @@ namespace Cobalt.Bindings.Vulkan
     public struct DescriptorWriteInfo
     {
         [FieldOffset(0)]
-        public VK.DescriptorSet[] sets;
+        public VK.DescriptorSet sets;
         [FieldOffset(8)]
         public uint set;
         [FieldOffset(12)]
@@ -768,7 +768,7 @@ namespace Cobalt.Bindings.Vulkan
     internal unsafe struct DescriptorWriteInfoImpl
     {
         [FieldOffset(0)] 
-        public VK.DescriptorSet* sets;
+        public VK.DescriptorSet sets;
         [FieldOffset(8)] 
         public uint set;
         [FieldOffset(12)] 

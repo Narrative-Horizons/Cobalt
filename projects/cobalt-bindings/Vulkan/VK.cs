@@ -500,17 +500,7 @@ namespace Cobalt.Bindings.Vulkan
                         implInfo.infos = writeInfos;
                     }
 
-                    if (info.sets != null)
-                    {
-                        DescriptorSet* sets = stackalloc DescriptorSet[info.sets.Length];
-                        uint idx = 0;
-                        foreach (DescriptorSet set in info.sets)
-                        {
-                            sets[idx++] = set;
-                        }
-
-                        implInfo.sets = sets;
-                    }
+                    implInfo.sets = info.sets;
 
                     infoImpls[infoIdx++] = implInfo;
                 }

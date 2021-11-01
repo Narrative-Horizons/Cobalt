@@ -207,33 +207,3 @@ struct Fence
 {
 	VkFence fence;
 };
-
-struct ImageWriteInfo
-{
-	Sampler* sampler;
-	ImageView* view;
-	VkImageLayout layout;
-};
-
-struct BufferWriteInfo
-{
-	Buffer* buf;
-	size_t offset;
-	size_t range;
-};
-
-union TypedWriteInfo {
-	ImageWriteInfo images;
-	BufferWriteInfo buffers;
-};
-
-struct DescriptorWriteInfo
-{
-	DescriptorSet* sets;
-	uint32_t set;
-	uint32_t binding;
-	uint32_t element;
-	uint32_t count;
-	VkDescriptorType type;
-	TypedWriteInfo* infos;
-};

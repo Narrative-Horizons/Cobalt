@@ -824,7 +824,6 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 
 	shader->pass = info.pass;
 	shader->subPassIndex = info.subPassIndex;
-
 	std::vector<VkDescriptorSetLayout> vkLayouts;
 	std::vector<DescriptorSetLayout> layouts;
 
@@ -876,7 +875,10 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 		DescriptorSetLayout setLayout;
 		setLayout.bindings = bnds;
 		setLayout.layout = layout;
+		layouts.push_back(setLayout);
 	}
+
+	shader->pipelineLayout.sets = layouts;
 
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -904,20 +906,20 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 	vertexInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 	vertexInfo.flags = 0;
 	vertexInfo.pNext = nullptr;
-	vertexInfo.vertexBindingDescriptionCount = 1;
-	vertexInfo.vertexAttributeDescriptionCount = 5;
+	vertexInfo.vertexBindingDescriptionCount = 0;
+	vertexInfo.vertexAttributeDescriptionCount = 0;
 
-	VkVertexInputBindingDescription vbBinding = { 0, sizeof(float) * 14, VK_VERTEX_INPUT_RATE_VERTEX };
-	vertexInfo.pVertexBindingDescriptions = &vbBinding;
+	/*VkVertexInputBindingDescription vbBinding = {0, sizeof(float) * 14, VK_VERTEX_INPUT_RATE_VERTEX};
+	vertexInfo.pVertexBindingDescriptions = &vbBinding;*/
 
-	std::vector<VkVertexInputAttributeDescription> vbAttrs;
+	/*std::vector<VkVertexInputAttributeDescription> vbAttrs;
 	vbAttrs.emplace_back(VkVertexInputAttributeDescription{ 0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0 });
 	vbAttrs.emplace_back(VkVertexInputAttributeDescription{ 1, 0, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 3 });
 	vbAttrs.emplace_back(VkVertexInputAttributeDescription{ 2, 0, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 5 });
 	vbAttrs.emplace_back(VkVertexInputAttributeDescription{ 3, 0, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 8 });
 	vbAttrs.emplace_back(VkVertexInputAttributeDescription{ 4, 0, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 11 });
 
-	vertexInfo.pVertexAttributeDescriptions = vbAttrs.data();
+	vertexInfo.pVertexAttributeDescriptions = vbAttrs.data();*/
 
 	VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
 	inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -1101,6 +1103,7 @@ VK_BINDING_EXPORT DescriptorSet* cobalt_vkb_allocate_descriptors(Shader* shader)
 			poolInfo.pNext = VK_NULL_HANDLE;
 			poolInfo.poolSizeCount = static_cast<uint32_t>(sizes.size());
 			poolInfo.pPoolSizes = sizes.data();
+			poolInfo.flags = 0;
 
 			FixedDescriptorSetPool p;
 			const auto result = shader->device->functionTable.createDescriptorPool(&poolInfo, shader->device->device.allocation_callbacks, &(p.pool));

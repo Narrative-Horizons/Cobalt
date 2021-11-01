@@ -330,7 +330,7 @@ namespace Cobalt.Bindings.Vulkan
         public static extern bool DestroyShaderModule(Instance device, ShaderModule module);
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_create_shader", CallingConvention = CallingConvention.Cdecl)]
-        public static extern Shader CreateShader(Instance device, ShaderCreateInfo info);
+        private static extern Shader CreateShaderImpl(Instance device, ShaderCreateInfoImpl info);
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_create_image", CallingConvention = CallingConvention.Cdecl)]
         public static extern Image CreateImage(Instance device, ImageCreateInfo info, string name, uint frame);
@@ -416,6 +416,109 @@ namespace Cobalt.Bindings.Vulkan
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_bind_index_buffer", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool BindIndexBuffer(Instance device, CommandBuffer buffer, Buffer indexBuffer, ulong offset, uint indexType);
+
+        [DllImport(Library, EntryPoint = "cobalt_vkb_allocate_descriptors",
+            CallingConvention = CallingConvention.Cdecl)]
+        public static extern DescriptorSet AllocateDescriptors(Shader shader);
+
+        [DllImport(Library, EntryPoint = "cobalt_vkb_destroy_descriptors",
+            CallingConvention = CallingConvention.Cdecl)]
+        public static extern void DestroyDescriptors(Shader shader, DescriptorSet sets);
+
+        [DllImport(Library, EntryPoint = "cobalt_vkb_write_descriptors",
+            CallingConvention = CallingConvention.Cdecl)]
+        private static extern void WriteDescriptorsImpl(Instance device, ulong count, DescriptorWriteInfoImpl[] infos);
+
+        public static Shader CreateShader(Instance device, ShaderCreateInfo info)
+        {
+            unsafe
+            {
+                ShaderCreateInfoImpl infoImpl = new ShaderCreateInfoImpl();
+                infoImpl.pass = info.pass;
+                infoImpl.computeModulePath = info.computeModulePath;
+                infoImpl.fragmentModulePath = info.fragmentModulePath;
+                infoImpl.geometryModulePath = info.geometryModulePath;
+                infoImpl.subPassIndex = info.subPassIndex;
+                infoImpl.tesselationControlModulePath = info.tesselationControlModulePath;
+                infoImpl.tesselationEvalModulePath = info.tesselationEvalModulePath;
+                infoImpl.vertexModulePath = info.vertexModulePath;
+
+                ShaderLayoutCreateInfoImpl layoutImpl = new ShaderLayoutCreateInfoImpl();
+                layoutImpl.setCount = info.layoutInfo.setCount;
+
+                ShaderLayoutSetCreateInfoImpl* setImpls =
+                    stackalloc ShaderLayoutSetCreateInfoImpl[(int)info.layoutInfo.setCount];
+                for (int i = 0; i < info.layoutInfo.setCount; i++)
+                {
+                    setImpls[i] = new ShaderLayoutSetCreateInfoImpl();
+                    ShaderLayoutSetCreateInfo set = info.layoutInfo.setInfos[i];
+
+                    setImpls[i].bindingCount = set.bindingCount;
+
+                    ShaderLayoutBindingCreateInfo*
+                        bindings = stackalloc ShaderLayoutBindingCreateInfo[(int)set.bindingCount];
+                    for (int j = 0; j < set.bindingCount; j++)
+                    {
+                        bindings[j] = set.bindingInfos[j];
+                    }
+
+                    setImpls[i].bindingInfos = bindings;
+                }
+
+                layoutImpl.setInfos = setImpls;
+
+                infoImpl.layoutInfo = layoutImpl;
+
+                return CreateShaderImpl(device, infoImpl);
+            }
+        }
+
+        public static void WriteDescriptors(Instance device, ulong count, DescriptorWriteInfo[] infos)
+        {
+            unsafe
+            {
+                DescriptorWriteInfoImpl[] infoImpls = new DescriptorWriteInfoImpl[infos.Length];
+                uint infoIdx = 0;
+                foreach (DescriptorWriteInfo info in infos)
+                {
+                    DescriptorWriteInfoImpl implInfo = new DescriptorWriteInfoImpl();
+                    implInfo.set = info.set;
+                    implInfo.count = info.count;
+                    implInfo.type = info.type;
+                    implInfo.binding = info.binding;
+                    implInfo.element = info.element;
+
+                    if (info.infos != null)
+                    {
+                        TypedWriteInfo* writeInfos = stackalloc TypedWriteInfo[info.infos.Length];
+                        uint idx = 0;
+                        foreach (TypedWriteInfo writeInfo in info.infos)
+                        {
+                            writeInfos[idx++] = writeInfo;
+                        }
+
+                        implInfo.infos = writeInfos;
+                    }
+
+                    if (info.sets != null)
+                    {
+                        DescriptorSet* sets = stackalloc DescriptorSet[info.sets.Length];
+                        uint idx = 0;
+                        foreach (DescriptorSet set in info.sets)
+                        {
+                            sets[idx++] = set;
+                        }
+
+                        implInfo.sets = sets;
+                    }
+
+                    infoImpls[infoIdx++] = implInfo;
+                }
+
+                WriteDescriptorsImpl(device, count, infoImpls);
+            }
+        }
+
         #endregion
 
         public static bool PresentQueue(Instance device, PresentInfo info)

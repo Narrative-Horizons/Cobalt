@@ -237,12 +237,30 @@ namespace Cobalt.Bindings.Vulkan
     };
 
     [StructLayout(LayoutKind.Explicit)]
+    internal unsafe struct ShaderLayoutSetCreateInfoImpl
+    {
+        [FieldOffset(0)]
+        public uint bindingCount;
+        [FieldOffset(8)]
+        public ShaderLayoutBindingCreateInfo* bindingInfos;
+    };
+
+    [StructLayout(LayoutKind.Explicit)]
     public struct ShaderLayoutCreateInfo
     {
         [FieldOffset(0)]
         public uint setCount;
         [FieldOffset(8)]
         public ShaderLayoutSetCreateInfo[] setInfos;
+    };
+
+    [StructLayout(LayoutKind.Explicit)]
+    internal unsafe struct ShaderLayoutCreateInfoImpl
+    {
+        [FieldOffset(0)]
+        public uint setCount;
+        [FieldOffset(8)]
+        public ShaderLayoutSetCreateInfoImpl* setInfos;
     };
 
     [StructLayout(LayoutKind.Explicit)]
@@ -268,6 +286,31 @@ namespace Cobalt.Bindings.Vulkan
 
         [FieldOffset(64)]
         public ShaderLayoutCreateInfo layoutInfo;
+    };
+
+    [StructLayout(LayoutKind.Explicit)]
+    internal unsafe struct ShaderCreateInfoImpl
+    {
+        [FieldOffset(0)]
+        public string vertexModulePath;
+        [FieldOffset(8)]
+        public string fragmentModulePath;
+        [FieldOffset(16)]
+        public string geometryModulePath;
+        [FieldOffset(24)]
+        public string tesselationEvalModulePath;
+        [FieldOffset(32)]
+        public string tesselationControlModulePath;
+        [FieldOffset(40)]
+        public string computeModulePath;
+
+        [FieldOffset(48)]
+        public VK.RenderPass pass;
+        [FieldOffset(56)]
+        public uint subPassIndex;
+
+        [FieldOffset(64)]
+        public ShaderLayoutCreateInfoImpl layoutInfo;
     };
 
     [StructLayout(LayoutKind.Explicit)]
@@ -669,5 +712,74 @@ namespace Cobalt.Bindings.Vulkan
         public uint borderColor;
         [FieldOffset(60)]
         public bool unnormalizedCoordinates;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct ImageWriteInfo
+    {
+        [FieldOffset(0)]
+        public VK.Sampler sampler;
+        [FieldOffset(8)]
+        public VK.ImageView view;
+        [FieldOffset(16)]
+        public uint layout;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct BufferWriteInfo
+    {
+        [FieldOffset(0)]
+        public VK.Buffer buffer;
+        [FieldOffset(8)]
+        public ulong offset;
+        [FieldOffset(16)]
+        public ulong range;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct TypedWriteInfo
+    {
+        [FieldOffset(0)]
+        public ImageWriteInfo images;
+        [FieldOffset(0)]
+        public BufferWriteInfo buffers;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct DescriptorWriteInfo
+    {
+        [FieldOffset(0)]
+        public VK.DescriptorSet[] sets;
+        [FieldOffset(8)]
+        public uint set;
+        [FieldOffset(12)]
+        public uint binding;
+        [FieldOffset(16)]
+        public uint element;
+        [FieldOffset(20)]
+        public uint count;
+        [FieldOffset(24)]
+        public uint type;
+        [FieldOffset(32)]
+        public TypedWriteInfo[] infos;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    internal unsafe struct DescriptorWriteInfoImpl
+    {
+        [FieldOffset(0)] 
+        public VK.DescriptorSet* sets;
+        [FieldOffset(8)] 
+        public uint set;
+        [FieldOffset(12)] 
+        public uint binding;
+        [FieldOffset(16)] 
+        public uint element;
+        [FieldOffset(20)] 
+        public uint count;
+        [FieldOffset(24)] 
+        public uint type;
+        [FieldOffset(32)] 
+        public TypedWriteInfo* infos;
     }
 }

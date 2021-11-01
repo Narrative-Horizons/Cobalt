@@ -515,4 +515,53 @@ namespace Cobalt.Graphics.VK.Enums
         GpuLazilyAllocated = 6,
         MaxEnum = 0x7FFFFFFF
     }
+
+    public enum DescriptorType
+    {
+        Sampler = 0,
+        CombinedImageSampler = 1,
+        SampledImage = 2,
+        StorageImage = 3,
+        UniformTexelBuffer = 4,
+        StorageTexelBuffer = 5,
+        UniformBuffer = 6,
+        StorageBuffer = 7,
+        UniformBufferDynamic = 8,
+        StorageBufferDynamic = 9,
+        InputAttachment = 10,
+        InlineUniformBlockExt = 1000138000,
+        AccelerationStructureKHR = 1000150000,
+        AccelerationStructureNV = 1000165000,
+        MutableValve = 1000351000,
+        MaxEnum = 0x7FFFFFFF
+    }
+
+    [Flags]
+    public enum ShaderStageFlagBits : uint
+    {
+        VertexBit = 0x00000001,
+        TessellationControlBit = 0x00000002,
+        TessellationEvaluationBit = 0x00000004,
+        GeometryBit = 0x00000008,
+        FragmentBit = 0x00000010,
+        ComputeBit = 0x00000020,
+        AllGraphics = 0x0000001F,
+        All = 0x7FFFFFFF,
+        RaygenBitKHR = 0x00000100,
+        AnyHitBitKHR = 0x00000200,
+        ClosestHitBitKHR = 0x00000400,
+        MissBitKHR = 0x00000800,
+        IntersectionBitKHR = 0x00001000,
+        CallableBitKHR = 0x00002000,
+        TaskBitNV = 0x00000040,
+        MeshBitNV = 0x00000080,
+        SubpassShadingBitHuawei = 0x00004000,
+        RaygenBitNV = RaygenBitKHR,
+        AnyHitBitNV = AnyHitBitKHR,
+        ClosestHitBitNV = ClosestHitBitKHR,
+        MissBitNV = MissBitKHR,
+        IntersectionBitNV = IntersectionBitKHR,
+        CallableBitNV = CallableBitKHR,
+        FlagBitsMaxEnum = 0x7FFFFFFF
+    }
 }

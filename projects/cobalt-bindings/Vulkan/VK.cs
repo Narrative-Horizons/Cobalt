@@ -400,11 +400,11 @@ namespace Cobalt.Bindings.Vulkan
             uint imageMemoryBarrierCount, ImageMemoryBarrier[] imageMemoryBarriers);
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_draw_indirect", CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool DrawIndirect(Instance device, CommandBuffer buffer, uint index, Buffer srcBuffer, ulong offset, uint drawCount, uint stride);
+        public static extern bool DrawIndirect(Instance device, CommandBuffer buffer, uint index, Buffer indirectBuffer, ulong offset, uint drawCount, uint stride);
 
-        [DllImport(Library, EntryPoint = "cobalt_vkb_draw_indexed_indirect_count", CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool DrawIndexedIndirectCount(Instance device, CommandBuffer buffer, uint index, Buffer srcBuffer, ulong offset, 
-            Buffer countBuffer, ulong countBufferOffset, uint maxDrawCount, uint stride);
+        [DllImport(Library, EntryPoint = "cobalt_vkb_draw_indexed_indirect", CallingConvention = CallingConvention.Cdecl)]
+        public static extern bool DrawIndexedIndirect(Instance device, CommandBuffer buffer, uint index, Buffer indirectBuffer, ulong offset, 
+            uint drawCount, uint stride);
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_bind_descriptor_sets", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool BindDescriptorSets(Instance device, CommandBuffer buffer, uint index,

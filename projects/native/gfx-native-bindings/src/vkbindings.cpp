@@ -7,6 +7,7 @@
 #include <GLFW/glfw3.h>
 
 #include <fstream>
+#include <iostream>
 #include <string>
 
 #include "createinfos.hpp"
@@ -1782,18 +1783,17 @@ VK_BINDING_EXPORT bool cobalt_vkb_pipeline_barrier(Device* device, CommandBuffer
 }
 
 VK_BINDING_EXPORT bool cobalt_vkb_draw_indirect(Device* device, CommandBuffer* buffer, const uint32_t index,
-	Buffer* srcBuffer, const uint64_t offset, const uint32_t drawCount, const uint32_t stride)
+	Buffer* indirectBuffer, const uint64_t offset, const uint32_t drawCount, const uint32_t stride)
 {
-	device->functionTable.cmdDrawIndirect(buffer->buffers[index], srcBuffer->buffer, offset, drawCount, stride);
+	device->functionTable.cmdDrawIndirect(buffer->buffers[index], indirectBuffer->buffer, offset, drawCount, stride);
 
 	return true;
 }
 
-VK_BINDING_EXPORT bool cobalt_vkb_draw_indexed_indirect_count(Device* device, CommandBuffer* buffer, const uint32_t index, Buffer* srcBuffer,
-	const uint64_t offset, Buffer* countBuffer, const uint64_t countBufferOffset, const uint32_t maxDrawCount, const uint32_t stride)
+VK_BINDING_EXPORT bool cobalt_vkb_draw_indexed_indirect(Device* device, CommandBuffer* buffer, const uint32_t index, Buffer* indirectBuffer,
+	const uint64_t offset, const uint32_t drawCount, const uint32_t stride)
 {
-	device->functionTable.cmdDrawIndexedIndirectCount(buffer->buffers[index], srcBuffer->buffer, offset, countBuffer->buffer,
-		countBufferOffset, maxDrawCount, stride);
+	device->functionTable.cmdDrawIndexedIndirect(buffer->buffers[index], indirectBuffer->buffer, offset, drawCount, stride);
 
 	return true;
 }

@@ -668,12 +668,14 @@ namespace Cobalt.Bindings.Vulkan
     public struct DrawIndirectCommand
     {
         [FieldOffset(0)]
-        public uint vertexCount;
+        public uint indexCount;
         [FieldOffset(4)]
         public uint instanceCount;
         [FieldOffset(8)]
-        public uint firstVertex;
+        public uint firstIndex;
         [FieldOffset(12)]
+        public uint vertexOffset;
+        [FieldOffset(16)] 
         public uint firstInstance;
     }
 

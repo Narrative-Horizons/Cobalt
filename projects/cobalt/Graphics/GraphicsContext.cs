@@ -13,6 +13,15 @@ namespace Cobalt.Graphics
         public Device ContextDevice { get; private set; }
         #endregion
 
+        public struct MeshVertex
+        {
+            public Vector3 position;
+            public Vector2 uv;
+            public Vector3 normal;
+            public Vector3 tangent;
+            public Vector3 bitangent;
+        }
+
         public Bindings.Vulkan.VK.Shader shader;
         public Cobalt.Bindings.Vulkan.VK.RenderPass pass;
         public Cobalt.Bindings.Vulkan.VK.SwapChain swapchain;
@@ -25,6 +34,9 @@ namespace Cobalt.Graphics
         public Cobalt.Bindings.Vulkan.VK.Buffer[] indirectBuffer;
         public Bindings.Vulkan.VK.DescriptorSet[] set;
         public Bindings.Vulkan.VK.Buffer[] uniformBuffer;
+        public Bindings.Vulkan.VK.Buffer vertexBuffer;
+        public Bindings.Vulkan.VK.Buffer indexBuffer;
+        public Bindings.Vulkan.VK.Buffer countBuffer;
         public uint frameCount = 3;
 
         public struct UniformBufferTest
@@ -120,6 +132,67 @@ namespace Cobalt.Graphics
             uniformBuffer = new Bindings.Vulkan.VK.Buffer[frameCount];
 
             set = new Bindings.Vulkan.VK.DescriptorSet[frameCount];
+
+            BufferCreateInfo vertexBufferCreateInfo = new BufferCreateInfo();
+            vertexBufferCreateInfo.size = 4 * 14 * 3;
+            vertexBufferCreateInfo.usage = (uint) BufferUsageFlagBits.VertexBufferBit;
+            vertexBufferCreateInfo.sharingMode = (uint) SharingMode.Exclusive;
+
+            BufferMemoryCreateInfo vertexBufferMemoryCreateInfo = new BufferMemoryCreateInfo();
+            vertexBufferMemoryCreateInfo.usage = (uint) MemoryUsage.CpuToGpu;
+            vertexBufferMemoryCreateInfo.requiredFlags =
+                (uint)(MemoryPropertyFlagBits.HostVisibleBit | MemoryPropertyFlagBits.HostCoherentBit);
+            vertexBufferMemoryCreateInfo.preferredFlags = 0;
+
+            vertexBuffer = Bindings.Vulkan.VK.CreateBuffer(ContextDevice.handle, vertexBufferCreateInfo,
+                vertexBufferMemoryCreateInfo);
+
+            NativeBuffer<MeshVertex> nativeVertexBuffer =
+                new NativeBuffer<MeshVertex>(Bindings.Vulkan.VK.MapBuffer(ContextDevice.handle, vertexBuffer));
+            nativeVertexBuffer.Set(new MeshVertex() {position = new Vector3(0.0f, -0.5f, 0.0f)}, 0);
+            nativeVertexBuffer.Set(new MeshVertex() {position = new Vector3(0.5f, 0.5f, 0.0f)}, 1);
+            nativeVertexBuffer.Set(new MeshVertex() {position = new Vector3(-0.5f, 0.5f, 0.0f)}, 2);
+            Bindings.Vulkan.VK.UnmapBuffer(ContextDevice.handle, vertexBuffer);
+
+            BufferCreateInfo indexBufferCreateInfo = new BufferCreateInfo();
+            indexBufferCreateInfo.size = 4 * 3;
+            indexBufferCreateInfo.usage = (uint)BufferUsageFlagBits.IndexBufferBit;
+            indexBufferCreateInfo.sharingMode = (uint)SharingMode.Exclusive;
+
+            BufferMemoryCreateInfo indexBufferMemoryCreateInfo = new BufferMemoryCreateInfo();
+            indexBufferMemoryCreateInfo.usage = (uint)MemoryUsage.CpuToGpu;
+            indexBufferMemoryCreateInfo.requiredFlags =
+                (uint)(MemoryPropertyFlagBits.HostVisibleBit | MemoryPropertyFlagBits.HostCoherentBit);
+            indexBufferMemoryCreateInfo.preferredFlags = 0;
+
+            indexBuffer = Bindings.Vulkan.VK.CreateBuffer(ContextDevice.handle, indexBufferCreateInfo,
+                indexBufferMemoryCreateInfo);
+
+            NativeBuffer<uint> nativeIndexBuffer =
+                new NativeBuffer<uint>(Bindings.Vulkan.VK.MapBuffer(ContextDevice.handle, indexBuffer));
+            nativeIndexBuffer.Set(0, 0);
+            nativeIndexBuffer.Set(1, 1);
+            nativeIndexBuffer.Set(2, 2);
+            Bindings.Vulkan.VK.UnmapBuffer(ContextDevice.handle, indexBuffer);
+
+            BufferCreateInfo countBufferCreateInfo = new BufferCreateInfo();
+            countBufferCreateInfo.size = 4;
+            countBufferCreateInfo.usage = (uint)BufferUsageFlagBits.StorageBufferBit;
+            countBufferCreateInfo.sharingMode = (uint)SharingMode.Exclusive;
+
+            BufferMemoryCreateInfo countBufferMemoryCreateInfo = new BufferMemoryCreateInfo();
+            countBufferMemoryCreateInfo.usage = (uint)MemoryUsage.CpuToGpu;
+            countBufferMemoryCreateInfo.requiredFlags =
+                (uint)(MemoryPropertyFlagBits.HostVisibleBit | MemoryPropertyFlagBits.HostCoherentBit);
+            countBufferMemoryCreateInfo.preferredFlags = 0;
+
+            countBuffer = Bindings.Vulkan.VK.CreateBuffer(ContextDevice.handle, countBufferCreateInfo,
+                countBufferMemoryCreateInfo);
+
+            NativeBuffer<uint> nativeCountBuffer =
+                new NativeBuffer<uint>(Bindings.Vulkan.VK.MapBuffer(ContextDevice.handle, countBuffer));
+            nativeCountBuffer.Set(1, 0);
+            Bindings.Vulkan.VK.UnmapBuffer(ContextDevice.handle, countBuffer);
 
             for (int i = 0; i < frameCount; i++)
             {
@@ -221,11 +294,18 @@ namespace Cobalt.Graphics
             {
                 Bindings.Vulkan.VK.BeginCommandBuffer(ContextDevice.handle, commandbuffer, (uint)i);
                 Bindings.Vulkan.VK.BeginRenderPass(ContextDevice.handle, commandbuffer, (uint)i, pass, framebuffers[i]);
+                Bindings.Vulkan.VK.BindVertexBuffers(ContextDevice.handle, commandbuffer, (uint) i, 0, 1,
+                    new[] {vertexBuffer}, new[] {0UL});
+                Bindings.Vulkan.VK.BindIndexBuffer(ContextDevice.handle, commandbuffer, (uint) i, indexBuffer, 0UL,
+                    (uint) IndexType.Uint32);
                 Bindings.Vulkan.VK.BindDescriptorSets(ContextDevice.handle, commandbuffer, (uint) i,
                     (uint) PipelineBindPoint.Graphics, shader, 0,
                     1, new[] {set[i]}, 0, null);
                 Bindings.Vulkan.VK.BindPipeline(ContextDevice.handle, commandbuffer, (uint)PipelineBindPoint.Graphics, (uint) i, shader);
-                Bindings.Vulkan.VK.DrawIndirect(ContextDevice.handle, commandbuffer, (uint) i, indirectBuffer[i], 0, 1, 16);
+                //Bindings.Vulkan.VK.DrawIndirect(ContextDevice.handle, commandbuffer, (uint) i, indirectBuffer[i], 0, 1, 16);
+                Bindings.Vulkan.VK.DrawIndexedIndirectCount(ContextDevice.handle, commandbuffer, (uint) i,
+                    indirectBuffer[i], 0,
+                    countBuffer, 0, 1, 16);
                 Bindings.Vulkan.VK.EndRenderPass(ContextDevice.handle, commandbuffer, (uint) i);
                 Bindings.Vulkan.VK.EndCommandBuffer(ContextDevice.handle, commandbuffer, (uint) i);
 
@@ -242,6 +322,8 @@ namespace Cobalt.Graphics
 
         public uint currentFrame;
 
+        private Random r = new Random();
+
         public void Render()
         {
             Bindings.Vulkan.VK.WaitForFences(ContextDevice.handle, 1, new []{inFlightFences[currentFrame]}, true, ulong.MaxValue);
@@ -255,6 +337,14 @@ namespace Cobalt.Graphics
                     ulong.MaxValue);
             }
             imagesInFlight[imageIndex] = inFlightFences[currentFrame];
+
+            NativeBuffer<UniformBufferTest> nativeUniformBuffer =
+                new NativeBuffer<UniformBufferTest>(Bindings.Vulkan.VK.MapBuffer(ContextDevice.handle,
+                    uniformBuffer[currentFrame]));
+            UniformBufferTest test = nativeUniformBuffer.Get();
+            test.color = new Vector4((float)r.NextDouble(), (float)r.NextDouble(), (float)r.NextDouble(), 1);
+            nativeUniformBuffer.Set(test, 0);
+            Bindings.Vulkan.VK.UnmapBuffer(ContextDevice.handle, uniformBuffer[currentFrame]);
 
             SubmitInfo submitInfo = new SubmitInfo
             {

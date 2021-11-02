@@ -410,12 +410,12 @@ namespace Cobalt.Bindings.Vulkan
         public static extern bool BindDescriptorSets(Instance device, CommandBuffer buffer, uint index,
             uint pipelineBindPoint, Shader pipeline, uint firstSet, uint descriptorSetCount, DescriptorSet[] sets, uint dynamicOffsetCount, uint[] dynamicOffsets);
 
-        [DllImport(Library, EntryPoint = "cobalt_vkb_bind_vertex_buffers", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(Library, EntryPoint = "cobalt_vkb_command_bind_vertex_buffers", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool BindVertexBuffers(Instance device, CommandBuffer buffer, uint index, uint firstBinding, uint bindingCount, 
             Buffer[] buffers, ulong[] offsets);
 
-        [DllImport(Library, EntryPoint = "cobalt_vkb_bind_index_buffer", CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool BindIndexBuffer(Instance device, CommandBuffer buffer, Buffer indexBuffer, ulong offset, uint indexType);
+        [DllImport(Library, EntryPoint = "cobalt_vkb_command_bind_index_buffer", CallingConvention = CallingConvention.Cdecl)]
+        public static extern bool BindIndexBuffer(Instance device, CommandBuffer buffer, uint index, Buffer indexBuffer, ulong offset, uint indexType);
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_allocate_descriptors",
             CallingConvention = CallingConvention.Cdecl)]

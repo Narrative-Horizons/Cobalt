@@ -28,7 +28,7 @@ namespace Cobalt.Graphics.VK
                 {
                     major = 1,
                     minor = 2,
-                    patch = 0
+                    patch = 176
                 },
                 enabledExtensionCount = 0,
                 enabledExtensions = { },

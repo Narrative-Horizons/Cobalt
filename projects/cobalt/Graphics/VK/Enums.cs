@@ -564,4 +564,14 @@ namespace Cobalt.Graphics.VK.Enums
         CallableBitNV = CallableBitKHR,
         FlagBitsMaxEnum = 0x7FFFFFFF
     }
+
+    public enum IndexType
+    {
+        Uint16 = 0,
+        Uint32 = 1,
+        NoneKHR = 1000165000,
+        Uint8Ext = 1000265000,
+        NoneNV = NoneKHR,
+        MaxEnum = 0x7FFFFFFF
+    }
 }

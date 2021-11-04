@@ -1,4 +1,5 @@
-﻿using Cobalt.Core;
+﻿using System;
+using Cobalt.Core;
 using static Cobalt.Bindings.Vulkan.VK;
 
 namespace Cobalt.Graphics
@@ -23,20 +24,37 @@ namespace Cobalt.Graphics
 
         private struct PassInfo
         {
+            public string name;
             public RenderPassInfo? passInfo;
             public ComputePassInfo? computeInfo;
+            public IPass pass;
         }
 
         private DirectedAcyclicGraph<PassInfo, PassDependencyInfo> _graph = new DirectedAcyclicGraph<PassInfo, PassDependencyInfo>();
 
         public void AddPass(IPass pass, string name)
         {
+            PassInfo info = new PassInfo();
+            info.name = name;
+            info.pass = pass;
+            switch (pass.GetType())
+            {
+                case IPass.PassType.Compute:
+                    info.computeInfo = new ComputePassInfo();
+                    break;
+                case IPass.PassType.Graphics:
+                    info.passInfo = new RenderPassInfo();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
 
+            _graph.AddVertex(info);
         }
 
         public void AddDependency(IPass source, IPass dest, PassDependencyInfo info)
         {
-
+            //_graph.AddEdge(info, source, dest);
         }
 
         public void Build()

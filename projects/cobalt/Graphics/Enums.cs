@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Cobalt.Graphics.VK.Enums
+namespace Cobalt.Graphics.Enums
 {
     public enum PipelineBindPoint : uint
     {

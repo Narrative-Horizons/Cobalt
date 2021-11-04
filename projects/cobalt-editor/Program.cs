@@ -1,29 +1,20 @@
 using Cobalt.Core;
 using Cobalt.Graphics;
-using Cobalt.Math;
-using System.Runtime.InteropServices;
 
 namespace Cobalt.Sandbox
 {
-    [StructLayout(LayoutKind.Sequential)]
-    public struct VertexData
-    {
-        public Vector3 position;
-        public Vector2 uv;
-    }
-
-    public class Sandbox : BaseApplication
+    public class Editor : BaseApplication
     {
         public RenderSystem RenderSystem { get; internal set; }
 
         public override void Setup()
         {
-            var engine = Engine<Sandbox>.Instance();
+            var engine = Engine<Editor>.Instance();
 
             var window = engine.CreateWindow(new Window.CreateInfo.Builder()
                 .Width(1280)
                 .Height(720)
-                .Name("Cobalt Sandbox")
+                .Name("Cobalt Editor")
                 .Build());
             engine.CreateGraphicsContext(window);
         }
@@ -38,7 +29,7 @@ namespace Cobalt.Sandbox
 
         public override void Render()
         {
-            var rs = Engine<Sandbox>.Instance().Render;
+            var rs = Engine<Editor>.Instance().Render;
             rs.PreRender();
             rs.Render();
             rs.PostRender();
@@ -53,9 +44,9 @@ namespace Cobalt.Sandbox
     {
         public static void Main(string[] args)
         {
-            Engine<Sandbox>.Initialize(new Sandbox());
-            Engine<Sandbox>.Instance().Run();
-            Engine<Sandbox>.Destruct();
+            Engine<Editor>.Initialize(new Editor());
+            Engine<Editor>.Instance().Run();
+            Engine<Editor>.Destruct();
         }
     }
 }

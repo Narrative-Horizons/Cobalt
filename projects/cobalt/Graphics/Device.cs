@@ -2,7 +2,7 @@
 using Cobalt.Bindings.Vulkan;
 using static Cobalt.Bindings.Vulkan.VK;
 
-namespace Cobalt.Graphics.VK
+namespace Cobalt.Graphics
 {
     public class Device : IDisposable
     {

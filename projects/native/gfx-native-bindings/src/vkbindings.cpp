@@ -22,7 +22,7 @@ VK_BINDING_EXPORT Device* cobalt_vkb_create_device(InstanceCreateInfo info)
 		.set_app_name(info.appName)
 		.set_engine_version(info.engineVersion.major, info.engineVersion.minor, info.engineVersion.patch)
 		.set_engine_name(info.engineName)
-		.require_api_version(info.requiredVersion.major, info.requiredVersion.major, info.requiredVersion.patch)
+		.require_api_version(info.requiredVersion.major, info.requiredVersion.minor, info.requiredVersion.patch)
 		.enable_validation_layers(info.requireValidationLayers);
 
 	for (size_t i = 0; i < info.enabledLayerCount; ++i)
@@ -60,10 +60,15 @@ VK_BINDING_EXPORT Device* cobalt_vkb_create_device(InstanceCreateInfo info)
 	}
 	device.surface = surface;
 
+	VkPhysicalDeviceVulkan12Features features = {};
+	features.drawIndirectCount = true;
+	
 	// select physical device
 	vkb::PhysicalDeviceSelector physicalDeviceSelector = vkb::PhysicalDeviceSelector(device.instance)
 		.prefer_gpu_device_type(vkb::PreferredDeviceType::discrete)
 		.set_minimum_version(1, 2)
+		.set_desired_version(1, 2)
+		.set_required_features_12(features)
 		.set_surface(surface);
 	const auto physicalDeviceResult = physicalDeviceSelector.select();
 
@@ -1200,12 +1205,12 @@ VK_BINDING_EXPORT void cobalt_vkb_write_descriptors(Device* device, size_t count
 		case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
 		case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
 		case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT: {
-			auto images = new VkDescriptorImageInfo[write.descriptorCount];
+			const auto images = new VkDescriptorImageInfo[write.descriptorCount];
 			for (size_t j = 0; j < write.descriptorCount; ++i)
 			{
-				auto sampler = info.infos[j].images.sampler;
-				auto view = info.infos[j].images.view;
-				auto layout = info.infos[j].images.layout;
+				const auto sampler = info.infos[j].images.sampler;
+				const auto view = info.infos[j].images.view;
+				const auto layout = info.infos[j].images.layout;
 
 				images[j].sampler = sampler ? sampler->sampler : VK_NULL_HANDLE;
 				images[j].imageView = view ? view->imageView : VK_NULL_HANDLE;
@@ -1217,12 +1222,12 @@ VK_BINDING_EXPORT void cobalt_vkb_write_descriptors(Device* device, size_t count
 		case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
 		case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
 		case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC: {
-			auto buffers = new VkDescriptorBufferInfo[write.descriptorCount];
+			const auto buffers = new VkDescriptorBufferInfo[write.descriptorCount];
 			for (size_t j = 0; j < write.descriptorCount; ++j)
 			{
-				auto buffer = info.infos[j].buffers.buf;
-				auto offset = info.infos[j].buffers.offset;
-				auto range = info.infos[j].buffers.range;
+				const auto buffer = info.infos[j].buffers.buf;
+				const auto offset = info.infos[j].buffers.offset;
+				const auto range = info.infos[j].buffers.range;
 
 				buffers[j].buffer = buffer ? buffer->buffer : VK_NULL_HANDLE;
 				buffers[j].offset = offset;

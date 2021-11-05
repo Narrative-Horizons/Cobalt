@@ -1,6 +1,6 @@
 ﻿namespace Cobalt.Graphics.Passes
 {
-    public class ResolvePass : IPass
+    public class SwapchainResolvePass : IPass
     {
         public new IPass.PassType GetType()
         {

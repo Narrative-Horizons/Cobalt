@@ -574,4 +574,14 @@ namespace Cobalt.Graphics.Enums
         NoneNV = NoneKHR,
         MaxEnum = 0x7FFFFFFF
     }
+
+    [Flags]
+    public enum DependencyFlagBits : uint
+    {
+        ByRegionBit = 0x00000001,
+        DeviceGroupBit = 0x00000004,
+        ViewLocalBit = 0x00000002,
+        ViewLocalBitKHR = ViewLocalBit,
+        DeviceGroupBitKHR = DeviceGroupBit,
+    }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Cobalt.Bindings.Vulkan;
 using Cobalt.Core;
 using Cobalt.Graphics.Enums;
 using Cobalt.Graphics.Passes;
@@ -89,7 +90,7 @@ namespace Cobalt.Graphics
 
             public readonly List<ImageInfo> inputAttachments = new List<ImageInfo>();
             public readonly List<ImageInfo> colorAttachments = new List<ImageInfo>();
-            public ImageInfo depthAttachment;
+            public ImageInfo? depthAttachment;
             public readonly List<string> uniformBuffers = new List<string>();
             public readonly List<string> storageBuffers = new List<string>();
 
@@ -109,8 +110,12 @@ namespace Cobalt.Graphics
         public static string RenderGraphColorOutputTarget = "diffuse";
         public SwapchainResolvePass resolvePass;
 
-        public RenderGraph()
+        private readonly Device _device;
+
+        public RenderGraph(Device device)
         {
+            _device = device;
+
             resolvePass = AddPass(new SwapchainResolvePass(), "resolve") as SwapchainResolvePass;
             AddInputAttachment(resolvePass, RenderGraphColorOutputTarget, AttachmentLoadOp.Load, AttachmentStoreOp.DontCare);
 
@@ -218,12 +223,14 @@ namespace Cobalt.Graphics
 
                 foreach (ImageInfo inputAtt in node.inputAttachments)
                 {
-                    if (sourceInfo.colorAttachments.Contains(inputAtt) || sourceInfo.depthAttachment == inputAtt)
-                    {
-                        // We are defining them as the VK RenderPass
-                        sourceInfo.renderPassID = node.renderPassID;
-                        break;
-                    }
+                    if (!sourceInfo.colorAttachments.Contains(inputAtt) &&
+                        sourceInfo.depthAttachment != inputAtt) 
+                        continue;
+
+                    // We are defining them as the VK RenderPass
+                    sourceInfo.renderPassID = node.renderPassID;
+
+                    break;
                 }
 
                 if (sourceInfo.renderPassID == -1 || sourceInfo.renderPassID == 0)
@@ -256,7 +263,9 @@ namespace Cobalt.Graphics
             PassInfo resolveNodeInfo = null;
             foreach (var (info, _) in depthSearchMap)
             {
-                if (info.renderPassID != 0) continue;
+                if (info.renderPassID != 0) 
+                    continue;
+
                 // Resolve node
                 resolveNodeInfo = info;
                 break;
@@ -264,8 +273,7 @@ namespace Cobalt.Graphics
 
             if (resolveNodeInfo == null)
             {
-                // Well shit, do a fancy crash here
-                throw new InvalidOperationException("No resolve node in node found");
+                throw new InvalidOperationException("No resolve node found");
             }
 
             GraphBuildHelper(resolveNodeInfo, visited, depthSearchMap, 1);
@@ -283,6 +291,97 @@ namespace Cobalt.Graphics
 
             foreach (var (index, passes) in sortedRenderList)
             {
+                RenderPassCreateInfo renderPassInfo = new RenderPassCreateInfo();
+                renderPassInfo.subpassCount = (uint) passes.Count;
+                uint attachmentIndex = 0;
+                List<SubpassDescription> subDescs = new List<SubpassDescription>();
+                List<AttachmentDescription> attachmentDescs = new List<AttachmentDescription>();
+                foreach (var pass in passes)
+                {
+                    SubpassDescription subpassInfo = new SubpassDescription();
+
+                    subpassInfo.colorAttachmentCount = (uint) pass.colorAttachments.Count;
+                    List<AttachmentReference> colorAttachmentRefs = new List<AttachmentReference>();
+                    foreach (ImageInfo image in pass.colorAttachments)
+                    {
+                        AttachmentReference colorRef = new AttachmentReference();
+                        colorRef.layout = (uint)ImageLayout.ColorAttachmentOptimal;
+                        colorRef.attachment = attachmentIndex++;
+
+                        colorAttachmentRefs.Add(colorRef);
+
+                        AttachmentDescription colorAtt = new AttachmentDescription();
+                        colorAtt.format = (uint) Format.B8G8R8A8Srgb; // Infer from loaded image
+                        colorAtt.samples = (uint) SampleCountFlagBits.Count1Bit; // Infer from somewhere else
+                        colorAtt.loadOp = (uint) image.loadOp;
+                        colorAtt.storeOp = (uint) image.storeOp;
+                        colorAtt.initialLayout = (uint) ImageLayout.Undefined;
+                        colorAtt.finalLayout = (uint) ImageLayout.ColorAttachmentOptimal;
+
+                        attachmentDescs.Add(colorAtt);
+                    }
+
+                    subpassInfo.colorAttachments = colorAttachmentRefs.ToArray();
+
+                    subpassInfo.inputAttachmentCount = (uint) pass.inputAttachments.Count;
+                    List<AttachmentReference> inputAttachmentRefs = new List<AttachmentReference>();
+                    foreach (ImageInfo image in pass.inputAttachments)
+                    {
+                        AttachmentReference colorRef = new AttachmentReference();
+                        colorRef.layout = (uint)ImageLayout.ShaderReadOnlyOptimal;
+                        colorRef.attachment = attachmentIndex++;
+
+                        inputAttachmentRefs.Add(colorRef);
+
+                        AttachmentDescription inputAtt = new AttachmentDescription();
+                        inputAtt.format = (uint)Format.B8G8R8A8Srgb; // Infer from loaded image
+                        inputAtt.samples = (uint)SampleCountFlagBits.Count1Bit; // Infer from somewhere else
+                        inputAtt.loadOp = (uint)image.loadOp;
+                        inputAtt.storeOp = (uint)image.storeOp;
+                        inputAtt.initialLayout = (uint)ImageLayout.Undefined;
+                        inputAtt.finalLayout = (uint)ImageLayout.ShaderReadOnlyOptimal;
+
+                        attachmentDescs.Add(inputAtt);
+                    }
+
+                    subpassInfo.attachments = inputAttachmentRefs.ToArray();
+
+                    if (pass.depthAttachment != null)
+                    {
+                        AttachmentReference depthRef = new AttachmentReference();
+                        depthRef.layout = (uint) ImageLayout.DepthAttachmentOptimal;
+                        depthRef.attachment = attachmentIndex++;
+
+                        subpassInfo.depthStencilAttachments = new[] {depthRef};
+
+                        AttachmentDescription inputAtt = new AttachmentDescription();
+                        inputAtt.format = (uint)Format.D24UnormS8Uint; // Infer from loaded image
+                        inputAtt.samples = (uint)SampleCountFlagBits.Count1Bit; // Infer from somewhere else
+                        inputAtt.loadOp = (uint)pass.depthAttachment.Value.loadOp;
+                        inputAtt.storeOp = (uint)pass.depthAttachment.Value.storeOp;
+                        inputAtt.stencilLoadOp = (uint)pass.depthAttachment.Value.loadOp; // ?
+                        inputAtt.stencilLoadOp = (uint)pass.depthAttachment.Value.storeOp; // ?
+                        inputAtt.initialLayout = (uint)ImageLayout.Undefined;
+                        inputAtt.finalLayout = (uint)ImageLayout.DepthStencilAttachmentOptimal; // Could be Just depth too
+
+                        attachmentDescs.Add(inputAtt);
+                    }
+
+                    subpassInfo.pipelineBindPoint = (uint) PipelineBindPoint.Graphics;
+                    subDescs.Add(subpassInfo);
+                }
+
+                renderPassInfo.subpassCount = (uint) subDescs.Count;
+                renderPassInfo.subpasses = subDescs.ToArray();
+                renderPassInfo.attachmentCount = (uint) attachmentDescs.Count;
+                renderPassInfo.attachments = attachmentDescs.ToArray();
+
+                // Setup dependencies
+                renderPassInfo.dependencyCount = 0;
+                renderPassInfo.dependencies = null;
+
+                RenderPass renderPass = VK.CreateRenderPass(_device.handle, renderPassInfo);
+
                 // get set of passes in vk renderpass
                 // add to graph
                 // add edges (dependency information)

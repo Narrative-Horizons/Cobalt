@@ -16,7 +16,7 @@ namespace Cobalt.Graphics
             _context = context;
             _registry = registry;
 
-            _renderGraph = new RenderGraph();
+            _renderGraph = new RenderGraph(_context.ContextDevice);
 
             GBufferPass gbufferPass = _renderGraph.AddPass(new GBufferPass(), "gbuffer") as GBufferPass;
             GBufferResolvePass gbufferResolvePass = _renderGraph.AddPass(new GBufferResolvePass(), "gbufferresolve") as GBufferResolvePass;

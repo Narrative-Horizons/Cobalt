@@ -267,21 +267,26 @@ namespace Cobalt.Graphics
 
         public void Build()
         {
+            // Depth search graph
             Dictionary<PassInfo, List<Tuple<PassDependencyInfo, IPass, IPass>>> depthSearchMap =
                 new Dictionary<PassInfo, List<Tuple<PassDependencyInfo, IPass, IPass>>>();
 
+            // Edge visited list
             HashSet<Tuple<PassDependencyInfo, IPass, IPass>> visited = new HashSet<Tuple<PassDependencyInfo, IPass, IPass>>();
 
+            // Add all passes to the graph for sorting
             foreach (var (_, info) in _passInfos)
             {
                 depthSearchMap.Add(info, new List<Tuple<PassDependencyInfo, IPass, IPass>>());
             }
 
+            // Add all the dependencies for the edges on the graph
             foreach (var depInfo in _dependencies)
             {
                 depthSearchMap[GetInfoFromPass(depInfo.Item3)].Add(depInfo);
             }
 
+            // Get the final resolve node
             PassInfo resolveNodeInfo = null;
             foreach (var (info, _) in depthSearchMap)
             {
@@ -293,13 +298,16 @@ namespace Cobalt.Graphics
                 break;
             }
 
+            // Did we find the final resolve node?
             if (resolveNodeInfo == null)
             {
                 throw new InvalidOperationException("No resolve node found");
             }
 
+            // Recursively go to the graph and group each subpass to a renderpass id
             GraphBuildHelper(resolveNodeInfo, visited, depthSearchMap, 1);
 
+            // Compile a sorted list based on the render pass ID
             Dictionary<int, List<PassInfo>> sortedRenderList = new Dictionary<int, List<PassInfo>>();
             foreach (var pass in depthSearchMap)
             {
@@ -311,6 +319,7 @@ namespace Cobalt.Graphics
                 sortedRenderList[pass.Key.renderPassID].Add(pass.Key);
             }
 
+            // Start building Vulkan Subpasses and RenderPass from the sorted renderpass list
             foreach (var (index, passes) in sortedRenderList)
             {
                 RenderPassCreateInfo renderPassInfo = new RenderPassCreateInfo();

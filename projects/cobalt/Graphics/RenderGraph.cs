@@ -4,6 +4,7 @@ using Cobalt.Bindings.Vulkan;
 using Cobalt.Core;
 using Cobalt.Graphics.Enums;
 using Cobalt.Graphics.Passes;
+using log4net.Filter;
 using static Cobalt.Bindings.Vulkan.VK;
 
 namespace Cobalt.Graphics
@@ -107,6 +108,12 @@ namespace Cobalt.Graphics
 
         private readonly Dictionary<IPass, PassInfo> _passInfos = new Dictionary<IPass, PassInfo>();
 
+        private uint _attachmentIndex = 0;
+        private readonly Dictionary<string, uint> _attachmentIndices = new Dictionary<string, uint>();
+
+        private readonly Dictionary<string, AttachmentDescription> _attachmentDescMap =
+            new Dictionary<string, AttachmentDescription>();
+
         public static string RenderGraphColorOutputTarget = "diffuse";
         public SwapchainResolvePass resolvePass;
 
@@ -154,6 +161,11 @@ namespace Cobalt.Graphics
 
         public void AddInputAttachment(IPass pass, string name, AttachmentLoadOp loadOp, AttachmentStoreOp storeOp)
         {
+            if (!_attachmentIndices.ContainsKey(name))
+            {
+                _attachmentIndices.Add(name, _attachmentIndex++);
+            }
+
             ImageInfo info = new ImageInfo
             {
                 loadOp = loadOp,
@@ -166,6 +178,11 @@ namespace Cobalt.Graphics
 
         public void AddColorAttachment(IPass pass, string name, AttachmentLoadOp loadOp, AttachmentStoreOp storeOp)
         {
+            if (!_attachmentIndices.ContainsKey(name))
+            {
+                _attachmentIndices.Add(name, _attachmentIndex++);
+            }
+
             ImageInfo info = new ImageInfo
             {
                 loadOp = loadOp,
@@ -178,6 +195,11 @@ namespace Cobalt.Graphics
 
         public void SetDepthAttachment(IPass pass, string name, AttachmentLoadOp loadOp, AttachmentStoreOp storeOp)
         {
+            if (!_attachmentIndices.ContainsKey(name))
+            {
+                _attachmentIndices.Add(name, _attachmentIndex++);
+            }
+
             var info = _passInfos[pass];
 
             ImageInfo imageInfo = new ImageInfo
@@ -293,7 +315,6 @@ namespace Cobalt.Graphics
             {
                 RenderPassCreateInfo renderPassInfo = new RenderPassCreateInfo();
                 renderPassInfo.subpassCount = (uint) passes.Count;
-                uint attachmentIndex = 0;
                 List<SubpassDescription> subDescs = new List<SubpassDescription>();
                 List<AttachmentDescription> attachmentDescs = new List<AttachmentDescription>();
                 foreach (var pass in passes)
@@ -306,19 +327,24 @@ namespace Cobalt.Graphics
                     {
                         AttachmentReference colorRef = new AttachmentReference();
                         colorRef.layout = (uint)ImageLayout.ColorAttachmentOptimal;
-                        colorRef.attachment = attachmentIndex++;
+                        colorRef.attachment = _attachmentIndices[image.name];
 
                         colorAttachmentRefs.Add(colorRef);
 
-                        AttachmentDescription colorAtt = new AttachmentDescription();
-                        colorAtt.format = (uint) Format.B8G8R8A8Srgb; // Infer from loaded image
-                        colorAtt.samples = (uint) SampleCountFlagBits.Count1Bit; // Infer from somewhere else
-                        colorAtt.loadOp = (uint) image.loadOp;
-                        colorAtt.storeOp = (uint) image.storeOp;
-                        colorAtt.initialLayout = (uint) ImageLayout.Undefined;
-                        colorAtt.finalLayout = (uint) ImageLayout.ColorAttachmentOptimal;
+                        if (!_attachmentDescMap.ContainsKey(image.name))
+                        {
+                            AttachmentDescription colorAtt = new AttachmentDescription();
+                            colorAtt.format = (uint) Format.B8G8R8A8Srgb; // Infer from loaded image
+                            colorAtt.samples = (uint) SampleCountFlagBits.Count1Bit; // Infer from somewhere else
+                            colorAtt.loadOp = (uint) image.loadOp;
+                            colorAtt.storeOp = (uint) image.storeOp;
+                            colorAtt.initialLayout = (uint) ImageLayout.Undefined;
+                            colorAtt.finalLayout = (uint) ImageLayout.ColorAttachmentOptimal;
 
-                        attachmentDescs.Add(colorAtt);
+                            attachmentDescs.Add(colorAtt);
+
+                            _attachmentDescMap.Add(image.name, colorAtt);
+                        }
                     }
 
                     subpassInfo.colorAttachments = colorAttachmentRefs.ToArray();
@@ -329,19 +355,23 @@ namespace Cobalt.Graphics
                     {
                         AttachmentReference colorRef = new AttachmentReference();
                         colorRef.layout = (uint)ImageLayout.ShaderReadOnlyOptimal;
-                        colorRef.attachment = attachmentIndex++;
+                        colorRef.attachment = _attachmentIndices[image.name];
 
                         inputAttachmentRefs.Add(colorRef);
 
-                        AttachmentDescription inputAtt = new AttachmentDescription();
-                        inputAtt.format = (uint)Format.B8G8R8A8Srgb; // Infer from loaded image
-                        inputAtt.samples = (uint)SampleCountFlagBits.Count1Bit; // Infer from somewhere else
-                        inputAtt.loadOp = (uint)image.loadOp;
-                        inputAtt.storeOp = (uint)image.storeOp;
-                        inputAtt.initialLayout = (uint)ImageLayout.Undefined;
-                        inputAtt.finalLayout = (uint)ImageLayout.ShaderReadOnlyOptimal;
+                        if (!_attachmentDescMap.ContainsKey(image.name))
+                        {
+                            AttachmentDescription inputAtt = new AttachmentDescription();
+                            inputAtt.format = (uint) Format.B8G8R8A8Srgb; // Infer from loaded image
+                            inputAtt.samples = (uint) SampleCountFlagBits.Count1Bit; // Infer from somewhere else
+                            inputAtt.loadOp = (uint) image.loadOp;
+                            inputAtt.storeOp = (uint) image.storeOp;
+                            inputAtt.initialLayout = (uint) ImageLayout.Undefined;
+                            inputAtt.finalLayout = (uint) ImageLayout.ShaderReadOnlyOptimal;
 
-                        attachmentDescs.Add(inputAtt);
+                            attachmentDescs.Add(inputAtt);
+                            _attachmentDescMap.Add(image.name, inputAtt);
+                        }
                     }
 
                     subpassInfo.attachments = inputAttachmentRefs.ToArray();
@@ -350,21 +380,26 @@ namespace Cobalt.Graphics
                     {
                         AttachmentReference depthRef = new AttachmentReference();
                         depthRef.layout = (uint) ImageLayout.DepthAttachmentOptimal;
-                        depthRef.attachment = attachmentIndex++;
+                        depthRef.attachment = _attachmentIndices[pass.depthAttachment.Value.name];
 
                         subpassInfo.depthStencilAttachments = new[] {depthRef};
 
-                        AttachmentDescription inputAtt = new AttachmentDescription();
-                        inputAtt.format = (uint)Format.D24UnormS8Uint; // Infer from loaded image
-                        inputAtt.samples = (uint)SampleCountFlagBits.Count1Bit; // Infer from somewhere else
-                        inputAtt.loadOp = (uint)pass.depthAttachment.Value.loadOp;
-                        inputAtt.storeOp = (uint)pass.depthAttachment.Value.storeOp;
-                        inputAtt.stencilLoadOp = (uint)pass.depthAttachment.Value.loadOp; // ?
-                        inputAtt.stencilLoadOp = (uint)pass.depthAttachment.Value.storeOp; // ?
-                        inputAtt.initialLayout = (uint)ImageLayout.Undefined;
-                        inputAtt.finalLayout = (uint)ImageLayout.DepthStencilAttachmentOptimal; // Could be Just depth too
+                        if (!_attachmentDescMap.ContainsKey(pass.depthAttachment.Value.name))
+                        {
+                            AttachmentDescription depthAtt = new AttachmentDescription();
+                            depthAtt.format = (uint) Format.D24UnormS8Uint; // Infer from loaded image
+                            depthAtt.samples = (uint) SampleCountFlagBits.Count1Bit; // Infer from somewhere else
+                            depthAtt.loadOp = (uint) pass.depthAttachment.Value.loadOp;
+                            depthAtt.storeOp = (uint) pass.depthAttachment.Value.storeOp;
+                            depthAtt.stencilLoadOp = (uint) pass.depthAttachment.Value.loadOp; // ?
+                            depthAtt.stencilLoadOp = (uint) pass.depthAttachment.Value.storeOp; // ?
+                            depthAtt.initialLayout = (uint) ImageLayout.Undefined;
+                            depthAtt.finalLayout =
+                                (uint) ImageLayout.DepthStencilAttachmentOptimal; // Could be Just depth too
 
-                        attachmentDescs.Add(inputAtt);
+                            attachmentDescs.Add(depthAtt);
+                            _attachmentDescMap.Add(pass.depthAttachment.Value.name, depthAtt);
+                        }
                     }
 
                     subpassInfo.pipelineBindPoint = (uint) PipelineBindPoint.Graphics;

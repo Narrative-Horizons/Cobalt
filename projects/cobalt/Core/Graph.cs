@@ -108,7 +108,18 @@ namespace Cobalt.Core
 
         public List<GraphEdge> GetEdges(GraphVertex vertex)
         {
-            return _adjacencyList[vertex];
+            return _adjacencyList.ContainsKey(vertex) ? _adjacencyList[vertex] : new List<GraphEdge>();
+        }
+
+        public List<GraphEdge> GetEdges()
+        {
+            List<GraphEdge> edges = new List<GraphEdge>();
+            foreach (var (_, e) in _adjacencyList)
+            {
+                edges.AddRange(e);
+            }
+
+            return edges;
         }
 
         private void TopoSortUtil(GraphVertex vertex, Dictionary<GraphVertex, bool> visited, Stack<GraphVertex> stack)
@@ -133,7 +144,7 @@ namespace Cobalt.Core
 
             foreach (var (v, _) in _adjacencyList)
             {
-                if (!visited[v])
+                if (!visited.ContainsKey(v) || !visited[v])
                 {
                     TopoSortUtil(v, visited, stack);
                 }

@@ -1,22 +1,42 @@
 ﻿using System;
 using Cobalt.Bindings.Vulkan;
+using Cobalt.Graphics.Enums;
 
 namespace Cobalt.Graphics
 {
     public class Image : IDisposable
     {
         internal readonly VK.Image handle;
-        internal readonly VK.Instance device;
+        internal readonly Device device;
 
-        internal Image(VK.Instance device, ImageCreateInfo info, string name, uint frame)
+        private readonly string _name;
+
+        internal Image(Device device, ImageCreateInfo info, string name, uint frame)
         {
+            this._name = name;
             this.device = device;
-            handle = VK.CreateImage(device, info, name, frame);
+            handle = VK.CreateImage(device.handle, info, name, frame);
+        }
+
+        public ImageView CreateImageView(Format format)
+        {
+            ImageViewCreateInfo createInfo = new ImageViewCreateInfo
+            {
+                image = handle,
+                format = (uint) format,
+                layerCount = 1,
+                levelCount = 1,
+                baseArrayLayer = 0,
+                baseMipLevel = 0,
+                viewType = (uint) ImageViewType.Type2D
+            };
+
+            return new ImageView(device.handle, createInfo, _name + "_view", 0);
         }
 
         public void Dispose()
         {
-            VK.DestroyImage(device, handle);
+            VK.DestroyImage(device.handle, handle);
         }
     }
 }

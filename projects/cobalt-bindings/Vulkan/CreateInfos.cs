@@ -28,9 +28,13 @@ namespace Cobalt.Bindings.Vulkan
         // TODO: custom debugger and layers
     };
 
+    [StructLayout(LayoutKind.Explicit)]
     public struct SwapchainCreateInfo
     {
-
+        [FieldOffset(0)]
+        public uint width;
+        [FieldOffset(4)]
+        public uint height;
     }
 
     [StructLayout(LayoutKind.Explicit)]

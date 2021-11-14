@@ -6,17 +6,17 @@ namespace Cobalt.Graphics
 {
     public class RenderSystem
     {
-        private GraphicsContext _context;
+        private readonly GraphicsContext _context;
         private Registry _registry;
 
-        private RenderGraph _renderGraph;
+        private readonly RenderGraph _renderGraph;
 
         public RenderSystem(Registry registry, GraphicsContext context)
         {
             _context = context;
             _registry = registry;
 
-            _renderGraph = new RenderGraph(_context.ContextDevice);
+            _renderGraph = new RenderGraph(_context.ContextDevice, _context.Swapchain, 3);
 
             GBufferPass gbufferPass = _renderGraph.AddPass(new GBufferPass(), "gbuffer") as GBufferPass;
             GBufferResolvePass gbufferResolvePass = _renderGraph.AddPass(new GBufferResolvePass(), "gbufferresolve") as GBufferResolvePass;

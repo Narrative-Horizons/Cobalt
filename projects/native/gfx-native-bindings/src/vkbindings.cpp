@@ -218,7 +218,9 @@ VK_BINDING_EXPORT bool cobalt_vkb_destroy_device(Device* device)
 
 VK_BINDING_EXPORT Swapchain* cobalt_vkb_create_swapchain(Device* device, SwapchainCreateInfo info)
 {
-	const vkb::SwapchainBuilder bldr{ device->device };
+	const vkb::SwapchainBuilder bldr = vkb::SwapchainBuilder(device->device)
+		.set_desired_extent(info.width, info.height);
+	
 	const auto swapchainResult = bldr.build();
 	if (!swapchainResult)
 	{

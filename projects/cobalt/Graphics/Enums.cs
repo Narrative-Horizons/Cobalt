@@ -584,4 +584,52 @@ namespace Cobalt.Graphics.Enums
         ViewLocalBitKHR = ViewLocalBit,
         DeviceGroupBitKHR = DeviceGroupBit,
     }
+
+    [Flags]
+    public enum ImageUsageFlagBits : uint
+    {
+        TransferSrcBit = 0x00000001,
+        TransferDstBit = 0x00000002,
+        SampledBit = 0x00000004,
+        StorageBit = 0x00000008,
+        ColorAttachmentBit = 0x00000010,
+        DepthStencilAttachmentBit = 0x00000020,
+        TransientAttachmentBit = 0x00000040,
+        InputAttachmentBit = 0x00000080,
+        VideoDecodeDstBitKHR = 0x00000400,
+        VideoDecodeSrcBitKHR = 0x00000800,
+        VideoDecodeDpbBitKHR = 0x00001000,
+        FragmentDensityMapBitExt = 0x00000200,
+        FragmentShadingRateAttachmentBitKHR = 0x00000100,
+        VideoEncodeDstBitKHR = 0x00002000,
+        VideoEncodeSrcBitKHR = 0x00004000,
+        VideoEncodeDpbBitKHR = 0x00008000,
+        InvocationMaskBitHuawei = 0x00040000,
+        ShadingRateImageBitNV = FragmentShadingRateAttachmentBitKHR,
+    }
+
+    public enum ImageTiling : uint
+    {
+        Optimal = 0,
+        Linear = 1,
+        DrmFormatModifierExt = 1000158000,
+    }
+
+    public enum ImageType : uint
+    {
+        Type1D = 0,
+        Type2D = 1,
+        Type3D = 2,
+    }
+
+    public enum ImageViewType : uint
+    {
+        Type1D = 0,
+        Type2D = 1,
+        Type3D = 2,
+        TypeCube = 3,
+        Type1DArray = 4,
+        Type2DArray = 5,
+        TypeCubeArray = 6,
+    }
 }

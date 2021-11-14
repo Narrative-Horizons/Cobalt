@@ -39,8 +39,8 @@ namespace Cobalt.Graphics
 
         public struct AbsoluteSize
         {
-            public int width;
-            public int height;
+            public uint width;
+            public uint height;
         }
 
         public struct RelativeSize
@@ -67,7 +67,7 @@ namespace Cobalt.Graphics
 
         public struct BufferCreateInfo
         {
-
+            public ulong size;
         }
 
         public class PassDependencyInfo
@@ -132,17 +132,27 @@ namespace Cobalt.Graphics
 
         private readonly Dictionary<IPass, PassInfo> _passInfos = new Dictionary<IPass, PassInfo>();
 
-        private readonly Dictionary<string, AttachmentDescription> _attachmentDescMap =
-            new Dictionary<string, AttachmentDescription>();
-
         public static string RenderGraphColorOutputTarget = "renderGraphColorOutput";
         public SwapchainResolvePass resolvePass;
 
-        private readonly Device _device;
+        private readonly Dictionary<string, RenderTargetCreateInfo> _renderTargets = new Dictionary<string, RenderTargetCreateInfo>();
+        private readonly Dictionary<string, DepthTargetCreateInfo> _depthTargets = new Dictionary<string, DepthTargetCreateInfo>();
+        private readonly Dictionary<string, BufferCreateInfo> _readOnlyBufferTargets = new Dictionary<string, BufferCreateInfo>();
+        private readonly Dictionary<string, BufferCreateInfo> _readWriteBufferTargets = new Dictionary<string, BufferCreateInfo>();
 
-        public RenderGraph(Device device)
+        private readonly Dictionary<string, Image> _images = new Dictionary<string, Image>();
+        private readonly Dictionary<string, VK.Buffer> _buffers = new Dictionary<string, VK.Buffer>();
+
+        private readonly Device _device;
+        private readonly Swapchain _swapchain;
+
+        private readonly uint _framesInFlight;
+
+        public RenderGraph(Device device, Swapchain swapchain, uint framesInFlight)
         {
             _device = device;
+            _swapchain = swapchain;
+            _framesInFlight = framesInFlight;
 
             resolvePass = AddPass(new SwapchainResolvePass(), "resolve") as SwapchainResolvePass;
             AddInputAttachment(resolvePass, RenderGraphColorOutputTarget, AttachmentLoadOp.Load, AttachmentStoreOp.DontCare);
@@ -232,22 +242,34 @@ namespace Cobalt.Graphics
 
         public void AddRenderTarget(string name, RenderTargetCreateInfo info)
         {
+            if (_renderTargets.ContainsKey(name))
+                return;
 
+            _renderTargets.Add(name, info);
         }
 
         public void AddDepthTarget(string name, DepthTargetCreateInfo info)
         {
+            if (_depthTargets.ContainsKey(name))
+                return;
 
+            _depthTargets.Add(name, info);
         }
 
         public void AddReadOnlyBuffer(string name, BufferCreateInfo info)
         {
+            if (_readOnlyBufferTargets.ContainsKey(name))
+                return;
 
+            _readOnlyBufferTargets.Add(name, info);
         }
 
         public void AddReadWriteBuffer(string name, BufferCreateInfo info)
         {
+            if (_readWriteBufferTargets.ContainsKey(name))
+                return;
 
+            _readWriteBufferTargets.Add(name, info);
         }
 
         private PassInfo GetInfoFromPass(IPass pass)
@@ -272,7 +294,7 @@ namespace Cobalt.Graphics
 
                 foreach (ImageInfo inputAtt in node.inputAttachments)
                 {
-                    if (sourceInfo.colorAttachments.Where(attachment => attachment.name == inputAtt.name).Count() == 0 &&
+                    if (sourceInfo.colorAttachments.Count(attachment => attachment.name == inputAtt.name) == 0 &&
                         (sourceInfo.depthAttachment?.name ?? null) != inputAtt.name) 
                         continue;
 
@@ -292,7 +314,7 @@ namespace Cobalt.Graphics
             }
         }
 
-        public void Build()
+        private void BuildGraph()
         {
             // Depth search graph
             Dictionary<PassInfo, List<Tuple<PassDependencyInfo, IPass, IPass>>> depthSearchMap =
@@ -317,7 +339,7 @@ namespace Cobalt.Graphics
             PassInfo resolveNodeInfo = null;
             foreach (var (info, _) in depthSearchMap)
             {
-                if (info.renderPassID != 0) 
+                if (info.renderPassID != 0)
                     continue;
 
                 // Resolve node
@@ -336,14 +358,14 @@ namespace Cobalt.Graphics
 
             // Compile a sorted list based on the render pass ID
             Dictionary<int, List<PassInfo>> sortedRenderList = new Dictionary<int, List<PassInfo>>();
-            foreach (var pass in depthSearchMap)
+            foreach (var (passInfo, _) in depthSearchMap)
             {
-                if (!sortedRenderList.ContainsKey(pass.Key.renderPassID))
+                if (!sortedRenderList.ContainsKey(passInfo.renderPassID))
                 {
-                    sortedRenderList[pass.Key.renderPassID] = new List<PassInfo>();
+                    sortedRenderList[passInfo.renderPassID] = new List<PassInfo>();
                 }
 
-                sortedRenderList[pass.Key.renderPassID].Add(pass.Key);
+                sortedRenderList[passInfo.renderPassID].Add(passInfo);
             }
 
             // Start building Vulkan Subpasses and RenderPass from the sorted renderpass list
@@ -352,7 +374,7 @@ namespace Cobalt.Graphics
                 DirectedAcyclicGraph<PassInfo, PassDependencyInfo> subpassGraph =
                     new DirectedAcyclicGraph<PassInfo, PassDependencyInfo>();
 
-                Dictionary<PassInfo, DirectedAcyclicGraph<PassInfo, PassDependencyInfo>.GraphVertex> subpassVertices = 
+                Dictionary<PassInfo, DirectedAcyclicGraph<PassInfo, PassDependencyInfo>.GraphVertex> subpassVertices =
                     new Dictionary<PassInfo, DirectedAcyclicGraph<PassInfo, PassDependencyInfo>.GraphVertex>();
 
                 foreach (PassInfo passInfo in passes)
@@ -389,7 +411,7 @@ namespace Cobalt.Graphics
                     srcStageMask = (uint)PipelineStageFlagBits.BottomOfPipeBit,
                     dstStageMask = (uint)PipelineStageFlagBits.ColorAttachmentOutputBit,
                     srcAccessMask = (uint)AccessFlagBits.MemoryReadBit,
-                    dstAccessMask = (uint) AccessFlagBits.ColorAttachmentReadBit | (uint) AccessFlagBits.ColorAttachmentWriteBit,
+                    dstAccessMask = (uint)AccessFlagBits.ColorAttachmentReadBit | (uint)AccessFlagBits.ColorAttachmentWriteBit,
                     dependencyFlags = (uint)DependencyFlagBits.ByRegionBit
                 };
                 subpasses.Add(firstPassDep);
@@ -400,16 +422,16 @@ namespace Cobalt.Graphics
                     {
                         srcSubpass = indexedPassInfos[edge.Source.UserData],
                         dstSubpass = indexedPassInfos[edge.Destination.UserData],
-                        dependencyFlags = (uint) DependencyFlagBits.ByRegionBit
+                        dependencyFlags = (uint)DependencyFlagBits.ByRegionBit
                     };
 
                     foreach (ImageDependencyInfo imageInfo in edge.UserData.imageDependencyInfos)
                     {
-                        subDep.srcStageMask |= (uint) imageInfo.lastWriteStage;
-                        subDep.dstStageMask |= (uint) imageInfo.firstReadStage;
+                        subDep.srcStageMask |= (uint)imageInfo.lastWriteStage;
+                        subDep.dstStageMask |= (uint)imageInfo.firstReadStage;
 
-                        subDep.srcAccessMask |= (uint) imageInfo.lastWriteType;
-                        subDep.dstAccessMask |= (uint) imageInfo.firstReadType;
+                        subDep.srcAccessMask |= (uint)imageInfo.lastWriteType;
+                        subDep.dstAccessMask |= (uint)imageInfo.firstReadType;
                     }
 
                     subpasses.Add(subDep);
@@ -417,20 +439,20 @@ namespace Cobalt.Graphics
 
                 SubpassDependency lastPassDep = new SubpassDependency
                 {
-                    srcSubpass = (uint) subpasses.Count - 1,
+                    srcSubpass = (uint)subpasses.Count - 1,
                     dstSubpass = uint.MaxValue,
-                    srcStageMask = (uint) PipelineStageFlagBits.ColorAttachmentOutputBit,
-                    dstStageMask = (uint) PipelineStageFlagBits.BottomOfPipeBit,
-                    srcAccessMask = (uint) AccessFlagBits.ColorAttachmentReadBit |
-                                    (uint) AccessFlagBits.ColorAttachmentWriteBit,
-                    dependencyFlags = (uint) DependencyFlagBits.ByRegionBit
+                    srcStageMask = (uint)PipelineStageFlagBits.ColorAttachmentOutputBit,
+                    dstStageMask = (uint)PipelineStageFlagBits.BottomOfPipeBit,
+                    srcAccessMask = (uint)AccessFlagBits.ColorAttachmentReadBit |
+                                    (uint)AccessFlagBits.ColorAttachmentWriteBit,
+                    dependencyFlags = (uint)DependencyFlagBits.ByRegionBit
                 };
 
                 subpasses.Add(lastPassDep);
 
                 RenderPassCreateInfo renderPassInfo = new RenderPassCreateInfo
                 {
-                    subpassCount = (uint) passes.Count
+                    subpassCount = (uint)passes.Count
                 };
 
                 List<SubpassDescription> subDescs = new List<SubpassDescription>();
@@ -447,7 +469,7 @@ namespace Cobalt.Graphics
 
                         AttachmentDescription colorAtt = new AttachmentDescription
                         {
-                            format = (uint)Format.B8G8R8A8Srgb, // Infer from loaded image
+                            format = (uint)_renderTargets[image.name].format,
                             samples = (uint)SampleCountFlagBits.Count1Bit, // Infer from somewhere else
                             loadOp = (uint)image.loadOp,
                             storeOp = (uint)image.storeOp,
@@ -466,7 +488,7 @@ namespace Cobalt.Graphics
 
                         AttachmentDescription inputAtt = new AttachmentDescription
                         {
-                            format = (uint)Format.B8G8R8A8Srgb, // Infer from loaded image
+                            format = (uint)_renderTargets[image.name].format,
                             samples = (uint)SampleCountFlagBits.Count1Bit, // Infer from somewhere else
                             loadOp = (uint)image.loadOp,
                             storeOp = (uint)image.storeOp,
@@ -482,7 +504,7 @@ namespace Cobalt.Graphics
                     {
                         AttachmentDescription depthAtt = new AttachmentDescription
                         {
-                            format = (uint)Format.D24UnormS8Uint, // Infer from loaded image
+                            format = (uint)_depthTargets[pass.depthAttachment.Value.name].format,
                             samples = (uint)SampleCountFlagBits.Count1Bit, // Infer from somewhere else
                             loadOp = (uint)pass.depthAttachment.Value.loadOp,
                             storeOp = (uint)pass.depthAttachment.Value.storeOp,
@@ -501,8 +523,8 @@ namespace Cobalt.Graphics
                 {
                     SubpassDescription subpassInfo = new SubpassDescription
                     {
-                        colorAttachmentCount = (uint) pass.colorAttachments.Count,
-                        inputAttachmentCount = (uint) pass.inputAttachments.Count
+                        colorAttachmentCount = (uint)pass.colorAttachments.Count,
+                        inputAttachmentCount = (uint)pass.inputAttachments.Count
                     };
 
                     List<AttachmentReference> colorAttachmentRefs = new List<AttachmentReference>();
@@ -510,23 +532,23 @@ namespace Cobalt.Graphics
                     {
                         AttachmentReference colorRef = new AttachmentReference
                         {
-                            layout = (uint) ImageLayout.ColorAttachmentOptimal,
-                            attachment = (uint) attachmentDescIndices[image.name]
+                            layout = (uint)ImageLayout.ColorAttachmentOptimal,
+                            attachment = (uint)attachmentDescIndices[image.name]
                         };
 
                         colorAttachmentRefs.Add(colorRef);
                     }
 
                     subpassInfo.colorAttachments = colorAttachmentRefs.ToArray();
-                    
+
 
                     List<AttachmentReference> inputAttachmentRefs = new List<AttachmentReference>();
                     foreach (ImageInfo image in pass.inputAttachments)
                     {
                         AttachmentReference colorRef = new AttachmentReference
                         {
-                            layout = (uint) ImageLayout.ShaderReadOnlyOptimal,
-                            attachment = (uint) attachmentDescIndices[image.name]
+                            layout = (uint)ImageLayout.ShaderReadOnlyOptimal,
+                            attachment = (uint)attachmentDescIndices[image.name]
                         };
 
                         inputAttachmentRefs.Add(colorRef);
@@ -538,36 +560,179 @@ namespace Cobalt.Graphics
                     {
                         AttachmentReference depthRef = new AttachmentReference
                         {
-                            layout = (uint) ImageLayout.DepthStencilAttachmentOptimal,
-                            attachment = (uint) attachmentDescIndices[pass.depthAttachment.Value.name]
+                            layout = (uint)ImageLayout.DepthStencilAttachmentOptimal,
+                            attachment = (uint)attachmentDescIndices[pass.depthAttachment.Value.name]
                         };
 
-                        subpassInfo.depthStencilAttachments = new[] {depthRef};
+                        subpassInfo.depthStencilAttachments = new[] { depthRef };
                     }
 
-                    subpassInfo.pipelineBindPoint = (uint) PipelineBindPoint.Graphics;
+                    subpassInfo.pipelineBindPoint = (uint)PipelineBindPoint.Graphics;
                     subDescs.Add(subpassInfo);
                 }
 
-                renderPassInfo.subpassCount = (uint) subDescs.Count;
+                renderPassInfo.subpassCount = (uint)subDescs.Count;
                 renderPassInfo.subpasses = subDescs.ToArray();
-                renderPassInfo.attachmentCount = (uint) attachmentDescs.Count;
+                renderPassInfo.attachmentCount = (uint)attachmentDescs.Count;
                 renderPassInfo.attachments = attachmentDescs.ToArray();
 
                 // Setup dependencies
-                renderPassInfo.dependencyCount = (uint) subpasses.Count;
+                renderPassInfo.dependencyCount = (uint)subpasses.Count;
                 renderPassInfo.dependencies = subpasses.ToArray();
 
-                RenderPass renderPass = VK.CreateRenderPass(_device.handle, renderPassInfo);
-                int jonathan = 0;
-
                 // get set of passes in vk renderpass
+                RenderPass renderPass = VK.CreateRenderPass(_device.handle, renderPassInfo);
+
                 // add to graph
                 // add edges (dependency information)
                 // do topo sort on graph
             }
+        }
 
+        private void BuildResources()
+        {
+            Dictionary<string, uint> imageUsageMap = new Dictionary<string, uint>();
+
+            // Go over all passes and check the attachments
+            foreach (var (_, info) in _passInfos)
+            {
+                foreach (ImageInfo image in info.colorAttachments)
+                {
+                    imageUsageMap[image.name] |= (uint) ImageUsageFlagBits.ColorAttachmentBit;
+                }
+
+                foreach (ImageInfo image in info.inputAttachments)
+                {
+                    imageUsageMap[image.name] |= (uint)ImageUsageFlagBits.InputAttachmentBit;
+                }
+
+                if (info.depthAttachment != null)
+                {
+                    imageUsageMap[info.depthAttachment.Value.name] |=
+                        (uint) ImageUsageFlagBits.DepthStencilAttachmentBit;
+                }
+            }
+
+            foreach (var (name, info) in _renderTargets)
+            {
+                ImageCreateInfo createInfo = new ImageCreateInfo();
+                if (info.absoluteSize != null)
+                {
+                    createInfo.width = info.absoluteSize.Value.width;
+                    createInfo.height = info.absoluteSize.Value.height;
+                }
+                else if (info.relativeSize != null)
+                {
+                    createInfo.width = (uint)(_swapchain.Width * info.relativeSize.Value.width);
+                    createInfo.height = (uint)(_swapchain.Height * info.relativeSize.Value.height);
+                }
+
+                createInfo.usage = imageUsageMap[name];
+                createInfo.format = (uint)info.format;
+                createInfo.samples = (uint)SampleCountFlagBits.Count1Bit;
+                createInfo.sharingMode = (uint)SharingMode.Exclusive;
+                createInfo.depth = 1;
+                createInfo.initialLayout = (uint)ImageLayout.Undefined;
+                createInfo.mipLevels = 1;
+                createInfo.arrayLayers = 1;
+                createInfo.tiling = (uint)ImageTiling.Optimal;
+                createInfo.imageType = (uint)ImageType.Type2D;
+
+                for (uint i = 0; i < _framesInFlight; i++)
+                {
+                    Image image = new Image(_device, createInfo, name, i);
+                    _images.Add(name, image);
+                }
+            }
+
+            foreach (var (name, info) in _depthTargets)
+            {
+                ImageCreateInfo createInfo = new ImageCreateInfo();
+                if (info.absoluteSize != null)
+                {
+                    createInfo.width = info.absoluteSize.Value.width;
+                    createInfo.height = info.absoluteSize.Value.height;
+                }
+                else if (info.relativeSize != null)
+                {
+                    createInfo.width = (uint)(_swapchain.Width * info.relativeSize.Value.width);
+                    createInfo.height = (uint)(_swapchain.Height * info.relativeSize.Value.height);
+                }
+
+                createInfo.usage = imageUsageMap[name];
+                createInfo.format = (uint)info.format;
+                createInfo.samples = (uint)SampleCountFlagBits.Count1Bit;
+                createInfo.sharingMode = (uint)SharingMode.Exclusive;
+                createInfo.depth = 1;
+                createInfo.initialLayout = (uint)ImageLayout.Undefined;
+                createInfo.mipLevels = 1;
+                createInfo.arrayLayers = 1;
+                createInfo.tiling = (uint)ImageTiling.Optimal;
+                createInfo.imageType = (uint)ImageType.Type2D;
+
+                for (uint i = 0; i < _framesInFlight; i++)
+                {
+                    Image image = new Image(_device, createInfo, name, i);
+                    _images.Add(name, image);
+                }
+            }
+
+            foreach (var (name, info) in _readOnlyBufferTargets)
+            {
+                Bindings.Vulkan.BufferCreateInfo createInfo = new Bindings.Vulkan.BufferCreateInfo
+                {
+                    size = info.size,
+                    usage = (uint) BufferUsageFlagBits.UniformBufferBit,
+                    sharingMode = (uint) SharingMode.Exclusive
+                };
+
+                BufferMemoryCreateInfo memoryInfo = new BufferMemoryCreateInfo
+                {
+                    usage = (uint) MemoryUsage.CpuToGpu,
+                    requiredFlags =
+                        (uint) (MemoryPropertyFlagBits.HostVisibleBit | MemoryPropertyFlagBits.HostCoherentBit),
+                    preferredFlags = 0
+                };
+
+                for (uint i = 0; i < _framesInFlight; i++)
+                {
+                    VK.Buffer uniformBuffer = CreateBuffer(_device.handle, createInfo, memoryInfo);
+                    _buffers.Add(name + i, uniformBuffer);
+                }
+            }
+
+            foreach (var (name, info) in _readWriteBufferTargets)
+            {
+                Bindings.Vulkan.BufferCreateInfo createInfo = new Bindings.Vulkan.BufferCreateInfo
+                {
+                    size = info.size,
+                    usage = (uint) BufferUsageFlagBits.StorageBufferBit,
+                    sharingMode = (uint) SharingMode.Exclusive
+                };
+
+                BufferMemoryCreateInfo memoryInfo = new BufferMemoryCreateInfo
+                {
+                    usage = (uint) MemoryUsage.CpuToGpu,
+                    requiredFlags =
+                        (uint) (MemoryPropertyFlagBits.HostVisibleBit | MemoryPropertyFlagBits.HostCoherentBit),
+                    preferredFlags = 0
+                };
+
+                for (uint i = 0; i < _framesInFlight; i++)
+                {
+                    VK.Buffer storageBuffer = CreateBuffer(_device.handle, createInfo, memoryInfo);
+                    _buffers.Add(name + i, storageBuffer);
+                }
+            }
+        }
+        
+        public void Build()
+        {
+            BuildGraph();
+            
             // build resources
+            BuildResources();
+            
             // do topo sort on passinfos that are renderpassinfo graphs
             // use to build vkrenderpass
             // get shader information from each subpass

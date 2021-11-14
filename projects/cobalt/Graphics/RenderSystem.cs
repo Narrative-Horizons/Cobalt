@@ -32,7 +32,41 @@ namespace Cobalt.Graphics
             _renderGraph.AddInputAttachment(gbufferResolvePass, "metallic", AttachmentLoadOp.Load, AttachmentStoreOp.DontCare);
             _renderGraph.AddColorAttachment(gbufferResolvePass, RenderGraph.RenderGraphColorOutputTarget, AttachmentLoadOp.Clear, AttachmentStoreOp.Store);
 
-            _renderGraph.AddDependency(gbufferPass, gbufferResolvePass, new RenderGraph.PassDependencyInfo());
+            _renderGraph.AddDependency(gbufferPass, gbufferResolvePass, new RenderGraph.PassDependencyInfo()
+            {
+                imageDependencyInfos = { 
+                    new RenderGraph.ImageDependencyInfo()
+                    { 
+                        name = "albedo",
+                        dstLayout = ImageLayout.ShaderReadOnlyOptimal,
+                        firstReadStage = PipelineStageFlagBits.ColorAttachmentOutputBit,
+                        firstReadType = AccessFlagBits.ColorAttachmentWriteBit,
+                        lastWriteStage = PipelineStageFlagBits.FragmentShaderBit,
+                        lastWriteType = AccessFlagBits.ShaderReadBit,
+                        srcLayout = ImageLayout.ColorAttachmentOptimal
+                    },
+                    new RenderGraph.ImageDependencyInfo()
+                    {
+                        name = "normal",
+                        dstLayout = ImageLayout.ShaderReadOnlyOptimal,
+                        firstReadStage = PipelineStageFlagBits.ColorAttachmentOutputBit,
+                        firstReadType = AccessFlagBits.ColorAttachmentWriteBit,
+                        lastWriteStage = PipelineStageFlagBits.FragmentShaderBit,
+                        lastWriteType = AccessFlagBits.ShaderReadBit,
+                        srcLayout = ImageLayout.ColorAttachmentOptimal
+                    },
+                    new RenderGraph.ImageDependencyInfo()
+                    {
+                        name = "metallic",
+                        dstLayout = ImageLayout.ShaderReadOnlyOptimal,
+                        firstReadStage = PipelineStageFlagBits.ColorAttachmentOutputBit,
+                        firstReadType = AccessFlagBits.ColorAttachmentWriteBit,
+                        lastWriteStage = PipelineStageFlagBits.FragmentShaderBit,
+                        lastWriteType = AccessFlagBits.ShaderReadBit,
+                        srcLayout = ImageLayout.ColorAttachmentOptimal
+                    }
+                }
+            });
 
             _renderGraph.AddColorAttachment(transparancyPass, RenderGraph.RenderGraphColorOutputTarget, AttachmentLoadOp.Load, AttachmentStoreOp.Store);
             _renderGraph.SetDepthAttachment(transparancyPass, "depth", AttachmentLoadOp.Load, AttachmentStoreOp.DontCare);

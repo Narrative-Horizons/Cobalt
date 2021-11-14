@@ -128,7 +128,7 @@ namespace Cobalt.Core
 
             foreach (var (v, _) in _adjacencyList)
             {
-                if (!visited[v])
+                if (!visited.ContainsKey(v) || !visited[v])
                 {
                     TopoSortUtil(v, visited, stack);
                 }

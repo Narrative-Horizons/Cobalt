@@ -111,7 +111,7 @@ namespace Cobalt.Graphics
         private class PassInfo
         {
             public string name;
-            public IPass pass;
+            public Pass pass;
 
             public readonly List<ImageInfo> inputAttachments = new List<ImageInfo>();
             public readonly List<ImageInfo> colorAttachments = new List<ImageInfo>();
@@ -127,10 +127,10 @@ namespace Cobalt.Graphics
         private readonly List<PassInfo> _graphicsPasses = new List<PassInfo>();
         private readonly List<PassInfo> _computePasses = new List<PassInfo>();
 
-        private readonly List<Tuple<PassDependencyInfo, IPass, IPass>> _dependencies =
-            new List<Tuple<PassDependencyInfo, IPass, IPass>>();
+        private readonly List<Tuple<PassDependencyInfo, Pass, Pass>> _dependencies =
+            new List<Tuple<PassDependencyInfo, Pass, Pass>>();
 
-        private readonly Dictionary<IPass, PassInfo> _passInfos = new Dictionary<IPass, PassInfo>();
+        private readonly Dictionary<Pass, PassInfo> _passInfos = new Dictionary<Pass, PassInfo>();
 
         public static string RenderGraphColorOutputTarget = "renderGraphColorOutput";
         public SwapchainResolvePass resolvePass;
@@ -142,6 +142,12 @@ namespace Cobalt.Graphics
 
         private readonly Dictionary<string, Image> _images = new Dictionary<string, Image>();
         private readonly Dictionary<string, VK.Buffer> _buffers = new Dictionary<string, VK.Buffer>();
+
+        private readonly Dictionary<PassInfo, Tuple<RenderPass, uint>> _subpassIndices =
+            new Dictionary<PassInfo, Tuple<RenderPass, uint>>();
+
+        private readonly Dictionary<string, Tuple<uint, uint>> _bindingIndices =
+            new Dictionary<string, Tuple<uint, uint>>();
 
         private readonly Device _device;
         private readonly Swapchain _swapchain;
@@ -155,13 +161,13 @@ namespace Cobalt.Graphics
             _framesInFlight = framesInFlight;
 
             resolvePass = AddPass(new SwapchainResolvePass(), "resolve") as SwapchainResolvePass;
-            AddInputAttachment(resolvePass, RenderGraphColorOutputTarget, AttachmentLoadOp.Load, AttachmentStoreOp.DontCare);
-            AddColorAttachment(resolvePass, "swapchain", AttachmentLoadOp.Clear, AttachmentStoreOp.Store);
+            AddInputAttachment(resolvePass, RenderGraphColorOutputTarget, AttachmentLoadOp.Load, AttachmentStoreOp.DontCare, 0, 0);
+            AddColorAttachment(resolvePass, "swapchain", AttachmentLoadOp.Clear, AttachmentStoreOp.Store, 0, 1);
 
             GetInfoFromPass(resolvePass).renderPassID = 0;
         }
 
-        public IPass AddPass(IPass pass, string name)
+        public Pass AddPass(Pass pass, string name)
         {
             PassInfo info = new PassInfo
             {
@@ -169,12 +175,12 @@ namespace Cobalt.Graphics
                 pass = pass
             };
 
-            switch (pass.GetType())
+            switch (pass.GetPassType())
             {
-                case IPass.PassType.Compute:
+                case Pass.PassType.Compute:
                     _computePasses.Add(info);
                     break;
-                case IPass.PassType.Graphics:
+                case Pass.PassType.Graphics:
                     _graphicsPasses.Add(info);
                     break;
                 default:
@@ -186,12 +192,12 @@ namespace Cobalt.Graphics
             return pass;
         }
 
-        public void AddDependency(IPass source, IPass dest, PassDependencyInfo info)
+        public void AddDependency(Pass source, Pass dest, PassDependencyInfo info)
         {
-            _dependencies.Add(new Tuple<PassDependencyInfo, IPass, IPass>(info, source, dest));
+            _dependencies.Add(new Tuple<PassDependencyInfo, Pass, Pass>(info, source, dest));
         }
 
-        public void AddInputAttachment(IPass pass, string name, AttachmentLoadOp loadOp, AttachmentStoreOp storeOp)
+        public void AddInputAttachment(Pass pass, string name, AttachmentLoadOp loadOp, AttachmentStoreOp storeOp, uint setIndex, uint bindingIndex)
         {
             ImageInfo info = new ImageInfo
             {
@@ -201,9 +207,10 @@ namespace Cobalt.Graphics
             };
 
             _passInfos[pass].inputAttachments.Add(info);
+            _bindingIndices[name] = new Tuple<uint, uint>(setIndex, bindingIndex);
         }
 
-        public void AddColorAttachment(IPass pass, string name, AttachmentLoadOp loadOp, AttachmentStoreOp storeOp)
+        public void AddColorAttachment(Pass pass, string name, AttachmentLoadOp loadOp, AttachmentStoreOp storeOp, uint setIndex, uint bindingIndex)
         {
             ImageInfo info = new ImageInfo
             {
@@ -213,9 +220,10 @@ namespace Cobalt.Graphics
             };
 
             _passInfos[pass].colorAttachments.Add(info);
+            _bindingIndices[name] = new Tuple<uint, uint>(setIndex, bindingIndex);
         }
 
-        public void SetDepthAttachment(IPass pass, string name, AttachmentLoadOp loadOp, AttachmentStoreOp storeOp)
+        public void SetDepthAttachment(Pass pass, string name, AttachmentLoadOp loadOp, AttachmentStoreOp storeOp, uint setIndex, uint bindingIndex)
         {
             var info = _passInfos[pass];
 
@@ -227,17 +235,19 @@ namespace Cobalt.Graphics
             };
             info.depthAttachment = imageInfo;
             _passInfos[pass] = info;
+            _bindingIndices[name] = new Tuple<uint, uint>(setIndex, bindingIndex);
         }
 
-        public void AddUniformBuffer(IPass pass, string name)
+        public void AddUniformBuffer(Pass pass, string name, uint setIndex, uint bindingIndex)
         {
             _passInfos[pass].uniformBuffers.Add(name);
-
+            _bindingIndices[name] = new Tuple<uint, uint>(setIndex, bindingIndex);
         }
 
-        public void AddStorageBuffer(IPass pass, string name)
+        public void AddStorageBuffer(Pass pass, string name, uint setIndex, uint bindingIndex)
         {
             _passInfos[pass].storageBuffers.Add(name);
+            _bindingIndices[name] = new Tuple<uint, uint>(setIndex, bindingIndex);
         }
 
         public void AddRenderTarget(string name, RenderTargetCreateInfo info)
@@ -272,14 +282,14 @@ namespace Cobalt.Graphics
             _readWriteBufferTargets.Add(name, info);
         }
 
-        private PassInfo GetInfoFromPass(IPass pass)
+        private PassInfo GetInfoFromPass(Pass pass)
         {
             return _passInfos[pass];
         }
 
         private void GraphBuildHelper(PassInfo node,
-            HashSet<Tuple<PassDependencyInfo, IPass, IPass>> visited, 
-            Dictionary<PassInfo, List<Tuple<PassDependencyInfo, IPass, IPass>>> depthSearchMap,
+            HashSet<Tuple<PassDependencyInfo, Pass, Pass>> visited, 
+            Dictionary<PassInfo, List<Tuple<PassDependencyInfo, Pass, Pass>>> depthSearchMap,
             int newPassID)
         {
             foreach (var edge in depthSearchMap[node])
@@ -289,7 +299,7 @@ namespace Cobalt.Graphics
                     continue;
                 }
 
-                IPass source = edge.Item2;
+                Pass source = edge.Item2;
                 PassInfo sourceInfo = GetInfoFromPass(source);
 
                 foreach (ImageInfo inputAtt in node.inputAttachments)
@@ -317,16 +327,16 @@ namespace Cobalt.Graphics
         private void BuildGraph()
         {
             // Depth search graph
-            Dictionary<PassInfo, List<Tuple<PassDependencyInfo, IPass, IPass>>> depthSearchMap =
-                new Dictionary<PassInfo, List<Tuple<PassDependencyInfo, IPass, IPass>>>();
+            Dictionary<PassInfo, List<Tuple<PassDependencyInfo, Pass, Pass>>> depthSearchMap =
+                new Dictionary<PassInfo, List<Tuple<PassDependencyInfo, Pass, Pass>>>();
 
             // Edge visited list
-            HashSet<Tuple<PassDependencyInfo, IPass, IPass>> visited = new HashSet<Tuple<PassDependencyInfo, IPass, IPass>>();
+            HashSet<Tuple<PassDependencyInfo, Pass, Pass>> visited = new HashSet<Tuple<PassDependencyInfo, Pass, Pass>>();
 
             // Add all passes to the graph for sorting
             foreach (var (_, info) in _passInfos)
             {
-                depthSearchMap.Add(info, new List<Tuple<PassDependencyInfo, IPass, IPass>>());
+                depthSearchMap.Add(info, new List<Tuple<PassDependencyInfo, Pass, Pass>>());
             }
 
             // Add all the dependencies for the edges on the graph
@@ -384,7 +394,7 @@ namespace Cobalt.Graphics
 
                 foreach (PassInfo passInfo in passes)
                 {
-                    List<Tuple<PassDependencyInfo, IPass, IPass>> outboundEdges = depthSearchMap[passInfo];
+                    List<Tuple<PassDependencyInfo, Pass, Pass>> outboundEdges = depthSearchMap[passInfo];
                     foreach (var (dep, dest, source) in outboundEdges)
                     {
                         if (!passes.Contains(GetInfoFromPass(dest)))
@@ -583,6 +593,11 @@ namespace Cobalt.Graphics
                 // get set of passes in vk renderpass
                 RenderPass renderPass = VK.CreateRenderPass(_device.handle, renderPassInfo);
 
+                foreach (PassInfo pass in passes)
+                {
+                    _subpassIndices.Add(pass, new Tuple<RenderPass, uint>(renderPass, indexedPassInfos[pass]));
+                }
+
                 // add to graph
                 // add edges (dependency information)
                 // do topo sort on graph
@@ -724,10 +739,105 @@ namespace Cobalt.Graphics
                     _buffers.Add(name + i, storageBuffer);
                 }
             }
+
+            // Build shaders
+            foreach (var (_, info) in _passInfos)
+            {
+                for (uint i = 0; i < info.pass.Shaders.Count; i++)
+                {
+                    var storedShader = info.pass.Shaders.ElementAt((int)i);
+                    PassShaderInfo passShaderInfo = storedShader.Value.Item2;
+
+                    ShaderCreateInfo shaderInfo = new ShaderCreateInfo
+                    {
+                        subPassIndex = _subpassIndices[info].Item2,
+                        pass = _subpassIndices[info].Item1,
+                        vertexModulePath = passShaderInfo.vertexModulePath,
+                        fragmentModulePath = passShaderInfo.fragmentModulePath,
+                        geometryModulePath = passShaderInfo.geometryModulePath,
+                        tesselationEvalModulePath = passShaderInfo.tesselationEvalModulePath,
+                        tesselationControlModulePath = passShaderInfo.tesselationControlModulePath,
+                        computeModulePath = passShaderInfo.computeModulePath
+                    };
+
+                    Dictionary<uint, List<ShaderLayoutBindingCreateInfo>> shaderBindings = new Dictionary<uint, List<ShaderLayoutBindingCreateInfo>>();
+                    foreach(ImageInfo inputAtt in info.inputAttachments)
+                    {
+                        ShaderLayoutBindingCreateInfo bindingInfo = new ShaderLayoutBindingCreateInfo
+                        {
+                            bindingIndex = _bindingIndices[inputAtt.name].Item2,
+                            descriptorCount = 1,
+                            stageFlags = (uint) ShaderStageFlagBits.FragmentBit,
+                            type = (uint) DescriptorType.InputAttachment
+                        };
+
+                        shaderBindings[_bindingIndices[inputAtt.name].Item1].Add(bindingInfo);
+                    }
+
+                    foreach (string buffer in info.uniformBuffers)
+                    {
+                        ShaderLayoutBindingCreateInfo bindingInfo = new ShaderLayoutBindingCreateInfo
+                        {
+                            bindingIndex = _bindingIndices[buffer].Item2,
+                            descriptorCount = 1,
+                            stageFlags = (uint)ShaderStageFlagBits.FragmentBit | (uint) ShaderStageFlagBits.VertexBit,
+                            type = (uint)DescriptorType.UniformBuffer
+                        };
+
+                        shaderBindings[_bindingIndices[buffer].Item1].Add(bindingInfo);
+                    }
+
+                    foreach (string buffer in info.storageBuffers)
+                    {
+                        ShaderLayoutBindingCreateInfo bindingInfo = new ShaderLayoutBindingCreateInfo
+                        {
+                            bindingIndex = _bindingIndices[buffer].Item2,
+                            descriptorCount = 1,
+                            stageFlags = (uint)ShaderStageFlagBits.FragmentBit | (uint)ShaderStageFlagBits.VertexBit,
+                            type = (uint)DescriptorType.StorageBuffer
+                        };
+
+                        shaderBindings[_bindingIndices[buffer].Item1].Add(bindingInfo);
+                    }
+
+                    SortedDictionary<uint, ShaderLayoutSetCreateInfo> sets = new SortedDictionary<uint, ShaderLayoutSetCreateInfo>();
+
+                    foreach (var (setIndex, bindings) in shaderBindings)
+                    {
+                        ShaderLayoutSetCreateInfo setInfo = new ShaderLayoutSetCreateInfo
+                        {
+                            bindingCount = (uint)bindings.Count,
+                            bindingInfos = bindings.ToArray()
+                        };
+
+                        sets.Add(setIndex, setInfo);
+                    }
+
+                    List<ShaderLayoutSetCreateInfo> sortedSets = new List<ShaderLayoutSetCreateInfo>();
+                    foreach (var (index, setInfo) in sets)
+                    {
+                        sortedSets.Add(setInfo);
+                    }
+
+                    ShaderLayoutCreateInfo shaderLayout = new ShaderLayoutCreateInfo
+                    {
+                        setCount = (uint)sortedSets.Count, 
+                        setInfos = sortedSets.ToArray()
+                    };
+
+                    shaderInfo.layoutInfo = shaderLayout;
+
+                    VK.Shader shader = CreateShader(_device.handle, shaderInfo);
+                    var toUpdate = info.pass.Shaders[storedShader.Key];
+                    toUpdate.Item1.handle = shader;
+                    info.pass.Shaders[storedShader.Key] = toUpdate;
+                }
+            }
         }
         
         public void Build()
         {
+            // build graph
             BuildGraph();
             
             // build resources

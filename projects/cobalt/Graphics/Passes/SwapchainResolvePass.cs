@@ -1,10 +1,10 @@
 ﻿namespace Cobalt.Graphics.Passes
 {
-    public class SwapchainResolvePass : IPass
+    public class SwapchainResolvePass : Pass
     {
-        public new IPass.PassType GetType()
+        public override PassType GetPassType()
         {
-            return IPass.PassType.Graphics;
+            return PassType.Graphics;
         }
     }
 }

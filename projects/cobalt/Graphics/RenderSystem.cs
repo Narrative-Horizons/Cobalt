@@ -22,15 +22,15 @@ namespace Cobalt.Graphics
             GBufferResolvePass gbufferResolvePass = _renderGraph.AddPass(new GBufferResolvePass(), "gbufferresolve") as GBufferResolvePass;
             TransparancyPass transparancyPass = _renderGraph.AddPass(new TransparancyPass(), "transparancyPass") as TransparancyPass;
             
-            _renderGraph.AddColorAttachment(gbufferPass, "albedo", AttachmentLoadOp.Clear, AttachmentStoreOp.Store);
-            _renderGraph.AddColorAttachment(gbufferPass, "normal", AttachmentLoadOp.Clear, AttachmentStoreOp.Store);
-            _renderGraph.AddColorAttachment(gbufferPass, "metallic", AttachmentLoadOp.Clear, AttachmentStoreOp.Store);
-            _renderGraph.SetDepthAttachment(gbufferPass, "depth", AttachmentLoadOp.Clear, AttachmentStoreOp.Store);
+            _renderGraph.AddColorAttachment(gbufferPass, "albedo", AttachmentLoadOp.Clear, AttachmentStoreOp.Store, 0, 0);
+            _renderGraph.AddColorAttachment(gbufferPass, "normal", AttachmentLoadOp.Clear, AttachmentStoreOp.Store, 0, 1);
+            _renderGraph.AddColorAttachment(gbufferPass, "metallic", AttachmentLoadOp.Clear, AttachmentStoreOp.Store, 0, 2);
+            _renderGraph.SetDepthAttachment(gbufferPass, "depth", AttachmentLoadOp.Clear, AttachmentStoreOp.Store, 0, 3);
 
-            _renderGraph.AddInputAttachment(gbufferResolvePass, "albedo", AttachmentLoadOp.Load, AttachmentStoreOp.DontCare);
-            _renderGraph.AddInputAttachment(gbufferResolvePass, "normal", AttachmentLoadOp.Load, AttachmentStoreOp.DontCare);
-            _renderGraph.AddInputAttachment(gbufferResolvePass, "metallic", AttachmentLoadOp.Load, AttachmentStoreOp.DontCare);
-            _renderGraph.AddColorAttachment(gbufferResolvePass, RenderGraph.RenderGraphColorOutputTarget, AttachmentLoadOp.Clear, AttachmentStoreOp.Store);
+            _renderGraph.AddInputAttachment(gbufferResolvePass, "albedo", AttachmentLoadOp.Load, AttachmentStoreOp.DontCare, 0, 0);
+            _renderGraph.AddInputAttachment(gbufferResolvePass, "normal", AttachmentLoadOp.Load, AttachmentStoreOp.DontCare, 0, 1);
+            _renderGraph.AddInputAttachment(gbufferResolvePass, "metallic", AttachmentLoadOp.Load, AttachmentStoreOp.DontCare, 0, 2);
+            _renderGraph.AddColorAttachment(gbufferResolvePass, RenderGraph.RenderGraphColorOutputTarget, AttachmentLoadOp.Clear, AttachmentStoreOp.Store, 0, 3);
 
             _renderGraph.AddDependency(gbufferPass, gbufferResolvePass, new RenderGraph.PassDependencyInfo()
             {
@@ -68,8 +68,8 @@ namespace Cobalt.Graphics
                 }
             });
 
-            _renderGraph.AddColorAttachment(transparancyPass, RenderGraph.RenderGraphColorOutputTarget, AttachmentLoadOp.Load, AttachmentStoreOp.Store);
-            _renderGraph.SetDepthAttachment(transparancyPass, "depth", AttachmentLoadOp.Load, AttachmentStoreOp.DontCare);
+            _renderGraph.AddColorAttachment(transparancyPass, RenderGraph.RenderGraphColorOutputTarget, AttachmentLoadOp.Load, AttachmentStoreOp.Store, 0, 0);
+            _renderGraph.SetDepthAttachment(transparancyPass, "depth", AttachmentLoadOp.Load, AttachmentStoreOp.DontCare, 0, 1);
 
             _renderGraph.AddDependency(gbufferResolvePass, transparancyPass, new RenderGraph.PassDependencyInfo());
             _renderGraph.AddDependency(transparancyPass, _renderGraph.resolvePass, new RenderGraph.PassDependencyInfo());

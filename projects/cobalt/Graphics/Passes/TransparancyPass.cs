@@ -1,10 +1,10 @@
 ﻿namespace Cobalt.Graphics.Passes
 {
-    public class TransparancyPass : IPass
+    public class TransparancyPass : Pass
     {
-        public new IPass.PassType GetType()
+        public override PassType GetPassType()
         {
-            return IPass.PassType.Graphics;
+            return PassType.Graphics;
         }
     }
 }

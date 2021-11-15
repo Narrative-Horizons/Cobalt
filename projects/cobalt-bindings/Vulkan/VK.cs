@@ -332,6 +332,9 @@ namespace Cobalt.Bindings.Vulkan
         [DllImport(Library, EntryPoint = "cobalt_vkb_create_shader", CallingConvention = CallingConvention.Cdecl)]
         private static extern Shader CreateShaderImpl(Instance device, ShaderCreateInfoImpl info);
 
+        [DllImport(Library, EntryPoint = "cobalt_vkb_create_shader", CallingConvention = CallingConvention.Cdecl)]
+        public static extern bool DestroyShader(Instance device, Shader shader);
+
         [DllImport(Library, EntryPoint = "cobalt_vkb_create_image", CallingConvention = CallingConvention.Cdecl)]
         public static extern Image CreateImage(Instance device, ImageCreateInfo info, string name, uint frame);
 

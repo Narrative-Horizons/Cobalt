@@ -1,10 +1,10 @@
 ﻿namespace Cobalt.Graphics.Passes
 {
-    public class DeferredPass : IPass
+    public class DeferredPass : Pass
     {
-        public new IPass.PassType GetType()
+        public override PassType GetPassType()
         {
-            return IPass.PassType.Graphics;
+            return PassType.Graphics;
         }
     }
 }

@@ -1008,6 +1008,19 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 	return shader;
 }
 
+VK_BINDING_EXPORT bool cobalt_vkb_destroy_shader(Device* device, Shader* shader)
+{
+	if (shader)
+	{
+		device->functionTable.destroyPipeline(shader->pipeline, device->device.allocation_callbacks);
+		delete shader;
+
+		return true;
+	}
+
+	return false;
+}
+
 VK_BINDING_EXPORT DescriptorSet* cobalt_vkb_allocate_descriptors(Shader* shader)
 {
 	auto& [layout, sets] = shader->pipelineLayout;

@@ -130,10 +130,10 @@ namespace Cobalt.Graphics
         private readonly List<Tuple<PassDependencyInfo, Pass, Pass>> _dependencies =
             new List<Tuple<PassDependencyInfo, Pass, Pass>>();
 
-        private readonly Dictionary<Pass, PassInfo> _passInfos = new Dictionary<Pass, PassInfo>();
-
         public static string RenderGraphColorOutputTarget = "renderGraphColorOutput";
         public SwapchainResolvePass resolvePass;
+
+        private readonly Dictionary<Pass, PassInfo> _passInfos = new Dictionary<Pass, PassInfo>();
 
         private readonly Dictionary<string, RenderTargetCreateInfo> _renderTargets = new Dictionary<string, RenderTargetCreateInfo>();
         private readonly Dictionary<string, DepthTargetCreateInfo> _depthTargets = new Dictionary<string, DepthTargetCreateInfo>();
@@ -148,6 +148,11 @@ namespace Cobalt.Graphics
 
         private readonly Dictionary<string, Tuple<uint, uint>> _bindingIndices =
             new Dictionary<string, Tuple<uint, uint>>();
+
+        private readonly Dictionary<string, Shader> _shaders = new Dictionary<string, Shader>();
+
+        private readonly Dictionary<RenderPass, RenderPassCreateInfo> _renderPasses =
+            new Dictionary<RenderPass, RenderPassCreateInfo>();
 
         private readonly Device _device;
         private readonly Swapchain _swapchain;
@@ -592,6 +597,7 @@ namespace Cobalt.Graphics
 
                 // get set of passes in vk renderpass
                 RenderPass renderPass = VK.CreateRenderPass(_device.handle, renderPassInfo);
+                _renderPasses.Add(renderPass, renderPassInfo);
 
                 foreach (PassInfo pass in passes)
                 {
@@ -604,7 +610,7 @@ namespace Cobalt.Graphics
             }
         }
 
-        private void BuildResources()
+        private void BuildImages()
         {
             Dictionary<string, uint> imageUsageMap = new Dictionary<string, uint>();
 
@@ -613,7 +619,7 @@ namespace Cobalt.Graphics
             {
                 foreach (ImageInfo image in info.colorAttachments)
                 {
-                    imageUsageMap[image.name] |= (uint) ImageUsageFlagBits.ColorAttachmentBit;
+                    imageUsageMap[image.name] |= (uint)ImageUsageFlagBits.ColorAttachmentBit;
                 }
 
                 foreach (ImageInfo image in info.inputAttachments)
@@ -624,7 +630,7 @@ namespace Cobalt.Graphics
                 if (info.depthAttachment != null)
                 {
                     imageUsageMap[info.depthAttachment.Value.name] |=
-                        (uint) ImageUsageFlagBits.DepthStencilAttachmentBit;
+                        (uint)ImageUsageFlagBits.DepthStencilAttachmentBit;
                 }
             }
 
@@ -691,21 +697,24 @@ namespace Cobalt.Graphics
                     _images.Add(name, image);
                 }
             }
+        }
 
+        private void BuildBuffers()
+        {
             foreach (var (name, info) in _readOnlyBufferTargets)
             {
                 Bindings.Vulkan.BufferCreateInfo createInfo = new Bindings.Vulkan.BufferCreateInfo
                 {
                     size = info.size,
-                    usage = (uint) BufferUsageFlagBits.UniformBufferBit,
-                    sharingMode = (uint) SharingMode.Exclusive
+                    usage = (uint)BufferUsageFlagBits.UniformBufferBit,
+                    sharingMode = (uint)SharingMode.Exclusive
                 };
 
                 BufferMemoryCreateInfo memoryInfo = new BufferMemoryCreateInfo
                 {
-                    usage = (uint) MemoryUsage.CpuToGpu,
+                    usage = (uint)MemoryUsage.CpuToGpu,
                     requiredFlags =
-                        (uint) (MemoryPropertyFlagBits.HostVisibleBit | MemoryPropertyFlagBits.HostCoherentBit),
+                        (uint)(MemoryPropertyFlagBits.HostVisibleBit | MemoryPropertyFlagBits.HostCoherentBit),
                     preferredFlags = 0
                 };
 
@@ -721,15 +730,15 @@ namespace Cobalt.Graphics
                 Bindings.Vulkan.BufferCreateInfo createInfo = new Bindings.Vulkan.BufferCreateInfo
                 {
                     size = info.size,
-                    usage = (uint) BufferUsageFlagBits.StorageBufferBit,
-                    sharingMode = (uint) SharingMode.Exclusive
+                    usage = (uint)BufferUsageFlagBits.StorageBufferBit,
+                    sharingMode = (uint)SharingMode.Exclusive
                 };
 
                 BufferMemoryCreateInfo memoryInfo = new BufferMemoryCreateInfo
                 {
-                    usage = (uint) MemoryUsage.CpuToGpu,
+                    usage = (uint)MemoryUsage.CpuToGpu,
                     requiredFlags =
-                        (uint) (MemoryPropertyFlagBits.HostVisibleBit | MemoryPropertyFlagBits.HostCoherentBit),
+                        (uint)(MemoryPropertyFlagBits.HostVisibleBit | MemoryPropertyFlagBits.HostCoherentBit),
                     preferredFlags = 0
                 };
 
@@ -739,14 +748,15 @@ namespace Cobalt.Graphics
                     _buffers.Add(name + i, storageBuffer);
                 }
             }
+        }
 
-            // Build shaders
+        private void BuildShaders()
+        {
             foreach (var (_, info) in _passInfos)
             {
                 for (uint i = 0; i < info.pass.Shaders.Count; i++)
                 {
-                    var storedShader = info.pass.Shaders.ElementAt((int)i);
-                    PassShaderInfo passShaderInfo = storedShader.Value.Item2;
+                    var (name, (_, passShaderInfo)) = info.pass.Shaders.ElementAt((int)i);
 
                     ShaderCreateInfo shaderInfo = new ShaderCreateInfo
                     {
@@ -761,14 +771,14 @@ namespace Cobalt.Graphics
                     };
 
                     Dictionary<uint, List<ShaderLayoutBindingCreateInfo>> shaderBindings = new Dictionary<uint, List<ShaderLayoutBindingCreateInfo>>();
-                    foreach(ImageInfo inputAtt in info.inputAttachments)
+                    foreach (ImageInfo inputAtt in info.inputAttachments)
                     {
                         ShaderLayoutBindingCreateInfo bindingInfo = new ShaderLayoutBindingCreateInfo
                         {
                             bindingIndex = _bindingIndices[inputAtt.name].Item2,
                             descriptorCount = 1,
-                            stageFlags = (uint) ShaderStageFlagBits.FragmentBit,
-                            type = (uint) DescriptorType.InputAttachment
+                            stageFlags = (uint)ShaderStageFlagBits.FragmentBit,
+                            type = (uint)DescriptorType.InputAttachment
                         };
 
                         shaderBindings[_bindingIndices[inputAtt.name].Item1].Add(bindingInfo);
@@ -780,7 +790,7 @@ namespace Cobalt.Graphics
                         {
                             bindingIndex = _bindingIndices[buffer].Item2,
                             descriptorCount = 1,
-                            stageFlags = (uint)ShaderStageFlagBits.FragmentBit | (uint) ShaderStageFlagBits.VertexBit,
+                            stageFlags = (uint)ShaderStageFlagBits.FragmentBit | (uint)ShaderStageFlagBits.VertexBit,
                             type = (uint)DescriptorType.UniformBuffer
                         };
 
@@ -821,18 +831,45 @@ namespace Cobalt.Graphics
 
                     ShaderLayoutCreateInfo shaderLayout = new ShaderLayoutCreateInfo
                     {
-                        setCount = (uint)sortedSets.Count, 
+                        setCount = (uint)sortedSets.Count,
                         setInfos = sortedSets.ToArray()
                     };
 
                     shaderInfo.layoutInfo = shaderLayout;
 
                     VK.Shader shader = CreateShader(_device.handle, shaderInfo);
-                    var toUpdate = info.pass.Shaders[storedShader.Key];
+                    var toUpdate = info.pass.Shaders[name];
                     toUpdate.Item1.handle = shader;
-                    info.pass.Shaders[storedShader.Key] = toUpdate;
+                    info.pass.Shaders[name] = toUpdate;
+
+                    _shaders.Add(name, toUpdate.Item1);
                 }
             }
+        }
+
+        private void BuildFramebuffers()
+        {
+            foreach (var (pass, info) in _renderPasses)
+            {
+                FramebufferCreateInfo createInfo = new FramebufferCreateInfo();
+                createInfo.attachmentCount = info.attachmentCount;
+                createInfo.width = _swapchain.Width;
+                createInfo.height = _swapchain.Height;
+                createInfo.layers = 1;
+                createInfo.pass = pass;
+                // Get image views
+                //createInfo.attachments = null;
+
+                Framebuffer framebuffer = new Framebuffer(_device.handle, createInfo);
+            }
+        }
+
+        private void BuildResources()
+        {
+            BuildImages();
+            BuildBuffers();
+            BuildShaders();
+            //BuildFramebuffers();
         }
         
         public void Build()
@@ -843,11 +880,6 @@ namespace Cobalt.Graphics
             // build resources
             BuildResources();
             
-            // do topo sort on passinfos that are renderpassinfo graphs
-            // use to build vkrenderpass
-            // get shader information from each subpass
-            // build shader object
-            // build framebuffer
             // do topo sort on overall node
             // build sync structures (semaphores, barriers)
             // build execution list (iterates over all ipasses & sync structures) to commandbuffer

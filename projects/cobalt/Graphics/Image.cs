@@ -8,8 +8,10 @@ namespace Cobalt.Graphics
     {
         internal readonly VK.Image handle;
         internal readonly Device device;
-
+        
         private readonly string _name;
+
+        internal Format imageFormat;
 
         internal Image(Device device, ImageCreateInfo info, string name, uint frame)
         {
@@ -31,7 +33,9 @@ namespace Cobalt.Graphics
                 viewType = (uint) ImageViewType.Type2D
             };
 
-            return new ImageView(device.handle, createInfo, _name + "_view", 0);
+            imageFormat = format;
+
+            return new ImageView(device.handle, createInfo, _name + "_view_" + format, 0);
         }
 
         public void Dispose()

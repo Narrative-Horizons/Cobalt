@@ -140,6 +140,9 @@ namespace Cobalt.Graphics
         private readonly Dictionary<string, BufferCreateInfo> _readOnlyBufferTargets = new Dictionary<string, BufferCreateInfo>();
         private readonly Dictionary<string, BufferCreateInfo> _readWriteBufferTargets = new Dictionary<string, BufferCreateInfo>();
 
+        private readonly Dictionary<AttachmentDescription, string> _descriptionToImage =
+            new Dictionary<AttachmentDescription, string>();
+
         private readonly Dictionary<string, Image> _images = new Dictionary<string, Image>();
         private readonly Dictionary<string, VK.Buffer> _buffers = new Dictionary<string, VK.Buffer>();
 
@@ -150,6 +153,9 @@ namespace Cobalt.Graphics
             new Dictionary<string, Tuple<uint, uint>>();
 
         private readonly Dictionary<string, Shader> _shaders = new Dictionary<string, Shader>();
+
+        private readonly Dictionary<RenderPass, List<Framebuffer>> _renderPassFramebuffers =
+            new Dictionary<RenderPass, List<Framebuffer>>();
 
         private readonly Dictionary<RenderPass, RenderPassCreateInfo> _renderPasses =
             new Dictionary<RenderPass, RenderPassCreateInfo>();
@@ -494,6 +500,7 @@ namespace Cobalt.Graphics
 
                         attachmentDescIndices.Add(image.name, attachmentDescs.Count);
                         attachmentDescs.Add(colorAtt);
+                        _descriptionToImage.Add(colorAtt, image.name);
                     }
 
                     foreach (ImageInfo image in pass.inputAttachments)
@@ -513,6 +520,7 @@ namespace Cobalt.Graphics
 
                         attachmentDescIndices.Add(image.name, attachmentDescs.Count);
                         attachmentDescs.Add(inputAtt);
+                        _descriptionToImage.Add(inputAtt, image.name);
                     }
 
                     if (pass.depthAttachment != null && !attachmentDescIndices.ContainsKey(pass.depthAttachment.Value.name))
@@ -531,6 +539,7 @@ namespace Cobalt.Graphics
 
                         attachmentDescIndices.Add(pass.depthAttachment.Value.name, attachmentDescs.Count);
                         attachmentDescs.Add(depthAtt);
+                        _descriptionToImage.Add(depthAtt, pass.depthAttachment.Value.name);
                     }
                 }
 
@@ -849,18 +858,37 @@ namespace Cobalt.Graphics
 
         private void BuildFramebuffers()
         {
-            foreach (var (pass, info) in _renderPasses)
+            foreach (var (renderPass, info) in _renderPasses)
             {
-                FramebufferCreateInfo createInfo = new FramebufferCreateInfo();
-                createInfo.attachmentCount = info.attachmentCount;
-                createInfo.width = _swapchain.Width;
-                createInfo.height = _swapchain.Height;
-                createInfo.layers = 1;
-                createInfo.pass = pass;
-                // Get image views
-                //createInfo.attachments = null;
+                FramebufferCreateInfo createInfo = new FramebufferCreateInfo
+                {
+                    attachmentCount = info.attachmentCount,
+                    width = _swapchain.Width,
+                    height = _swapchain.Height,
+                    layers = 1,
+                    pass = renderPass
+                };
 
-                Framebuffer framebuffer = new Framebuffer(_device.handle, createInfo);
+                List<VK.ImageView> views = new List<VK.ImageView>();
+                foreach (AttachmentDescription attDesc in info.attachments)
+                {
+                    string imageName = _descriptionToImage[attDesc];
+                    Image image = _images[imageName];
+                    
+                    ImageView view = image.CreateImageView(image.imageFormat);
+                    views.Add(view.handle);
+                }
+
+                // Get image views
+                createInfo.attachments = views.ToArray();
+
+                _renderPassFramebuffers[renderPass] = new List<Framebuffer>();
+
+                for (uint i = 0; i < _framesInFlight; i++)
+                {
+                    Framebuffer framebuffer = new Framebuffer(_device.handle, createInfo);
+                    _renderPassFramebuffers[renderPass].Add(framebuffer);
+                }
             }
         }
 
@@ -869,7 +897,7 @@ namespace Cobalt.Graphics
             BuildImages();
             BuildBuffers();
             BuildShaders();
-            //BuildFramebuffers();
+            BuildFramebuffers();
         }
         
         public void Build()

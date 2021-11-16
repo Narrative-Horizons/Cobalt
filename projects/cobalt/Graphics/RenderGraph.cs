@@ -76,6 +76,18 @@ namespace Cobalt.Graphics
             public List<BufferDependencyInfo> bufferDependencyInfos = new List<BufferDependencyInfo>();
         }
 
+        private struct RenderPass
+        {
+            public VK.RenderPass renderPass;
+            public int id;
+        }
+
+        private struct PassGroup
+        {
+            public RenderPass? renderPass;
+            public PassInfo? computePass;
+        }
+
         private struct ImageInfo
         {
             public string name;
@@ -121,8 +133,6 @@ namespace Cobalt.Graphics
 
             public int renderPassID = -1;
         }
-
-        private DirectedAcyclicGraph<PassInfo, PassDependencyInfo> _graph = new DirectedAcyclicGraph<PassInfo, PassDependencyInfo>();
 
         private readonly List<PassInfo> _graphicsPasses = new List<PassInfo>();
         private readonly List<PassInfo> _computePasses = new List<PassInfo>();
@@ -390,7 +400,7 @@ namespace Cobalt.Graphics
             }
 
             // Start building Vulkan Subpasses and RenderPass from the sorted renderpass list
-            foreach (var (_, passes) in sortedRenderList)
+            foreach (var (renderPassId, passes) in sortedRenderList)
             {
                 DirectedAcyclicGraph<PassInfo, PassDependencyInfo> subpassGraph =
                     new DirectedAcyclicGraph<PassInfo, PassDependencyInfo>();
@@ -605,17 +615,63 @@ namespace Cobalt.Graphics
                 renderPassInfo.dependencies = subpasses.ToArray();
 
                 // get set of passes in vk renderpass
-                RenderPass renderPass = VK.CreateRenderPass(_device.handle, renderPassInfo);
-                _renderPasses.Add(renderPass, renderPassInfo);
+                VK.RenderPass renderPass = VK.CreateRenderPass(_device.handle, renderPassInfo);
+                RenderPass p = new RenderPass()
+                {
+                    renderPass = renderPass,
+                    id = renderPassId
+                };
+
+                _renderPasses.Add(p, renderPassInfo);
 
                 foreach (PassInfo pass in passes)
                 {
-                    _subpassIndices.Add(pass, new Tuple<RenderPass, uint>(renderPass, indexedPassInfos[pass]));
+                    _subpassIndices.Add(pass, new Tuple<RenderPass, uint>(p, indexedPassInfos[pass]));
                 }
+            }
 
-                // add to graph
-                // add edges (dependency information)
-                // do topo sort on graph
+            // add to graph
+            DirectedAcyclicGraph<PassGroup, PassDependencyInfo> graph =
+                new DirectedAcyclicGraph<PassGroup, PassDependencyInfo>();
+
+            Dictionary<PassGroup, DirectedAcyclicGraph<PassGroup, PassDependencyInfo>.GraphVertex> graphVertices =
+                new Dictionary<PassGroup, DirectedAcyclicGraph<PassGroup, PassDependencyInfo>.GraphVertex>();
+
+            Dictionary<int, PassGroup> _passGroupIndices = new Dictionary<int, PassGroup>();
+
+            foreach (var (renderPass, _) in _renderPasses)
+            {
+                PassGroup group = new PassGroup() {renderPass = renderPass};
+                graphVertices.Add(group, graph.AddVertex(group));
+
+                _passGroupIndices.Add(renderPass.id, group);
+            }
+
+            // add edges (dependency information)
+            foreach (var (depInfo, source, dest) in _dependencies)
+            {
+                PassInfo sourceInfo = GetInfoFromPass(source);
+                PassInfo destInfo = GetInfoFromPass(dest);
+
+                if (source.GetPassType() != Pass.PassType.Graphics || dest.GetPassType() != Pass.PassType.Graphics ||
+                    sourceInfo.renderPassID == destInfo.renderPassID) 
+                    continue;
+
+                PassGroup sourceGroup = _passGroupIndices[sourceInfo.renderPassID];
+                PassGroup destGroup = _passGroupIndices[destInfo.renderPassID];
+
+                graph.AddEdge(depInfo, graphVertices[sourceGroup], graphVertices[destGroup]);
+            }
+
+            // do topo sort on graph
+            var sortedPassList = graph.Sort();
+            foreach (var s in sortedPassList)
+            {
+                PassGroup group = s.UserData;
+                if (group.renderPass.HasValue)
+                {
+                    // TODO: Merge all dependencies
+                }
             }
         }
 
@@ -770,7 +826,7 @@ namespace Cobalt.Graphics
                     ShaderCreateInfo shaderInfo = new ShaderCreateInfo
                     {
                         subPassIndex = _subpassIndices[info].Item2,
-                        pass = _subpassIndices[info].Item1,
+                        pass = _subpassIndices[info].Item1.renderPass,
                         vertexModulePath = passShaderInfo.vertexModulePath,
                         fragmentModulePath = passShaderInfo.fragmentModulePath,
                         geometryModulePath = passShaderInfo.geometryModulePath,
@@ -866,7 +922,7 @@ namespace Cobalt.Graphics
                     width = _swapchain.Width,
                     height = _swapchain.Height,
                     layers = 1,
-                    pass = renderPass
+                    pass = renderPass.renderPass
                 };
 
                 List<VK.ImageView> views = new List<VK.ImageView>();

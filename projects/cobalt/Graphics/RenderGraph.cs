@@ -667,10 +667,13 @@ namespace Cobalt.Graphics
             var sortedPassList = graph.Sort();
             foreach (var s in sortedPassList)
             {
-                PassGroup group = s.UserData;
-                if (group.renderPass.HasValue)
+                List<ImageDependencyInfo> imageDependencies = new List<ImageDependencyInfo>();
+                List<BufferDependencyInfo> bufferDependencies = new List<BufferDependencyInfo>();
+
+                foreach (var edge in graph.GetEdges(s))
                 {
-                    // TODO: Merge all dependencies
+                    imageDependencies.AddRange(edge.UserData.imageDependencyInfos);
+                    bufferDependencies.AddRange(edge.UserData.bufferDependencyInfos);
                 }
             }
         }

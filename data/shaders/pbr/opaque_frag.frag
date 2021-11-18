@@ -1,10 +1,9 @@
 #version 460
-#extension GL_ARB_bindless_texture : enable
 
 layout(early_fragment_tests) in;
 
 #define MAX_TEX_COUNT 500
-layout(location = 3, bindless_sampler) uniform sampler2D texArray[MAX_TEX_COUNT];
+layout(location = 3, set = 1, binding = 2) uniform sampler2D texArray[MAX_TEX_COUNT];
 
 const float PI = 3.14159265359;
 
@@ -35,17 +34,17 @@ struct MaterialData
     uint ORM;
 };
 
-layout(std430, binding = 0) buffer ObjectDataBuffer
+layout(std430, set = 1, binding = 0) buffer ObjectDataBuffer
 {
     ObjectData objects[];
 };
 
-layout(std430, binding = 1) buffer MaterialDataBuffer
+layout(std430, set = 1, binding = 1) buffer MaterialDataBuffer
 {
     MaterialData materials[];
 };
 
-layout(std140, binding = 2) uniform SceneData
+layout(std140, set = 0, binding = 0) uniform SceneData
 {
     mat4 view;
     mat4 projection;

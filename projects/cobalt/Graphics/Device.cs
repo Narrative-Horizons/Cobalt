@@ -56,6 +56,26 @@ namespace Cobalt.Graphics
             return handle != IntPtr.Zero ? new Device(handle) : null;
         }
 
+        public Shader CreateShader(ShaderCreateInfo createInfo)
+        {
+            return new Shader(handle, createInfo);
+        }
+
+        public RenderPass CreateRenderPass(RenderPassCreateInfo createInfo)
+        {
+            return VK.CreateRenderPass(handle, createInfo);
+        }
+
+        public Framebuffer CreateFramebuffer(FramebufferCreateInfo createInfo)
+        {
+            return new Framebuffer(handle, createInfo);
+        }
+
+        public Image CreateImage(ImageCreateInfo createInfo, ImageMemoryCreateInfo memoryInfo, string name, uint frame)
+        {
+            return new Image(this, createInfo, memoryInfo, name, frame);
+        }
+
         public void Dispose()
         {
             

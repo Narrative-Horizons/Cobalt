@@ -250,6 +250,23 @@ namespace Cobalt.Bindings.Vulkan
             }
         }
 
+        public struct Event
+        {
+            public IntPtr handle;
+
+            public static implicit operator IntPtr(Event @event)
+            {
+                return @event.handle;
+            }
+
+            public static explicit operator Event(IntPtr @event) => new Event(@event);
+
+            public Event(IntPtr handle)
+            {
+                this.handle = handle;
+            }
+        }
+
         #endregion
 
         #region DLL Loading
@@ -300,7 +317,7 @@ namespace Cobalt.Bindings.Vulkan
         public static extern bool BeginRenderPass(Instance device, CommandBuffer buffer, uint index, RenderPass pass, Framebuffer framebuffer);
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_command_bind_pipeline", CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool BindPipeline(Instance device, CommandBuffer buffer, uint bindpoint, uint index, Shader shader);
+        public static extern bool BindPipeline(CommandBuffer buffer, uint bindpoint, uint index, Shader shader);
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_command_draw", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool Draw(Instance device, CommandBuffer buffer, uint index, uint vertexCount, uint instanceCount, uint firstVertex, uint firstInstance);
@@ -336,7 +353,7 @@ namespace Cobalt.Bindings.Vulkan
         public static extern bool DestroyShader(Instance device, Shader shader);
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_create_image", CallingConvention = CallingConvention.Cdecl)]
-        public static extern Image CreateImage(Instance device, ImageCreateInfo info, string name, uint frame);
+        public static extern Image CreateImage(Instance device, ImageCreateInfo info, ImageMemoryCreateInfo memoryInfo, string name, uint frame);
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_destroy_image", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool DestroyImage(Instance device, Image image);
@@ -398,31 +415,35 @@ namespace Cobalt.Bindings.Vulkan
             Buffer srcBuffer, Image dstImage, uint dstImageLayout, uint regionCount, BufferImageCopy[] regions);
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_pipeline_barrier", CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool PipelineBarrier(Instance device, CommandBuffer buffer, uint index, uint srcStageMask, uint dstStageMask, uint dependencyFlags,
+        public static extern bool PipelineBarrier(CommandBuffer buffer, uint index, uint srcStageMask, uint dstStageMask, uint dependencyFlags,
             uint memoryBarrierCount, MemoryBarrier[] memoryBarriers, uint bufferMemoryBarrierCount, BufferMemoryBarrier[] bufferMemoryBarriers,
             uint imageMemoryBarrierCount, ImageMemoryBarrier[] imageMemoryBarriers);
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_draw_indirect", CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool DrawIndirect(Instance device, CommandBuffer buffer, uint index, Buffer indirectBuffer, ulong offset, uint drawCount, uint stride);
+        public static extern bool DrawIndirect(CommandBuffer buffer, uint index, Buffer indirectBuffer, ulong offset, uint drawCount, uint stride);
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_draw_indexed_indirect", CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool DrawIndexedIndirect(Instance device, CommandBuffer buffer, uint index, Buffer indirectBuffer, ulong offset, 
+        public static extern bool DrawIndexedIndirect(CommandBuffer buffer, uint index, Buffer indirectBuffer, ulong offset, 
             uint drawCount, uint stride);
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_bind_descriptor_sets", CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool BindDescriptorSets(Instance device, CommandBuffer buffer, uint index,
+        public static extern bool BindDescriptorSets(CommandBuffer buffer, uint index,
             uint pipelineBindPoint, Shader pipeline, uint firstSet, uint descriptorSetCount, DescriptorSet[] sets, uint dynamicOffsetCount, uint[] dynamicOffsets);
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_command_bind_vertex_buffers", CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool BindVertexBuffers(Instance device, CommandBuffer buffer, uint index, uint firstBinding, uint bindingCount, 
+        public static extern bool BindVertexBuffers(CommandBuffer buffer, uint index, uint firstBinding, uint bindingCount, 
             Buffer[] buffers, ulong[] offsets);
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_command_bind_index_buffer", CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool BindIndexBuffer(Instance device, CommandBuffer buffer, uint index, Buffer indexBuffer, ulong offset, uint indexType);
+        public static extern bool BindIndexBuffer(CommandBuffer buffer, uint index, Buffer indexBuffer, ulong offset, uint indexType);
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_allocate_descriptors",
             CallingConvention = CallingConvention.Cdecl)]
         public static extern DescriptorSet AllocateDescriptors(Shader shader);
+
+        [DllImport(Library, EntryPoint = "cobalt_vkb_create_event",
+            CallingConvention = CallingConvention.Cdecl)]
+        public static extern Event CreateEvent(Instance device, EventCreateInfo info);
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_destroy_descriptors",
             CallingConvention = CallingConvention.Cdecl)]

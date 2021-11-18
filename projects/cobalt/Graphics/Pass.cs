@@ -13,7 +13,7 @@ namespace Cobalt.Graphics
         public string computeModulePath;
     }
 
-    public class Pass
+    public abstract class Pass : IDisposable
     {
         public Dictionary<string, Tuple<Shader, PassShaderInfo>> Shaders { get; set; } =
             new Dictionary<string, Tuple<Shader, PassShaderInfo>>();
@@ -24,10 +24,10 @@ namespace Cobalt.Graphics
             Graphics
         }
 
-        public virtual PassType GetPassType()
-        {
-            throw new NotImplementedException();
-        }
+        public abstract PassType GetPassType();
+
+        public abstract void Start(CommandList commandList);
+        public abstract void Execute(CommandList commandList);
 
         public Shader AddShader(string name, PassShaderInfo shaderInfo)
         {
@@ -36,5 +36,7 @@ namespace Cobalt.Graphics
 
             return shader;
         }
+
+        public abstract void Dispose();
     }
 }

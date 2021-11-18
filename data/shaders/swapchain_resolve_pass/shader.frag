@@ -2,7 +2,7 @@
 
 layout (location = 0) out vec4 resolve;
 
-layout (input_attachment = 0, set = 0, binding = 0) uniform subpassInput color;
+layout (input_attachment_index = 0, set = 0, binding = 0) uniform subpassInput color;
 
 void main(void)
 {

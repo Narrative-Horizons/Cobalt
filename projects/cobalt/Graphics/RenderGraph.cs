@@ -80,6 +80,7 @@ namespace Cobalt.Graphics
         {
             public VK.RenderPass renderPass;
             public int id;
+            public List<PassInfo> orderedPasses;
         }
 
         private struct PassGroup
@@ -388,19 +389,19 @@ namespace Cobalt.Graphics
             GraphBuildHelper(resolveNodeInfo, visited, depthSearchMap, 1);
 
             // Compile a sorted list based on the render pass ID
-            Dictionary<int, List<PassInfo>> sortedRenderList = new Dictionary<int, List<PassInfo>>();
+            Dictionary<int, List<PassInfo>> groupedRenderpassList = new Dictionary<int, List<PassInfo>>();
             foreach (var (passInfo, _) in depthSearchMap)
             {
-                if (!sortedRenderList.ContainsKey(passInfo.renderPassID))
+                if (!groupedRenderpassList.ContainsKey(passInfo.renderPassID))
                 {
-                    sortedRenderList[passInfo.renderPassID] = new List<PassInfo>();
+                    groupedRenderpassList[passInfo.renderPassID] = new List<PassInfo>();
                 }
 
-                sortedRenderList[passInfo.renderPassID].Add(passInfo);
+                groupedRenderpassList[passInfo.renderPassID].Add(passInfo);
             }
 
             // Start building Vulkan Subpasses and RenderPass from the sorted renderpass list
-            foreach (var (renderPassId, passes) in sortedRenderList)
+            foreach (var (renderPassId, passes) in groupedRenderpassList)
             {
                 DirectedAcyclicGraph<PassInfo, PassDependencyInfo> subpassGraph =
                     new DirectedAcyclicGraph<PassInfo, PassDependencyInfo>();
@@ -497,6 +498,17 @@ namespace Cobalt.Graphics
                     {
                         if (attachmentDescIndices.ContainsKey(image.name))
                             continue;
+
+                        foreach (var passVertex in sortedSubPasses)
+                        {
+                            foreach (var imageInfo in passVertex.UserData.colorAttachments)
+                            {
+                                if (image.name == imageInfo.name)
+                                {
+
+                                }
+                            }
+                        }
 
                         AttachmentDescription colorAtt = new AttachmentDescription
                         {
@@ -619,7 +631,8 @@ namespace Cobalt.Graphics
                 RenderPass p = new RenderPass()
                 {
                     renderPass = renderPass,
-                    id = renderPassId
+                    id = renderPassId,
+                    orderedPasses = sortedSubPasses.Select(vertex => vertex.UserData).ToList()
                 };
 
                 _renderPasses.Add(p, renderPassInfo);
@@ -665,15 +678,31 @@ namespace Cobalt.Graphics
 
             // do topo sort on graph
             var sortedPassList = graph.Sort();
-            foreach (var s in sortedPassList)
+            List<Action<CommandList>> executionList = new List<Action<CommandList>>();
+            
+            foreach (var passGroup in sortedPassList)
             {
-                List<ImageDependencyInfo> imageDependencies = new List<ImageDependencyInfo>();
-                List<BufferDependencyInfo> bufferDependencies = new List<BufferDependencyInfo>();
+                if (passGroup.UserData.renderPass == null)
+                    continue;
 
-                foreach (var edge in graph.GetEdges(s))
+                var backEdges = graph.GetBackEdges(passGroup);
+                if (backEdges.Count > 0)
                 {
-                    imageDependencies.AddRange(edge.UserData.imageDependencyInfos);
-                    bufferDependencies.AddRange(edge.UserData.bufferDependencyInfos);
+                    foreach (var backEdge in backEdges)
+                    {
+                        if (backEdge.Source.UserData.computePass != null)
+                        {
+                            // wait on event
+
+                        }
+                        else if (backEdge.Source.UserData.renderPass != null)
+                        {
+
+                        }
+                    }
+
+                    List<ImageDependencyInfo> imageDeps = new List<ImageDependencyInfo>();
+                    List<BufferDependencyInfo> bufferDeps = new List<BufferDependencyInfo>();
                 }
             }
         }
@@ -729,7 +758,7 @@ namespace Cobalt.Graphics
 
                 for (uint i = 0; i < _framesInFlight; i++)
                 {
-                    Image image = new Image(_device, createInfo, name, i);
+                    Image image = new Image(_device, createInfo, new ImageMemoryCreateInfo(), name, i);
                     _images.Add(name, image);
                 }
             }
@@ -761,7 +790,7 @@ namespace Cobalt.Graphics
 
                 for (uint i = 0; i < _framesInFlight; i++)
                 {
-                    Image image = new Image(_device, createInfo, name, i);
+                    Image image = new Image(_device, createInfo, new ImageMemoryCreateInfo(), name, i);
                     _images.Add(name, image);
                 }
             }
@@ -934,7 +963,7 @@ namespace Cobalt.Graphics
                     string imageName = _descriptionToImage[attDesc];
                     Image image = _images[imageName];
                     
-                    ImageView view = image.CreateImageView(image.imageFormat);
+                    ImageView view = image.CreateImageView(image.imageFormat, ImageAspectFlagBits.ColorBit);
                     views.Add(view.handle);
                 }
 

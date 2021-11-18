@@ -440,11 +440,11 @@ VK_BINDING_EXPORT bool cobalt_vkb_command_begin_renderpass(Device* device, Comma
 	return false;
 }
 
-VK_BINDING_EXPORT bool cobalt_vkb_command_bind_pipeline(Device* device, CommandBuffer* buffer, const uint32_t bindpoint, const uint32_t index, Shader* shader)
+VK_BINDING_EXPORT bool cobalt_vkb_command_bind_pipeline(CommandBuffer* buffer, const uint32_t index, const uint32_t bindpoint, Shader* shader)
 {
 	if(buffer)
 	{
-		device->functionTable.cmdBindPipeline(buffer->buffers[index], static_cast<VkPipelineBindPoint>(bindpoint), shader->pipeline);
+		shader->device->functionTable.cmdBindPipeline(buffer->buffers[index], static_cast<VkPipelineBindPoint>(bindpoint), shader->pipeline);
 		
 		return true;
 	}
@@ -477,7 +477,7 @@ VK_BINDING_EXPORT bool cobalt_vkb_command_end_renderpass(Device* device, Command
 	return false;
 }
 
-VK_BINDING_EXPORT bool cobalt_vkb_command_bind_vertex_buffers(Device* device, CommandBuffer* buffer, const uint32_t index, const uint32_t firstBinding,
+VK_BINDING_EXPORT bool cobalt_vkb_command_bind_vertex_buffers(CommandBuffer* buffer, const uint32_t index, const uint32_t firstBinding,
 	const uint32_t bindingCount, Buffer** buffers, uint64_t* offsets)
 {
 	if (buffer)
@@ -488,7 +488,7 @@ VK_BINDING_EXPORT bool cobalt_vkb_command_bind_vertex_buffers(Device* device, Co
 			vkBuffers.push_back(buffers[i]->buffer);
 		}
 		
-		device->functionTable.cmdBindVertexBuffers(buffer->buffers[index], firstBinding, bindingCount, vkBuffers.data(), offsets);
+		buffer->device->functionTable.cmdBindVertexBuffers(buffer->buffers[index], firstBinding, bindingCount, vkBuffers.data(), offsets);
 
 		return true;
 	}
@@ -496,12 +496,12 @@ VK_BINDING_EXPORT bool cobalt_vkb_command_bind_vertex_buffers(Device* device, Co
 	return false;
 }
 
-VK_BINDING_EXPORT bool cobalt_vkb_command_bind_index_buffer(Device* device, CommandBuffer* buffer, const uint32_t index, Buffer* indexBuffer, 
+VK_BINDING_EXPORT bool cobalt_vkb_command_bind_index_buffer(CommandBuffer* buffer, const uint32_t index, Buffer* indexBuffer, 
 	const uint64_t offset, uint32_t indexType)
 {
 	if (buffer)
 	{
-		device->functionTable.cmdBindIndexBuffer(buffer->buffers[index], indexBuffer->buffer, offset, static_cast<VkIndexType>(indexType));
+		buffer->device->functionTable.cmdBindIndexBuffer(buffer->buffers[index], indexBuffer->buffer, offset, static_cast<VkIndexType>(indexType));
 
 		return true;
 	}
@@ -915,7 +915,7 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 	vertexInfo.flags = 0;
 	vertexInfo.pNext = nullptr;
 	vertexInfo.vertexBindingDescriptionCount = 1;
-	vertexInfo.vertexAttributeDescriptionCount = 5;
+	vertexInfo.vertexAttributeDescriptionCount = 6;
 
 	VkVertexInputBindingDescription vbBinding = {0, sizeof(float) * 14, VK_VERTEX_INPUT_RATE_VERTEX};
 	vertexInfo.pVertexBindingDescriptions = &vbBinding;
@@ -926,6 +926,7 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 	vbAttrs.emplace_back(VkVertexInputAttributeDescription{ 2, 0, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 5 });
 	vbAttrs.emplace_back(VkVertexInputAttributeDescription{ 3, 0, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 8 });
 	vbAttrs.emplace_back(VkVertexInputAttributeDescription{ 4, 0, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 11 });
+	vbAttrs.emplace_back(VkVertexInputAttributeDescription{ 5, 0, VK_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 14 });
 
 	vertexInfo.pVertexAttributeDescriptions = vbAttrs.data();
 
@@ -957,6 +958,7 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 	viewportState.scissorCount = 1;
 	viewportState.pScissors = &scissor;
 
+	// TODO : Get from somewhere else
 	VkPipelineRasterizationStateCreateInfo rasterizer = {};
 	rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 	rasterizer.flags = 0;
@@ -969,6 +971,7 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 	rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
 	rasterizer.depthBiasEnable = VK_FALSE;
 
+	// TODO : Get from somewhere else
 	VkPipelineMultisampleStateCreateInfo multisampling = {};
 	multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 	multisampling.flags = 0;
@@ -976,10 +979,12 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 	multisampling.sampleShadingEnable = VK_FALSE;
 	multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 
+	// TODO : Get from somewhere else
 	VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
 	colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 	colorBlendAttachment.blendEnable = VK_FALSE;
 
+	// TODO : Get from somewhere else
 	VkPipelineColorBlendStateCreateInfo colorBlending = {};
 	colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 	colorBlending.flags = 0;
@@ -993,12 +998,21 @@ VK_BINDING_EXPORT Shader* cobalt_vkb_create_shader(Device* device, ShaderCreateI
 	colorBlending.blendConstants[2] = 0.0f;
 	colorBlending.blendConstants[3] = 0.0f;
 
+	// TODO : Only do this if you have a depth atachment
+	VkPipelineDepthStencilStateCreateInfo depthInfo = {};
+	depthInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+	depthInfo.flags = 0;
+	depthInfo.pNext = nullptr;
+	depthInfo.depthTestEnable = true;
+	depthInfo.depthWriteEnable = true;
+	depthInfo.stencilTestEnable = false;
+
 	pipelineInfo.pVertexInputState = &vertexInfo;
 	pipelineInfo.pInputAssemblyState = &inputAssembly;
 	pipelineInfo.pViewportState = &viewportState;
 	pipelineInfo.pRasterizationState = &rasterizer;
 	pipelineInfo.pMultisampleState = &multisampling;
-	pipelineInfo.pDepthStencilState = nullptr;
+	pipelineInfo.pDepthStencilState = &depthInfo;
 	pipelineInfo.pColorBlendState = &colorBlending;
 	pipelineInfo.pDynamicState = nullptr;
 
@@ -1264,7 +1278,7 @@ VK_BINDING_EXPORT void cobalt_vkb_write_descriptors(Device* device, size_t count
 	}
 }
 
-VK_BINDING_EXPORT Image* cobalt_vkb_create_image(Device* device, ImageCreateInfo info, const char* name, const uint32_t frame)
+VK_BINDING_EXPORT Image* cobalt_vkb_create_image(Device* device, ImageCreateInfo info, ImageMemoryCreateInfo memoryInfo, const char* name, const uint32_t frame)
 {
 	const std::string objectName = std::string(name) + "_" + std::to_string(frame);
 	if(device->images.find(objectName) != device->images.end())
@@ -1293,9 +1307,16 @@ VK_BINDING_EXPORT Image* cobalt_vkb_create_image(Device* device, ImageCreateInfo
 	imageInfo.tiling = static_cast<VkImageTiling>(info.tiling);
 	imageInfo.samples = static_cast<VkSampleCountFlagBits>(info.samples);
 	imageInfo.usage = info.usage;
-	
-	device->functionTable.createImage(&imageInfo, device->device.allocation_callbacks, &image->image);
 
+	VmaAllocationCreateInfo allocInfo = {};
+	allocInfo.pUserData = nullptr;
+	allocInfo.flags = 0;
+	allocInfo.usage = static_cast<VmaMemoryUsage>(memoryInfo.usage);
+	allocInfo.preferredFlags = memoryInfo.preferredFlags;
+	allocInfo.requiredFlags = memoryInfo.requiredFlags;
+
+	vmaCreateImage(device->allocator, &imageInfo, &allocInfo, &image->image, &image->allocation, nullptr);
+	
 	device->images[objectName] = image;
 	
 	return image;
@@ -1734,7 +1755,7 @@ VK_BINDING_EXPORT bool cobalt_vkb_copy_buffer_to_image(Device* device, CommandBu
 	return true;
 }
 
-VK_BINDING_EXPORT bool cobalt_vkb_pipeline_barrier(Device* device, CommandBuffer* buffer, const uint32_t index, const uint32_t srcStageMask, const uint32_t dstStageMask,
+VK_BINDING_EXPORT bool cobalt_vkb_pipeline_barrier(CommandBuffer* buffer, const uint32_t index, const uint32_t srcStageMask, const uint32_t dstStageMask,
 	const uint32_t dependencyFlags, const uint32_t memoryBarrierCount, MemoryBarrier* memoryBarriers, const uint32_t bufferMemoryBarrierCount, BufferMemoryBarrier* bufferMemoryBarriers,
 	const uint32_t imageMemoryBarrierCount, ImageMemoryBarrier* imageMemoryBarriers)
 {
@@ -1796,29 +1817,29 @@ VK_BINDING_EXPORT bool cobalt_vkb_pipeline_barrier(Device* device, CommandBuffer
 		imageMemBars.push_back(bar);
 	}
 	
-	device->functionTable.cmdPipelineBarrier(buffer->buffers[index], srcStageMask, dstStageMask, dependencyFlags, memoryBarrierCount, memBars.data(),
+	buffer->device->functionTable.cmdPipelineBarrier(buffer->buffers[index], srcStageMask, dstStageMask, dependencyFlags, memoryBarrierCount, memBars.data(),
 		bufferMemoryBarrierCount, bufferMemBars.data(), imageMemoryBarrierCount, imageMemBars.data());
 
 	return true;
 }
 
-VK_BINDING_EXPORT bool cobalt_vkb_draw_indirect(Device* device, CommandBuffer* buffer, const uint32_t index,
+VK_BINDING_EXPORT bool cobalt_vkb_draw_indirect(CommandBuffer* buffer, const uint32_t index,
 	Buffer* indirectBuffer, const uint64_t offset, const uint32_t drawCount, const uint32_t stride)
 {
-	device->functionTable.cmdDrawIndirect(buffer->buffers[index], indirectBuffer->buffer, offset, drawCount, stride);
+	buffer->device->functionTable.cmdDrawIndirect(buffer->buffers[index], indirectBuffer->buffer, offset, drawCount, stride);
 
 	return true;
 }
 
-VK_BINDING_EXPORT bool cobalt_vkb_draw_indexed_indirect(Device* device, CommandBuffer* buffer, const uint32_t index, Buffer* indirectBuffer,
+VK_BINDING_EXPORT bool cobalt_vkb_draw_indexed_indirect(CommandBuffer* buffer, const uint32_t index, Buffer* indirectBuffer,
 	const uint64_t offset, const uint32_t drawCount, const uint32_t stride)
 {
-	device->functionTable.cmdDrawIndexedIndirect(buffer->buffers[index], indirectBuffer->buffer, offset, drawCount, stride);
+	buffer->device->functionTable.cmdDrawIndexedIndirect(buffer->buffers[index], indirectBuffer->buffer, offset, drawCount, stride);
 
 	return true;
 }
 
-VK_BINDING_EXPORT bool cobalt_vkb_bind_descriptor_sets(Device* device, CommandBuffer* buffer, const  uint32_t index, uint32_t pipelineBindPoint,
+VK_BINDING_EXPORT bool cobalt_vkb_bind_descriptor_sets(CommandBuffer* buffer, const  uint32_t index, uint32_t pipelineBindPoint,
 	Shader* pipeline, const uint32_t firstSet, const uint32_t descriptorSetCount, DescriptorSet** sets, const uint32_t dynamicOffsetCount, uint32_t* dynamicOffsets)
 {
 	std::vector<VkDescriptorSet> descSets;
@@ -1827,9 +1848,24 @@ VK_BINDING_EXPORT bool cobalt_vkb_bind_descriptor_sets(Device* device, CommandBu
 		descSets.push_back(sets[i]->set);
 	}
 	
-	device->functionTable.cmdBindDescriptorSets(buffer->buffers[index], static_cast<VkPipelineBindPoint>(pipelineBindPoint), pipeline->pipelineLayout.layout, firstSet,
+	buffer->device->functionTable.cmdBindDescriptorSets(buffer->buffers[index], static_cast<VkPipelineBindPoint>(pipelineBindPoint), pipeline->pipelineLayout.layout, firstSet,
 		descriptorSetCount, descSets.data(), dynamicOffsetCount, dynamicOffsets);
 	
 	return true;
 }
 
+VK_BINDING_EXPORT Event* cobalt_vkb_create_event(Device* device, EventCreateInfo info)
+{
+	VkEventCreateInfo createInfo = {};
+	createInfo.sType = VK_STRUCTURE_TYPE_EVENT_CREATE_INFO;
+	createInfo.pNext = nullptr;
+	createInfo.flags = info.flags;
+
+	VkEvent e;
+	device->functionTable.createEvent(&createInfo, device->device.allocation_callbacks, &e);
+
+	Event* ev = new Event();
+	ev->e = e;
+
+	return ev;
+}

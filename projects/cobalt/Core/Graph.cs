@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Cobalt.Core
 {
@@ -151,6 +152,11 @@ namespace Cobalt.Core
             }
 
             return new List<GraphVertex>(stack.ToArray());
+        }
+
+        public List<GraphEdge> GetBackEdges(GraphVertex vertex)
+        {
+            return GetEdges().Where(edge => Equals(edge.Destination, vertex)).ToList();
         }
     }
 }

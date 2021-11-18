@@ -71,6 +71,13 @@ struct BufferMemoryCreateInfo
 	uint32_t requiredFlags;
 };
 
+struct ImageMemoryCreateInfo
+{
+	uint32_t usage;
+	uint32_t preferredFlags;
+	uint32_t requiredFlags;
+};
+
 struct ShaderModuleCreateInfo
 {
 	const char* code;
@@ -128,6 +135,7 @@ struct ImageCreateInfo
 	uint32_t queueFamilyIndexCount;
 	uint32_t* queueFamilyIndices;
 	uint32_t initialLayout;
+	uint32_t memoryUsage;
 };
 
 struct ImageViewCreateInfo
@@ -349,4 +357,9 @@ struct DescriptorWriteInfo
 	uint32_t count;
 	VkDescriptorType type;
 	TypedWriteInfo* infos;
+};
+
+struct EventCreateInfo
+{
+	uint32_t flags;
 };

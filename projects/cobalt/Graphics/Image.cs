@@ -13,14 +13,14 @@ namespace Cobalt.Graphics
 
         internal Format imageFormat;
 
-        internal Image(Device device, ImageCreateInfo info, string name, uint frame)
+        internal Image(Device device, ImageCreateInfo info, ImageMemoryCreateInfo memoryInfo, string name, uint frame)
         {
             this._name = name;
             this.device = device;
-            handle = VK.CreateImage(device.handle, info, name, frame);
+            handle = VK.CreateImage(device.handle, info, memoryInfo, name, frame);
         }
 
-        public ImageView CreateImageView(Format format)
+        public ImageView CreateImageView(Format format, ImageAspectFlagBits aspectFlags)
         {
             ImageViewCreateInfo createInfo = new ImageViewCreateInfo
             {
@@ -30,7 +30,8 @@ namespace Cobalt.Graphics
                 levelCount = 1,
                 baseArrayLayer = 0,
                 baseMipLevel = 0,
-                viewType = (uint) ImageViewType.Type2D
+                viewType = (uint) ImageViewType.Type2D,
+                aspectMask = (uint) aspectFlags
             };
 
             imageFormat = format;

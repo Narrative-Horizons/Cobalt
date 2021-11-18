@@ -1,5 +1,6 @@
 ﻿using System;
 using Cobalt.Bindings.Vulkan;
+using Cobalt.Graphics.Enums;
 
 namespace Cobalt.Graphics
 {
@@ -7,6 +8,7 @@ namespace Cobalt.Graphics
     {
         internal VK.Shader handle;
         internal readonly VK.Instance device;
+        internal PipelineBindPoint bindPoint;
 
         internal Shader()
         {
@@ -16,6 +18,8 @@ namespace Cobalt.Graphics
         internal Shader(VK.Instance device, ShaderCreateInfo info)
         {
             this.device = device;
+
+            bindPoint = info.computeModulePath != null ? PipelineBindPoint.Compute : PipelineBindPoint.Graphics;
             handle = VK.CreateShader(device, info);
         }
 

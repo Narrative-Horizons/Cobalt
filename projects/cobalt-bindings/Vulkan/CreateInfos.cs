@@ -210,6 +210,17 @@ namespace Cobalt.Bindings.Vulkan
     }
 
     [StructLayout(LayoutKind.Explicit)]
+    public struct ImageMemoryCreateInfo
+    {
+        [FieldOffset(0)]
+        public uint usage;
+        [FieldOffset(4)]
+        public uint preferredFlags;
+        [FieldOffset(8)]
+        public uint requiredFlags;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
     public struct ShaderModuleCreateInfo
     {
         [FieldOffset(0)]
@@ -787,5 +798,12 @@ namespace Cobalt.Bindings.Vulkan
         public uint type;
         [FieldOffset(32)] 
         public TypedWriteInfo* infos;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct EventCreateInfo
+    {
+        [FieldOffset(0)]
+        public uint flags;
     }
 }

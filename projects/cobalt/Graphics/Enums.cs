@@ -632,4 +632,27 @@ namespace Cobalt.Graphics.Enums
         Type2DArray = 5,
         TypeCubeArray = 6,
     }
+
+    public enum EventCreateFlagBits : uint
+    {
+        DeviceOnlyBitKHR = 0x00000001,
+    }
+
+    public enum ImageAspectFlagBits : uint
+    {
+        ColorBit = 0x00000001,
+        DepthBit = 0x00000002,
+        StencilBit = 0x00000004,
+        MetadataBit = 0x00000008,
+        Plane0Bit = 0x00000010,
+        Plane1Bit = 0x00000020,
+        Plane2Bit = 0x00000040,
+        MemoryPlane0BitExt = 0x00000080,
+        MemoryPlane1BitExt = 0x00000100,
+        MemoryPlane2BitExt = 0x00000200,
+        MemoryPlane3BitExt = 0x00000400,
+        Plane0BitKHR = Plane0Bit,
+        Plane1BitKHR = Plane1Bit,
+        Plane2BitKHR = Plane2Bit,
+    }
 }

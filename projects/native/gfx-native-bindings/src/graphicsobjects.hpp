@@ -39,6 +39,8 @@ struct CommandBuffer
 
 	VkCommandPool pool;
 	VkQueue queue;
+
+	Device* device;
 };
 
 struct Buffer
@@ -157,6 +159,7 @@ struct Image
 {
 	VkImage image;
 	uint32_t amount;
+	VmaAllocation allocation;
 };
 
 struct Framebuffer
@@ -206,4 +209,9 @@ struct Semaphore
 struct Fence
 {
 	VkFence fence;
+};
+
+struct Event
+{
+	VkEvent e;
 };

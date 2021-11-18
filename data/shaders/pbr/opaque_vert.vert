@@ -1,7 +1,5 @@
 #version 460
 
-in int gl_InstanceID;
-
 layout (location = 0) in vec3 iPosition;
 layout (location = 1) in vec2 iTexCoord0;
 layout (location = 2) in vec3 iNormal;
@@ -28,12 +26,12 @@ struct DirectionalLight
     float intensity;
 };
 
-layout(std430, binding = 0) buffer ObjectDataBuffer
+layout(std430, set = 1, binding = 0) buffer ObjectDataBuffer
 {
     ObjectData objects[];
 };
 
-layout(std140, binding = 2) uniform SceneData
+layout(std140, set = 0, binding = 0) uniform SceneData
 {
     mat4 view;
     mat4 projection;
@@ -60,7 +58,7 @@ layout (location = 0) out VertexData
 
 void main()
 {
-    int instance = gl_InstanceID + gl_BaseInstance;
+    int instance = gl_InstanceIndex + gl_BaseInstance;
     outData.instanceID = instance;
 
     ObjectData myData = objects[instance];

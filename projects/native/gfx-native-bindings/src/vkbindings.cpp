@@ -397,7 +397,7 @@ VK_BINDING_EXPORT bool cobalt_vkb_destroy_commandbuffer(Device* device, CommandB
 	return false;
 }
 
-VK_BINDING_EXPORT bool cobalt_vkb_begin_commandbuffer(Device* device, CommandBuffer* buffer, const uint32_t index)
+VK_BINDING_EXPORT bool cobalt_vkb_begin_commandbuffer(CommandBuffer* buffer, const uint32_t index)
 {
 	if(buffer)
 	{
@@ -407,7 +407,7 @@ VK_BINDING_EXPORT bool cobalt_vkb_begin_commandbuffer(Device* device, CommandBuf
 		beginInfo.pNext = nullptr;
 		beginInfo.pInheritanceInfo = nullptr;
 		
-		device->functionTable.beginCommandBuffer(buffer->buffers[index], &beginInfo);
+		buffer->device->functionTable.beginCommandBuffer(buffer->buffers[index], &beginInfo);
 
 		return true;
 	}
@@ -416,7 +416,7 @@ VK_BINDING_EXPORT bool cobalt_vkb_begin_commandbuffer(Device* device, CommandBuf
 }
 
 // TODO: Use RenderPassBeginInfo & SubpassContents
-VK_BINDING_EXPORT bool cobalt_vkb_command_begin_renderpass(Device* device, CommandBuffer* buffer, const uint32_t index, RenderPass* pass, Framebuffer* framebuffer)
+VK_BINDING_EXPORT bool cobalt_vkb_command_begin_renderpass(CommandBuffer* buffer, const uint32_t index, RenderPass* pass, Framebuffer* framebuffer)
 {
 	if (buffer)
 	{
@@ -432,7 +432,7 @@ VK_BINDING_EXPORT bool cobalt_vkb_command_begin_renderpass(Device* device, Comma
 		renderPassInfo.clearValueCount = 1;
 		renderPassInfo.pClearValues = &clearColor;
 
-		device->functionTable.cmdBeginRenderPass(buffer->buffers[index], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+		buffer->device->functionTable.cmdBeginRenderPass(buffer->buffers[index], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 		return true;
 	}
@@ -452,12 +452,12 @@ VK_BINDING_EXPORT bool cobalt_vkb_command_bind_pipeline(CommandBuffer* buffer, c
 	return false;
 }
 
-VK_BINDING_EXPORT bool cobalt_vkb_command_draw(Device* device, CommandBuffer* buffer, const uint32_t index, const uint32_t vertexCount, const uint32_t instanceCount,
+VK_BINDING_EXPORT bool cobalt_vkb_command_draw(CommandBuffer* buffer, const uint32_t index, const uint32_t vertexCount, const uint32_t instanceCount,
 	const uint32_t firstVertex, const uint32_t firstInstance)
 {
 	if (buffer)
 	{
-		device->functionTable.cmdDraw(buffer->buffers[index], vertexCount, instanceCount, firstVertex, firstInstance);
+		buffer->device->functionTable.cmdDraw(buffer->buffers[index], vertexCount, instanceCount, firstVertex, firstInstance);
 
 		return true;
 	}
@@ -465,11 +465,11 @@ VK_BINDING_EXPORT bool cobalt_vkb_command_draw(Device* device, CommandBuffer* bu
 	return false;
 }
 
-VK_BINDING_EXPORT bool cobalt_vkb_command_end_renderpass(Device* device, CommandBuffer* buffer, const uint32_t index)
+VK_BINDING_EXPORT bool cobalt_vkb_command_end_renderpass(CommandBuffer* buffer, const uint32_t index)
 {
 	if (buffer)
 	{
-		device->functionTable.cmdEndRenderPass(buffer->buffers[index]);
+		buffer->device->functionTable.cmdEndRenderPass(buffer->buffers[index]);
 
 		return true;
 	}
@@ -509,11 +509,11 @@ VK_BINDING_EXPORT bool cobalt_vkb_command_bind_index_buffer(CommandBuffer* buffe
 	return false;
 }
 
-VK_BINDING_EXPORT bool cobalt_vkb_commandbuffer_end(Device* device, CommandBuffer* buffer, const uint32_t index)
+VK_BINDING_EXPORT bool cobalt_vkb_commandbuffer_end(CommandBuffer* buffer, const uint32_t index)
 {
 	if (buffer)
 	{
-		device->functionTable.endCommandBuffer(buffer->buffers[index]);
+		buffer->device->functionTable.endCommandBuffer(buffer->buffers[index]);
 
 		return true;
 	}

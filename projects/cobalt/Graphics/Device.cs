@@ -56,6 +56,11 @@ namespace Cobalt.Graphics
             return handle != IntPtr.Zero ? new Device(handle) : null;
         }
 
+        public Buffer CreateBuffer(BufferCreateInfo bufferInfo, BufferMemoryCreateInfo memoryInfo)
+        {
+            return new Buffer(VK.CreateBuffer(handle, bufferInfo, memoryInfo));
+        }
+
         public Shader CreateShader(ShaderCreateInfo createInfo)
         {
             return new Shader(handle, createInfo);

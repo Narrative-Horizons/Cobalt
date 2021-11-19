@@ -311,22 +311,22 @@ namespace Cobalt.Bindings.Vulkan
         public static extern bool DestroyCommandBuffer(Instance device, CommandBuffer buffer, uint index);
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_begin_commandbuffer", CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool BeginCommandBuffer(Instance device, CommandBuffer buffer, uint index);
+        public static extern bool BeginCommandBuffer(CommandBuffer buffer, uint index);
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_command_begin_renderpass", CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool BeginRenderPass(Instance device, CommandBuffer buffer, uint index, RenderPass pass, Framebuffer framebuffer);
+        public static extern bool BeginRenderPass(CommandBuffer buffer, uint index, RenderPass pass, Framebuffer framebuffer);
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_command_bind_pipeline", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool BindPipeline(CommandBuffer buffer, uint bindpoint, uint index, Shader shader);
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_command_draw", CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool Draw(Instance device, CommandBuffer buffer, uint index, uint vertexCount, uint instanceCount, uint firstVertex, uint firstInstance);
+        public static extern bool Draw(CommandBuffer buffer, uint index, uint vertexCount, uint instanceCount, uint firstVertex, uint firstInstance);
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_command_end_renderpass", CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool EndRenderPass(Instance device, CommandBuffer buffer, uint index);
+        public static extern bool EndRenderPass(CommandBuffer buffer, uint index);
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_commandbuffer_end", CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool EndCommandBuffer(Instance device, CommandBuffer buffer, uint index);
+        public static extern bool EndCommandBuffer(CommandBuffer buffer, uint index);
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_create_buffer", CallingConvention = CallingConvention.Cdecl)]
         public static extern Buffer CreateBuffer(Instance device, BufferCreateInfo info, BufferMemoryCreateInfo memoryInfo);

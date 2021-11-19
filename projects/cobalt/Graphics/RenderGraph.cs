@@ -182,7 +182,7 @@ namespace Cobalt.Graphics
             _swapchain = swapchain;
             _framesInFlight = framesInFlight;
 
-            resolvePass = AddPass(new SwapchainResolvePass(), "resolve") as SwapchainResolvePass;
+            //resolvePass = AddPass(new SwapchainResolvePass(), "resolve") as SwapchainResolvePass;
             AddInputAttachment(resolvePass, RenderGraphColorOutputTarget, AttachmentLoadOp.Load, AttachmentStoreOp.DontCare, 0, 0);
             AddColorAttachment(resolvePass, "swapchain", AttachmentLoadOp.Clear, AttachmentStoreOp.Store, 0, 1);
 

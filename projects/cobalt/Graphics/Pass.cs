@@ -27,7 +27,7 @@ namespace Cobalt.Graphics
         public abstract PassType GetPassType();
 
         public abstract void Start(CommandList commandList);
-        public abstract void Execute(CommandList commandList);
+        public abstract void Execute(CommandList commandList, uint frameInFlight);
 
         public Shader AddShader(string name, PassShaderInfo shaderInfo)
         {

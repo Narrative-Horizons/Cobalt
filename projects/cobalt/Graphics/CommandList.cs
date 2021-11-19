@@ -15,6 +15,26 @@ namespace Cobalt.Graphics
             _frameInFlight = frameInFlight;
         }
 
+        public void Begin()
+        {
+            VK.BeginCommandBuffer(_handle, _frameInFlight);
+        }
+
+        public void End()
+        {
+            VK.EndCommandBuffer(_handle, _frameInFlight);
+        }
+
+        public void BeginRenderPass(VK.RenderPass pass, Framebuffer framebuffer)
+        {
+            VK.BeginRenderPass(_handle, _frameInFlight, pass, framebuffer.handle);
+        }
+
+        public void EndRenderPass()
+        {
+            VK.EndRenderPass(_handle, _frameInFlight);
+        }
+
         public void Bind(Shader shader, uint firstSet, Descriptor[] sets,
             uint[] dynamicOffsets)
         {

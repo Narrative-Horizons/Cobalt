@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 namespace Cobalt.Graphics
 {
     [StructLayout(LayoutKind.Explicit)]
-    struct DirectionalLightComponent
+    public struct DirectionalLightComponent
     {
         [FieldOffset(0)]
         public Vector3 Direction;

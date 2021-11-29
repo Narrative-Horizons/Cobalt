@@ -148,7 +148,7 @@ namespace Cobalt.Graphics.Passes
                     mipLevels = 1,
                     sharingMode = (uint) SharingMode.Exclusive,
                     tiling = (uint) ImageTiling.Optimal,
-                    usage = (uint) ImageUsageFlagBits.ColorAttachmentBit
+                    usage = (uint) ImageUsageFlagBits.ColorAttachmentBit | (uint) ImageUsageFlagBits.InputAttachmentBit
                 };
 
                 ImageMemoryCreateInfo colorMemory = new ImageMemoryCreateInfo
@@ -512,7 +512,7 @@ namespace Cobalt.Graphics.Passes
 
                 textureWriteInfo.infos = new[] { textureTypedInfo };*/
 
-                VK.WriteDescriptors(device.handle, 1, new[] { sceneWriteInfo, objectWriteInfo, materialWriteInfo });
+                VK.WriteDescriptors(device.handle, 3, new[] { sceneWriteInfo, objectWriteInfo, materialWriteInfo });
             }
 
             // subpasses
@@ -542,11 +542,25 @@ namespace Cobalt.Graphics.Passes
 
         public override void Execute(CommandList commandList, uint frameInFlight)
         {
-            commandList.BeginRenderPass(_renderPass, _framebuffers[frameInFlight]);
+            ClearValue color = new ClearValue();
+            color.color = new ClearColorValue();
+            unsafe
+            {
+                color.color.float32[0] = 0;
+                color.color.float32[1] = 0;
+                color.color.float32[2] = 0;
+                color.color.float32[3] = 1;
+            }
+
+            ClearValue depth = new ClearValue();
+            depth.depthStencil = new ClearDepthStencilValue();
+            depth.depthStencil.depth = 1.0f;
+
+            commandList.BeginRenderPass(_renderPass, _framebuffers[frameInFlight], new []{color, depth});
 
             commandList.Bind(0, new [] {_vertexBuffer}, new []{0UL});
             commandList.Bind(_indexBuffer, 0, IndexType.Uint32);
-            commandList.Bind(_opaqueShader, 0, new [] {_sceneDescriptor[frameInFlight], _objectDescriptor[frameInFlight], _materialDescriptor[frameInFlight]}, new []{0U, 0U, 0U});
+            commandList.Bind(_opaqueShader, 0, new [] {_sceneDescriptor[frameInFlight], _objectDescriptor[frameInFlight], _materialDescriptor[frameInFlight]}, new uint[]{});
             commandList.Bind(_opaqueShader);
 
             commandList.DrawIndexedIndirect(_indirectBuffer, 0, 1, (uint) Marshal.SizeOf(typeof(DrawIndirectCommand)));

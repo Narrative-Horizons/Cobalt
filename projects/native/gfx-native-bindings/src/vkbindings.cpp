@@ -374,6 +374,7 @@ VK_BINDING_EXPORT CommandBuffer* cobalt_vkb_create_commandbuffer(Device* device,
 
 	buffer->pool = allocInfo.commandPool;
 	buffer->queue = queue;
+	buffer->device = device;
 
 	return buffer;
 }
@@ -416,7 +417,7 @@ VK_BINDING_EXPORT bool cobalt_vkb_begin_commandbuffer(CommandBuffer* buffer, con
 }
 
 // TODO: Use RenderPassBeginInfo & SubpassContents
-VK_BINDING_EXPORT bool cobalt_vkb_command_begin_renderpass(CommandBuffer* buffer, const uint32_t index, RenderPass* pass, Framebuffer* framebuffer)
+VK_BINDING_EXPORT bool cobalt_vkb_command_begin_renderpass(CommandBuffer* buffer, const uint32_t index, RenderPass* pass, Framebuffer* framebuffer, VkClearValue* clearValues, uint32_t clearValuesCount)
 {
 	if (buffer)
 	{
@@ -428,9 +429,8 @@ VK_BINDING_EXPORT bool cobalt_vkb_command_begin_renderpass(CommandBuffer* buffer
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = { 1280, 720 };
 
-		VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0}} };
-		renderPassInfo.clearValueCount = 1;
-		renderPassInfo.pClearValues = &clearColor;
+		renderPassInfo.clearValueCount = clearValuesCount;
+		renderPassInfo.pClearValues = clearValues;
 
 		buffer->device->functionTable.cmdBeginRenderPass(buffer->buffers[index], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
@@ -1111,8 +1111,6 @@ VK_BINDING_EXPORT DescriptorSet* cobalt_vkb_allocate_descriptors(Shader* shader)
 				results[i].parent = &pools[idx];
 				
 				++allocatedSets;
-				
-				break;
 			}
 			idx++;
 		}
@@ -1840,12 +1838,12 @@ VK_BINDING_EXPORT bool cobalt_vkb_draw_indexed_indirect(CommandBuffer* buffer, c
 }
 
 VK_BINDING_EXPORT bool cobalt_vkb_bind_descriptor_sets(CommandBuffer* buffer, const  uint32_t index, uint32_t pipelineBindPoint,
-	Shader* pipeline, const uint32_t firstSet, const uint32_t descriptorSetCount, DescriptorSet** sets, const uint32_t dynamicOffsetCount, uint32_t* dynamicOffsets)
+	Shader* pipeline, const uint32_t firstSet, const uint32_t descriptorSetCount, IndexedDescriptorSet* sets, const uint32_t dynamicOffsetCount, uint32_t* dynamicOffsets)
 {
 	std::vector<VkDescriptorSet> descSets;
 	for(uint32_t i = 0; i < descriptorSetCount; i++)
 	{
-		descSets.push_back(sets[i]->set);
+		descSets.push_back(sets[i].sets[sets[i].index].set);
 	}
 	
 	buffer->device->functionTable.cmdBindDescriptorSets(buffer->buffers[index], static_cast<VkPipelineBindPoint>(pipelineBindPoint), pipeline->pipelineLayout.layout, firstSet,

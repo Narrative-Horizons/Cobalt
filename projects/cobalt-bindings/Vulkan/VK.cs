@@ -267,6 +267,14 @@ namespace Cobalt.Bindings.Vulkan
             }
         }
 
+        [StructLayout(LayoutKind.Explicit)]
+        public struct IndexedDescriptorSet
+        {
+            [FieldOffset(0)]
+            public DescriptorSet sets;
+            [FieldOffset(8)]
+            public uint index;
+        }
         #endregion
 
         #region DLL Loading
@@ -314,7 +322,7 @@ namespace Cobalt.Bindings.Vulkan
         public static extern bool BeginCommandBuffer(CommandBuffer buffer, uint index);
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_command_begin_renderpass", CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool BeginRenderPass(CommandBuffer buffer, uint index, RenderPass pass, Framebuffer framebuffer);
+        public static extern bool BeginRenderPass(CommandBuffer buffer, uint index, RenderPass pass, Framebuffer framebuffer, ClearValue[] clearValues, uint clearValueCount);
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_command_bind_pipeline", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool BindPipeline(CommandBuffer buffer, uint bindpoint, uint index, Shader shader);
@@ -428,7 +436,7 @@ namespace Cobalt.Bindings.Vulkan
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_bind_descriptor_sets", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool BindDescriptorSets(CommandBuffer buffer, uint index,
-            uint pipelineBindPoint, Shader pipeline, uint firstSet, uint descriptorSetCount, DescriptorSet[] sets, uint dynamicOffsetCount, uint[] dynamicOffsets);
+            uint pipelineBindPoint, Shader pipeline, uint firstSet, uint descriptorSetCount, IndexedDescriptorSet[] sets, uint dynamicOffsetCount, uint[] dynamicOffsets);
 
         [DllImport(Library, EntryPoint = "cobalt_vkb_command_bind_vertex_buffers", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool BindVertexBuffers(CommandBuffer buffer, uint index, uint firstBinding, uint bindingCount, 

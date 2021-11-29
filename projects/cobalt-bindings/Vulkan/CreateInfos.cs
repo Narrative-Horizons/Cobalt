@@ -540,10 +540,33 @@ namespace Cobalt.Bindings.Vulkan
         public float height;
     }
 
-    public struct ClearValue
+    [StructLayout(LayoutKind.Explicit)]
+    public unsafe struct ClearColorValue 
     {
-        public Vector4 color;
-        public float? depth;
+        [FieldOffset(0)]
+        public fixed float float32[4];
+        [FieldOffset(0)]
+        public fixed int int32[4];
+        [FieldOffset(0)]
+        public fixed uint uint32[4];
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct ClearDepthStencilValue
+    {
+        [FieldOffset(0)]
+        public float depth;
+        [FieldOffset(4)]
+        public uint stencil;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct ClearValue 
+    {
+        [FieldOffset(0)]
+        public ClearColorValue color;
+        [FieldOffset(0)]
+        public ClearDepthStencilValue depthStencil;
     }
 
     [StructLayout(LayoutKind.Explicit)]

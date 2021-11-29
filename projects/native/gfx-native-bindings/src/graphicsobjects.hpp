@@ -98,6 +98,12 @@ struct DescriptorSet
 	uint32_t inputAttachmentCount;
 };
 
+struct IndexedDescriptorSet
+{
+	DescriptorSet* sets;
+	uint32_t index;
+};
+
 struct FixedDescriptorSetPool
 {
 	VkDescriptorPool pool;

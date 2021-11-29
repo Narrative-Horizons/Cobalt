@@ -25,9 +25,9 @@ namespace Cobalt.Graphics
             VK.EndCommandBuffer(_handle, _frameInFlight);
         }
 
-        public void BeginRenderPass(VK.RenderPass pass, Framebuffer framebuffer)
+        public void BeginRenderPass(VK.RenderPass pass, Framebuffer framebuffer, ClearValue[] clearValues)
         {
-            VK.BeginRenderPass(_handle, _frameInFlight, pass, framebuffer.handle);
+            VK.BeginRenderPass(_handle, _frameInFlight, pass, framebuffer.handle, clearValues, (uint)clearValues.Length);
         }
 
         public void EndRenderPass()
@@ -38,8 +38,10 @@ namespace Cobalt.Graphics
         public void Bind(Shader shader, uint firstSet, Descriptor[] sets,
             uint[] dynamicOffsets)
         {
+            VK.IndexedDescriptorSet[] indexedSets = sets.GroupBy(set => set.setIndex).Select(set => set.First()).Select(set => new VK.IndexedDescriptorSet() {index= set.setIndex, sets=set.handle}).ToArray();
+
             VK.BindDescriptorSets(_handle, _frameInFlight, (uint) shader.bindPoint, shader.handle, firstSet,
-                (uint) sets.Length, sets.Select(set => set.handle).ToArray(), (uint) dynamicOffsets.Length, dynamicOffsets);
+                (uint)indexedSets.Length, indexedSets, (uint) dynamicOffsets.Length, dynamicOffsets);
         }
 
         public void Bind(Shader shader)

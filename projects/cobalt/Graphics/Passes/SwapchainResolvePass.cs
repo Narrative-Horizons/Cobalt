@@ -10,7 +10,6 @@ namespace Cobalt.Graphics.Passes
 
         private readonly uint _framesInFlight;
 
-        private readonly Descriptor[] _textureDescriptor;
         private readonly Framebuffer[] _framebuffers;
 
 
@@ -18,7 +17,7 @@ namespace Cobalt.Graphics.Passes
         {
             _framesInFlight = framesInFlight;
 
-            AttachmentDescription colorDesc = new AttachmentDescription
+            AttachmentDescription inputDesc = new AttachmentDescription
             {
                 initialLayout = (uint) ImageLayout.Undefined,
                 finalLayout = (uint) ImageLayout.ShaderReadOnlyOptimal,
@@ -29,24 +28,43 @@ namespace Cobalt.Graphics.Passes
                 flags = 0
             };
 
-            AttachmentReference colorBuffer = new AttachmentReference
+            AttachmentReference inputBuffer = new AttachmentReference
             {
                 attachment = 0,
                 layout = (uint) ImageLayout.ShaderReadOnlyOptimal
             };
 
+            AttachmentDescription outputDesc = new AttachmentDescription
+            {
+                initialLayout = (uint)ImageLayout.Undefined,
+                finalLayout = (uint)ImageLayout.PresentSrcKHR,
+                format = (uint)Format.B8G8R8A8Srgb,
+                samples = (uint)SampleCountFlagBits.Count1Bit,
+                loadOp = (uint)AttachmentLoadOp.Load,
+                storeOp = (uint)AttachmentStoreOp.Store,
+                flags = 0
+            };
+
+            AttachmentReference outputBuffer = new AttachmentReference
+            {
+                attachment = 1,
+                layout = (uint)ImageLayout.ColorAttachmentOptimal
+            };
+
             SubpassDescription swapchainResolvePass = new SubpassDescription
             {
-                attachments = new[] {colorBuffer},
+                attachments = new[] {inputBuffer},
                 inputAttachmentCount = 1,
+                colorAttachments = new []{outputBuffer},
+                colorAttachmentCount = 1,
                 pipelineBindPoint = (uint) PipelineBindPoint.Graphics,
                 flags = 0
             };
 
             RenderPassCreateInfo renderPassInfo = new RenderPassCreateInfo
             {
-                attachments = new[] {colorDesc},
-                attachmentCount = 1,
+                attachments = new[] {inputDesc, outputDesc},
+                attachmentCount = 2,
                 subpasses = new[] {swapchainResolvePass},
                 subpassCount = 1
             };
@@ -82,51 +100,14 @@ namespace Cobalt.Graphics.Passes
 
             _resolveShader = device.CreateShader(resolveShaderInfo);
 
-            _textureDescriptor = new Descriptor[_framesInFlight];
-            for (uint i = 0; i < _framesInFlight; i++)
-            {
-                VK.DescriptorSet set = VK.AllocateDescriptors(_resolveShader.handle);
-
-                _textureDescriptor[i] = new Descriptor(set, 0, 0);
-
-                DescriptorWriteInfo textureWriteInfo = new DescriptorWriteInfo
-                {
-                    sets = set,
-                    set = 0,
-                    binding = 0,
-                    count = 1,
-                    element = 0,
-                    type = (uint) DescriptorType.InputAttachment
-                };
-
-                ImageWriteInfo textureSamplerInfo = new ImageWriteInfo
-                {
-                    view = image[i].handle, 
-                    sampler = sampler, 
-                    layout = (uint) ImageLayout.ShaderReadOnlyOptimal
-                };
-
-                TypedWriteInfo textureTypedInfo = new TypedWriteInfo
-                {
-                    images = textureSamplerInfo
-                };
-
-                textureWriteInfo.infos = new[]
-                {
-                    textureTypedInfo
-                };
-
-                VK.WriteDescriptors(device.handle, 1, new[] { textureWriteInfo });
-            }
-
             _framebuffers = new Framebuffer[_framesInFlight];
 
             for (uint i = 0; i < _framesInFlight; i++)
             {
                 FramebufferCreateInfo framebufferInfo = new FramebufferCreateInfo
                 {
-                    attachmentCount = 1,
-                    attachments = new[] {VK.GetSwapChainImageView(swapchain.handle, i)},
+                    attachmentCount = 2,
+                    attachments = new[] { image[i].handle, VK.GetSwapChainImageView(swapchain.handle, i) },
                     height = 720,
                     width = 1280,
                     layers = 1,
@@ -149,9 +130,18 @@ namespace Cobalt.Graphics.Passes
 
         public override void Execute(CommandList commandList, uint frameInFlight)
         {
-            commandList.BeginRenderPass(_renderPass, _framebuffers[frameInFlight]);
+            ClearValue clear = new ClearValue();
+            clear.color = new ClearColorValue();
+            unsafe
+            {
+                clear.color.float32[0] = 0;
+                clear.color.float32[1] = 0;
+                clear.color.float32[2] = 0;
+                clear.color.float32[3] = 1;
+            }
 
-            commandList.Bind(_resolveShader, 0, new[] { _textureDescriptor[frameInFlight] }, new[] { 0U });
+            commandList.BeginRenderPass(_renderPass, _framebuffers[frameInFlight], new []{clear});
+
             commandList.Bind(_resolveShader);
 
             commandList.Draw(6, 1, 0, 0);

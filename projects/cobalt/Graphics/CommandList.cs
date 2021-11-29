@@ -6,7 +6,7 @@ namespace Cobalt.Graphics
 {
     public class CommandList
     {
-        private readonly VK.CommandBuffer _handle;
+        internal readonly VK.CommandBuffer _handle;
         private readonly uint _frameInFlight;
 
         internal CommandList(VK.CommandBuffer buffer, uint frameInFlight)
@@ -56,6 +56,11 @@ namespace Cobalt.Graphics
         public void Bind(Buffer indexBuffer, ulong offset, IndexType indexType)
         {
             VK.BindIndexBuffer(_handle, _frameInFlight, indexBuffer.handle, offset, (uint) indexType);
+        }
+
+        public void Draw(uint vertexCount, uint instanceCount, uint firstVertex, uint firstInstance)
+        {
+            VK.Draw(_handle, _frameInFlight, vertexCount, instanceCount, firstVertex, firstInstance);
         }
 
         public void DrawIndexedIndirect(Buffer indirectBuffer, ulong offset, uint drawCount, uint stride)

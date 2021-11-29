@@ -3,7 +3,7 @@
 layout(early_fragment_tests) in;
 
 #define MAX_TEX_COUNT 500
-layout(set = 1, binding = 2) uniform sampler2D texArray[MAX_TEX_COUNT];
+//layout(set = 1, binding = 2) uniform sampler2D texArray[MAX_TEX_COUNT];
 
 const float PI = 3.14159265359;
 
@@ -73,7 +73,8 @@ layout(location = 0) out vec4 FragColor;
 
 vec3 GetNormalFromMap(uint normalId)
 {
-    vec3 tangentNormal = texture(texArray[normalId], inData.texcoord0).xyz * 2.0 - 1.0;
+    //vec3 tangentNormal = texture(texArray[normalId], inData.texcoord0).xyz * 2.0 - 1.0;
+    vec3 tangentNormal = vec3(0);
 
     vec3 Q1  = dFdx(inData.worldPos);
     vec3 Q2  = dFdy(inData.worldPos);
@@ -135,7 +136,7 @@ void main()
     ObjectData myData = objects[instance];
     MaterialData myMaterial = materials[myData.materialID];
 
-    vec3 albedo = pow(texture(texArray[myMaterial.albedo], inData.texcoord0).rgb, vec3(2.2));
+    /*vec3 albedo = pow(texture(texArray[myMaterial.albedo], inData.texcoord0).rgb, vec3(2.2));
     float metallic = texture(texArray[myMaterial.ORM], inData.texcoord0).b;
     float roughness = texture(texArray[myMaterial.ORM], inData.texcoord0).g;
     float ao = texture(texArray[myMaterial.ORM], inData.texcoord0).r;
@@ -175,7 +176,9 @@ void main()
     vec3 color = ambient + Light0;
 
     color = color / (color + vec3(1.0));
-    color = pow(color, vec3(1.0 / 2.2));
+    color = pow(color, vec3(1.0 / 2.2));*/
+
+    vec3 color = vec3(1, 0, 1);
 
     FragColor = vec4(color, 1);
 }

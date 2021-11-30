@@ -1035,6 +1035,86 @@ VK_BINDING_EXPORT bool cobalt_vkb_destroy_shader(Device* device, Shader* shader)
 	return false;
 }
 
+FixedDescriptorSetPool cobalt_allocate_descriptor_pool(Shader* shader, std::unordered_map<VkDescriptorType, size_t>& requiredCounts)
+{
+	auto& [pools] = shader->descPool;
+	
+	// allocate new pool
+	VkDescriptorPoolCreateInfo poolInfo;
+	std::vector<VkDescriptorPoolSize> sizes;
+
+	for (const auto& [type, count] : requiredCounts)
+	{
+		if (count == 0)
+		{
+			continue;
+		}
+
+		VkDescriptorPoolSize sz;
+		sz.descriptorCount = static_cast<uint32_t>(count);
+		sz.type = type;
+
+		sizes.push_back(sz);
+	}
+
+	poolInfo.maxSets = 32;
+	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	poolInfo.pNext = VK_NULL_HANDLE;
+	poolInfo.poolSizeCount = static_cast<uint32_t>(sizes.size());
+	poolInfo.pPoolSizes = sizes.data();
+	poolInfo.flags = 0;
+
+	FixedDescriptorSetPool p;
+	const auto result = shader->device->functionTable.createDescriptorPool(&poolInfo, shader->device->device.allocation_callbacks, &(p.pool));
+
+	if (result != VK_SUCCESS)
+	{
+		// what the dog doing
+		assert(false);
+		return p;
+	}
+
+	constexpr size_t multiplier = 32;
+	p.allocatedSets = 0;
+	p.maxSets = poolInfo.maxSets;
+	p.samplerCount = p.samplerCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_SAMPLER] * multiplier);
+	p.combinedImageSamplerCount = p.combinedImageSamplerCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] * multiplier);
+	p.sampledImageCount = p.sampledImageCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE] * multiplier);
+	p.storageImageCount = p.storageImageCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_IMAGE]) * multiplier;
+	p.uniformTexelBufferCount = p.uniformTexelBufferCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER]) * multiplier;
+	p.storageTexelBufferCount = p.storageTexelBufferCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER]) * multiplier;
+	p.uniformBufferCount = p.uniformBufferCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER]) * multiplier;
+	p.storageBufferCount = p.storageBufferCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER]) * multiplier;
+	p.dynamicUniformBufferCount = p.dynamicUniformBufferCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC]) * multiplier;
+	p.dynamicStorageBufferCount = p.dynamicStorageBufferCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC]) * multiplier;
+	p.inputAttachmentCount = p.inputAttachmentCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT]) * multiplier;
+
+	pools.push_back(p);
+
+	return p;
+}
+
+DescriptorSet cobalt_allocate_set(DescriptorSet* setArray, uint32_t i, VkDescriptorPool pool, VkDescriptorSetLayout layout, Shader* shader)
+{
+	VkDescriptorSetAllocateInfo info;
+	info.descriptorPool = pool;
+	info.descriptorSetCount = 1;
+	info.pSetLayouts = &layout;
+	info.pNext = VK_NULL_HANDLE;
+	info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+
+	const auto result = shader->device->functionTable.allocateDescriptorSets(&info, &(setArray[i].set));
+	if (result != VK_SUCCESS)
+	{
+		// well shit
+		// TODO: figure out what to do here
+		assert(false);
+		return DescriptorSet();
+	}
+
+	return setArray[i];
+}
+
 VK_BINDING_EXPORT DescriptorSet* cobalt_vkb_allocate_descriptors(Shader* shader)
 {
 	auto& [layout, sets] = shader->pipelineLayout;
@@ -1055,6 +1135,8 @@ VK_BINDING_EXPORT DescriptorSet* cobalt_vkb_allocate_descriptors(Shader* shader)
 
 		bool successful = false;
 		uint32_t idx = 0;
+		FixedDescriptorSetPool poolToAllocFrom;
+
 		for (auto& [pool, samplerCapacity, combinedImageSamplerCapacity, sampledImageCapacity, 
 			storageImageCapacity, uniformTexelBufferCapacity, storageTexelBufferCapacity, uniformBufferCapacity, 
 			storageBufferCapacity, dynamicUniformBufferCapacity, dynamicStorageBufferCapacity, inputAttachmentCapacity, 
@@ -1081,94 +1163,39 @@ VK_BINDING_EXPORT DescriptorSet* cobalt_vkb_allocate_descriptors(Shader* shader)
 
 			if (successful)
 			{
-				VkDescriptorSetAllocateInfo info;
-				info.descriptorPool = pool;
-				info.descriptorSetCount = 1;
-				info.pSetLayouts = &layout;
-				info.pNext = VK_NULL_HANDLE;
-				info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-
-				const auto result = shader->device->functionTable.allocateDescriptorSets(&info, &(results[i].set));
-				if (result != VK_SUCCESS)
-				{
-					// well shit
-					// TODO: figure out what to do here
-					break;
-				}
-
-				combinedImageSamplerCount -= requiredCounts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER];
-				dynamicStorageBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC];
-				dynamicUniformBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC];
-				inputAttachmentCount -= requiredCounts[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT];
-				sampledImageCount -= requiredCounts[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE];
-				samplerCount -= requiredCounts[VK_DESCRIPTOR_TYPE_SAMPLER];
-				storageBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER];
-				storageImageCount -= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_IMAGE];
-				storageTexelBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER];
-				uniformBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER];
-				uniformTexelBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER];
-
-				results[i].parent = &pools[idx];
-				
-				++allocatedSets;
+				poolToAllocFrom = pools[idx];
+				break;
 			}
+			
 			idx++;
 		}
-
+		
 		if (!successful)
 		{
-			// allocate new pool
-			VkDescriptorPoolCreateInfo poolInfo;
-			std::vector<VkDescriptorPoolSize> sizes;
+			// Needs bigger pool
+			poolToAllocFrom = cobalt_allocate_descriptor_pool(shader, requiredCounts);
+			successful = true;
+		}
 
-			for (const auto& [type, count] : requiredCounts)
-			{
-				if (count == 0)
-				{
-					continue;
-				}
+		if (successful)
+		{
+			cobalt_allocate_set(results, i, poolToAllocFrom.pool, layout, shader);
 
-				VkDescriptorPoolSize sz;
-				sz.descriptorCount = static_cast<uint32_t>(count);
-				sz.type = type;
+			pools[idx].combinedImageSamplerCount -= requiredCounts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER];
+			pools[idx].dynamicStorageBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC];
+			pools[idx].dynamicUniformBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC];
+			pools[idx].inputAttachmentCount -= requiredCounts[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT];
+			pools[idx].sampledImageCount -= requiredCounts[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE];
+			pools[idx].samplerCount -= requiredCounts[VK_DESCRIPTOR_TYPE_SAMPLER];
+			pools[idx].storageBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER];
+			pools[idx].storageImageCount -= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_IMAGE];
+			pools[idx].storageTexelBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER];
+			pools[idx].uniformBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER];
+			pools[idx].uniformTexelBufferCount -= requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER];
 
-				sizes.push_back(sz);
-			}
+			results[i].parent = &pools[idx];
 
-			poolInfo.maxSets = 32;
-			poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-			poolInfo.pNext = VK_NULL_HANDLE;
-			poolInfo.poolSizeCount = static_cast<uint32_t>(sizes.size());
-			poolInfo.pPoolSizes = sizes.data();
-			poolInfo.flags = 0;
-
-			FixedDescriptorSetPool p;
-			const auto result = shader->device->functionTable.createDescriptorPool(&poolInfo, shader->device->device.allocation_callbacks, &(p.pool));
-
-			if (result != VK_SUCCESS)
-			{
-				// what the dog doing
-				continue;
-			}
-
-			constexpr size_t multiplier = 32;
-			p.allocatedSets = 0;
-			p.maxSets = poolInfo.maxSets;
-			p.samplerCount = p.samplerCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_SAMPLER] * multiplier);
-			p.combinedImageSamplerCount = p.combinedImageSamplerCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER] * multiplier);
-			p.sampledImageCount = p.sampledImageCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE] * multiplier);
-			p.storageImageCount = p.storageImageCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_IMAGE]) * multiplier;
-			p.uniformTexelBufferCount = p.uniformTexelBufferCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER]) * multiplier;
-			p.storageTexelBufferCount = p.storageTexelBufferCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER]) * multiplier;
-			p.uniformBufferCount = p.uniformBufferCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER]) * multiplier;
-			p.storageBufferCount = p.storageBufferCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER]) * multiplier;
-			p.dynamicUniformBufferCount = p.dynamicUniformBufferCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC]) * multiplier;
-			p.dynamicStorageBufferCount = p.dynamicStorageBufferCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC]) * multiplier;
-			p.inputAttachmentCount = p.inputAttachmentCapacity = static_cast<uint32_t>(requiredCounts[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT]) * multiplier;
-
-			pools.push_back(p);
-
-			return cobalt_vkb_allocate_descriptors(shader);
+			++pools[idx].allocatedSets;
 		}
 	}
 
